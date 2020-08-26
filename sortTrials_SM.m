@@ -1,4 +1,4 @@
-function [IDstruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,varargin)
+function [IDstruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,varargin)
 %Sort into trial IDs and plot example spikes 
 %OUTPUT - the structure containing spiking information for each trial/repeat where
 %each cell relates to one trial ID. The array in this cell is in the format
@@ -11,8 +11,8 @@ function [IDstruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,v
 
 %Elecrode properties
 filepath = pwd;
-fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
-fileinfo = dir([filepath,'\info.rhs']);
+fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
+fileinfo = dir([filepath filesep 'info.rhs']);
 if (datetime(fileinfo.date) < fourShank_cutoff)
     nChn=32;
     E_Mapnumber=0;
@@ -31,15 +31,12 @@ loadThreshold;
 TrialParams = loadTrialParams;
 loadNREP;%number repeats
 spike =0;
-name = pwd;
-name = strsplit(name,'\');
-name = name{end};
+[filepathm,name,ext] = fileparts(filepath);
 name = name(1:end-14);
 load([name '.sp.mat'])
 maxtid=max(cell2mat(TrialParams(:,2)));
 nospI=[];
 IDstruct=[];
-loopcount=0;
 
 
 % C5 = intersect(spikedetailstrig(:,1),spikedetailstrig1(:,1)); %middle electrodes
@@ -59,9 +56,8 @@ end
 dispstat('','init');
 dispstat(sprintf('Working through trial: '),'keepthis','n');
 % Sort into trial IDs and plot spikes for trial 1
-for tID=1:maxtid
-    loopcount=1+loopcount;
-    dispstat(sprintf('%d',loopcount));
+for tID=starttrial:trialjump:endtrial
+    dispstat(sprintf('%d',tID));
     if isempty(TrialParams(cell2mat(TrialParams(1:end,2)) == tID))
         fprintf('No trial ID: %d\n',tID)
     else
@@ -128,22 +124,15 @@ for tID=1:maxtid
                     spike=size(spikedetailstrig,1);
                     if printspiking>0
                         if (size(varargin,2)==0) || (cell2mat(varargin(1))==0)
-                            if ((tID>19) && (tID<21)) && (((indT>=1) && (indT<=45))) %%||( (tID>15) && (tID<19)) %
+                            if ((tID>5) && (tID<15)) && (((indT>=10) && (indT<=25))) %%||( (tID>15) && (tID<19)) %
                                 figure(find(E_MAP==chsp))
                                 hold on
                                 plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50))
                                 title(['Channel ' num2str(find(E_MAP==chsp))])
                                 ylabel('Spike amplitude (uV)')
                                 xlabel('Time (ms)')
+                                
                             end
-%                             if ((tID>73) && (tID<78)) && ((indT>=40) && (indT<=50)) %%||( (tID>15) && (tID<19)) %
-%                                 figure(E_MAP(chsp)+32)
-%                                 hold on
-%                                 plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50))
-%                                 title(['Channel ' num2str(E_MAP(chsp))])
-%                                 ylabel('Spike amplitude (uV)')
-%                                 xlabel('Time (ms)')
-%                             end
                         else
                             if ((tID>0) && (tID<=maxtid)) && (indT<=1)% prints all spikes after trigger
                                 figure(find(E_MAP==chsp))

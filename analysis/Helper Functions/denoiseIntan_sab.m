@@ -12,9 +12,8 @@ end
 if strcmp(dName,'analogin')
     nChn = 1;
 elseif strcmp(dName,'amplifier')
-    filepath = pwd;
-    fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
-    fileinfo = dir([filepath,'\info.rhs']);
+    fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
+    fileinfo = dir([filepath, filesep, 'info.rhs']);
     if (datetime(fileinfo.date) < fourShank_cutoff)
         nChn=32;
         E_Mapnumber=0;
@@ -26,28 +25,25 @@ elseif strcmp(dName,'amplifier')
             nChn=32;
         end
     end
-    E_MAP = ProbeMAP;
-    E_MAP = E_MAP(:,E_Mapnumber+5);
-    E_MAP(1)=[];
-    if isempty(E_MAP{35})
-        E_MAP=E_MAP(1:33);
-    end
+    E_MAP = Depth;
 end
 shortbytes=2;
 FS = 30000;
 %% Deal with the digital lines
+if isempty(dir('*.trig.dat'))
 cleanTrig_sabquick;
+end
 %% Blank stimulation artefact
 trig = loadTrig(0);
 theseTrig = trig;
 if isempty(dir([dName '_dn_sab.dat']))
     if ~isempty(theseTrig)
-        info = dir([filepath '\' dName '.dat']);
+        info = dir([filepath filesep dName '.dat']);
         info = info.bytes/2;
         nL = (ceil(info / (nChn*FS*double(T)))+1);
         %lvFID = fopen([filepath '\' dName '.dat'],'r');
-        vFID = fopen([filepath '\' dName '.dat'],'r');
-        vdnFID = fopen([filepath '\' dName '_dn_sab.dat'],'W');
+        vFID = fopen([filepath filesep dName '.dat'],'r');
+        vdnFID = fopen([filepath filesep dName '_dn_sab.dat'],'W');
         %lbFID = fopen([filepath '\' dName '_lfpraw.dat'],'w');
         N = 1;
         CHK = split(filepath,'_');

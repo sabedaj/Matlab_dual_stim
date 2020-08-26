@@ -19,7 +19,7 @@ if (Blackrock)
 else
     filepath = pwd;
     fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
-    fileinfo = dir([filepath,'\info.rhs']);
+    fileinfo = dir([filepath,filesep, 'info.rhs']);
     if (datetime(fileinfo.date) < fourShank_cutoff)
         nChn=32;
         E_Mapnumber=0;
@@ -31,13 +31,7 @@ else
             nChn=32;
         end
     end
-    E_MAP = ProbeMAP;
-    E_MAP = E_MAP(:,E_Mapnumber+5);
-    E_MAP(1,1)=[];
-    E_MAP=E_MAP+1;
-    if isempty(E_MAP{35})
-        E_MAP=E_MAP(1:33);
-    end
+    E_MAP = Depth(E_Mapnumber);
 end
 FS = 30000;
 BIN = [Binstart Binend]; % ms
@@ -56,18 +50,18 @@ figure; hold on;
 for tt = tID    
     if (Blackrock)
         trig = loadTrigBR(0);
-        mDIR = dir([file '\*muBR.dat']);
+        mDIR = dir([file filesep '*muBR.dat']);
     else
         trig = loadTrig(0);
-        trig(550/2:588/2)=0;
-        trig(7244/2:7246/2)=0;
-        b = [0]; 
-        k = 550/2; %row position, can be 0,1,2 or 3 in this case
-        trig = [trig(1,1:k) b trig(1,k+1:end)];
-        k = 7244/2; %row position, can be 0,1,2 or 3 in this case
-        trig = [trig(1,1:k) b trig(1,k+1:end)];
+%         trig(550/2:588/2)=0;
+%         trig(7244/2:7246/2)=0;
+%         b = [0]; 
+%         k = 550/2; %row position, can be 0,1,2 or 3 in this case
+%         trig = [trig(1,1:k) b trig(1,k+1:end)];
+%         k = 7244/2; %row position, can be 0,1,2 or 3 in this case
+%         trig = [trig(1,1:k) b trig(1,k+1:end)];
         if strcmp(type,'MU')
-            mDIR = dir([file '\*mu_sab.dat']);
+            mDIR = dir([file filesep '*mu_sab.dat']);
         elseif strcmp(type,'MUA')
             mDIR = dir('MUAdata.dat');
             SPACING = 50;
@@ -77,7 +71,7 @@ for tt = tID
         end
     end
     mNAME = mDIR.name;
-    mFID = fopen([file '\' mNAME],'r');
+    mFID = fopen([file filesep mNAME],'r');
     TrialParams = loadTrialParams;
     if ~isempty(TrialParams)
         TrialParams = find(cell2mat(TrialParams(:,2)) == tt);
@@ -103,9 +97,19 @@ for tt = tID
         for c = chan
             a = a + 1;
             if c == stimChn
-                plot(X,v(d(c),:) + (a-1)*SPACING + (t-1)*SPACING,'Color','r');
+                if (length(Chosen_trig)==1)&&(length(chan)==1)
+                    plot(X,v(d(c),:) + (a-1)*SPACING,'Color','r');
+                    ylabel('uV')
+                else 
+                    plot(X,v(d(c),:) + (a-1)*SPACING + (t-1)*SPACING,'Color','r');
+                end
             else
-                plot(X,v(d(c),:) + (a-1)*SPACING + (t-1)*SPACING,'Color','k');
+                if (length(Chosen_trig)==1)&&(length(chan)==1)
+                   plot(X,v(d(c),:) + (a-1)*SPACING,'Color','k')
+                    ylabel('uV')
+                else
+                    plot(X,v(d(c),:) + (a-1)*SPACING + (t-1)*SPACING,'Color','k');
+                end
                 %line([X(1) X(end)],[thresh{d(c)} + (a-1)*SPACING + (t-1)*SPACING thresh{d(c)} + (a-1)*SPACING + (t-1)*SPACING],'Color','r');
             end
             %text(0,(a-1)*SPACING+150,num2str(c));

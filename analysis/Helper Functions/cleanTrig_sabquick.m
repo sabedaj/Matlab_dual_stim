@@ -2,7 +2,7 @@
 FS = 30000;
 filepath = pwd;
 fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
-fileinfo = dir([filepath,'\info.rhs']);
+fileinfo = dir([filepath, filesep, 'info.rhs']);
 if (datetime(fileinfo.date) < fourShank_cutoff)
     nChn=32;
     E_Mapnumber=0;
@@ -15,8 +15,7 @@ else
     end
 end
 name = pwd;
-name = strsplit(name,'\');
-name = name{end};
+[FP,name,ext] = fileparts(name);
 name = name(1:end-14);
 %% Deal with the digital lines
 disp('Cleaning the digital lines');
@@ -99,7 +98,7 @@ if length(trig)<(length(TP)/2)
     file = pwd;
     mDIR = dir('amplifier.dat');
     mNAME = mDIR.name;
-    mFID = fopen([file '/' mNAME], 'r');
+    mFID = fopen([file filesep mNAME], 'r');
     fprintf('Correcting for missing triggers.\n');
     loadStimParams;
     StimParams(1,:) = [];

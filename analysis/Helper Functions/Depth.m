@@ -2,7 +2,7 @@ function depth = Depth(varargin)
 filepath = pwd;
 NN_cutoff = datetime('06-Nov-2018 00:00:00');
 Flex_cutoff = datetime('14-Jul-2020 00:00:00');
-fileinfo = dir([filepath,'\info.rhs']);
+fileinfo = dir([filepath filesep 'info.rhs']);
 nChn=32;
 if datetime(fileinfo.date) < NN_cutoff
     NN_order = 0;
@@ -30,9 +30,11 @@ if nargin==1
     if E_Mapnumber>0
         nChn=64;
         p=6;
-    else
+    elseif datetime(fileinfo.date) > Flex_cutoff
         nChn=32;
         p=5;
+    else
+        p=3;
     end
 end
 E_MAP = ProbeMAP;

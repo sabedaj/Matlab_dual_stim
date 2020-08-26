@@ -1,4 +1,4 @@
-function allExtract_sab_1(dName,T,par,artefact,artefact_high)
+function allExtract_sab_1(dName,filepath,T,par,artefact,artefact_high)
 %% This function takes a blanked Intan datafile (amplifier_dn)
 % and constructs mu
 %% Variables
@@ -6,9 +6,8 @@ FS = 30000;
 if strcmp(dName,'analogin')
     nChn = 1;
 elseif strcmp(dName,'amplifier')
-    filepath = pwd;
-    fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
-    fileinfo = dir([filepath,'\info.rhs']);
+    fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
+    fileinfo = dir([filepath filesep 'info.rhs']);
     if (datetime(fileinfo.date) < fourShank_cutoff)
         nChn=32;
         E_Mapnumber=0;
@@ -29,8 +28,8 @@ chk = 1; N = 0; time = 0;
 NSp = zeros(1,nChn);
 Ninput = 1e6;
 ARTMAX = 0.5e3;
-name = pwd;
-name = strsplit(name,'\');
+name = filepath;
+name = strsplit(name, filesep);
 name = name{end};
 name = name(1:end-14);
 if isempty(dir('*.mu_sab.dat'))
@@ -60,53 +59,56 @@ ntimes = ceil(fileinfo.bytes / 2 / nChn / FS / T);
 LfpNf = length(Lfpfilt);
 MuNf = length(Mufilt);
 %% Calculate thresholds
-dispstat('','init');
-dispstat(sprintf('Processing thresholds . . .'),'keepthis','n');
-for iChn = 1:nChn
-    sp{iChn} = zeros(ceil(ntimes * double(T) * 20), FS * 1.6 / 1e3 + 1 + 1);
-end
-artchk = zeros(1,nChn);
-munoise = cell(1,nChn);
-nRun = 0;
-tRun = ceil(nSam / FS / 10) + 1; % Number of 10 second chunks of time in the data
-while sum(artchk) < nChn
-    if strcmp(dName,'analogin')        
-        v = fread(v_fid, [nChn, FS*20], 'uint16');
-        v = (v - 32768) .* 0.0003125;
-    elseif strcmp(dName,'amplifier')  
-        %v = vblank(1:nChn, 1:FS*20);
-        v = fread(v_fid, [nChn, FS*20], 'int16') * 0.195; % reading 20s
+if isempty(dir('*.sp.mat'))
+    dispstat('','init');
+    dispstat(sprintf('Processing thresholds . . .'),'keepthis','n');
+    for iChn = 1:nChn
+        sp{iChn} = zeros(ceil(ntimes * double(T) * 20), FS * 1.6 / 1e3 + 1 + 1);
     end
-    nRun = nRun + 1;
-    dispstat(sprintf('Progress %03.2f%%',(100*(nRun/tRun))),'timestamp');
-    if ~isempty(v)
-        % Checks for artifact
-        for iChn = 1:nChn
-            if isempty(thresh{iChn})
-                munoise{iChn} = [];
-                mu = conv(v(iChn,:),Mufilt); %why conv not flipped data
-                if max(abs(mu(MuNf+1:end-MuNf))) < ARTMAX
+    artchk = zeros(1,nChn);
+    munoise = cell(1,nChn);
+    nRun = 0;
+    tRun = ceil(nSam / FS / 10) + 1; % Number of 10 second chunks of time in the data
+    while sum(artchk) < nChn
+        if strcmp(dName,'analogin')
+            v = fread(v_fid, [nChn, FS*20], 'uint16');
+            v = (v - 32768) .* 0.0003125;
+        elseif strcmp(dName,'amplifier')
+            %v = vblank(1:nChn, 1:FS*20);
+            v = fread(v_fid, [nChn, FS*20], 'int16') * 0.195; % reading 20s
+        end
+        nRun = nRun + 1;
+        dispstat(sprintf('Progress %03.2f%%',(100*(nRun/tRun))),'timestamp');
+        if ~isempty(v)
+            % Checks for artifact
+            for iChn = 1:nChn
+                if isempty(thresh{iChn})
+                    munoise{iChn} = [];
+                    mu = conv(v(iChn,:),Mufilt); %why conv not flipped data
+                    if max(abs(mu(MuNf+1:end-MuNf))) < ARTMAX
+                        artchk(iChn) = 1;
+                        sd = median(abs(mu(MuNf+1:end-MuNf)))./0.6745;
+                        thresh{iChn} = threshfac*sd;
+                    else
+                        munoise{iChn} = [munoise{iChn} mu(MuNf+1:end-MuNf)];
+                    end
+                end
+            end
+        else
+            for iChn = 1:nChn
+                if isempty(thresh{iChn}) % If threshold is still 0 - noisy channel
                     artchk(iChn) = 1;
-                    sd = median(abs(mu(MuNf+1:end-MuNf)))./0.6745;
-                    thresh{iChn} = threshfac*sd;  
-                else
-                    munoise{iChn} = [munoise{iChn} mu(MuNf+1:end-MuNf)];
+                    sd = median(abs(munoise{iChn}))./0.6745;
+                    thresh{iChn} = threshfac*sd;
                 end
             end
         end
-    else
-        for iChn = 1:nChn
-            if isempty(thresh{iChn}) % If threshold is still 0 - noisy channel
-                artchk(iChn) = 1;
-                sd = median(abs(munoise{iChn}))./0.6745;
-                thresh{iChn} = threshfac*sd;
-            end
-        end
     end
+    
+    disp(['Total recording time: ' num2str(nSam / FS) ' seconds.']);
+    disp(['Time analysed per loop: ' num2str(T) ' seconds.']);
+    fseek(v_fid,0,'bof'); % Returns the data pointer to the beginning of the file
 end
-disp(['Total recording time: ' num2str(nSam / FS) ' seconds.']);
-disp(['Time analysed per loop: ' num2str(T) ' seconds.']);
-fseek(v_fid,0,'bof'); % Returns the data pointer to the beginning of the file
 %% Loop through the data
 if (justMu)
     mu_fid = fopen([name '.mu_sab.dat'],'W');
