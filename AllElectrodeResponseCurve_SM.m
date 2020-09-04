@@ -4,7 +4,7 @@ function [PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(trialinfo,avgno
 %INPUT - the trial information array, the average number of spikes per
 %trial array, and the standard error per trial array. An array of ones and
 %zeros denoting whether a channel had a significant increase in spiking
-
+AMP=loadAMP;
 filepath = pwd;
 fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
 fileinfo = dir([filepath, filesep 'info.rhs']);
@@ -31,7 +31,8 @@ else
 end
 E_MAP = Depth(E_Mapnumber);
 loadStimChn;
-AMP=loadAMP;
+loadAMP_all;
+AMP=AMP_all';
 counter=0;
 
 for count=1:length(stimChn) %loop to find the correct trials

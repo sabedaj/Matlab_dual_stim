@@ -117,7 +117,7 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
             fignum=fignum.Number;
             chosen_trials_amp=AMP((Desired_trialthreequatersone~=0)+(Desired_trialquatertwo~=0)==2);
             DepthChangeingSpiking_SM(Additivespkquater_Eone, chosen_trials, fignum,max(cell2mat(TrialParams(:,2))),chosen_trials_amp);%plots heatmap of estimated plots
-            title(['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2-1),2))) ' @ 75/25' ])
+            title(['ESTIMATION Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 25/75' ])
             xt = xticks;
             %labelxx=AMP((Desired_trialthreequatersone~=0)+(Desired_trialquatertwo~=0)==2);
             xticklabels(cellstr(string((xt.*2))));
@@ -131,10 +131,10 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         fignum=gcf;
         fignum=fignum.Number;
         DepthChangeingSpiking_SM(Additivespkequal, chosen_trials, fignum,max(cell2mat(TrialParams(:,2))),chosen_trials_amp);%plots heatmap of estimated plots
-        title(['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2-1),2))) ' @ 50/50' ])
+        title(['ESTIMATION Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 50/50' ])
         xt = xticks;
         xticklabels(cellstr(string((xt.*2))));
-        
+        xlim([0 4]);
         %25E2/75E1
         chosen_trials=(Desired_trialfirst(2)+4)*ones(size(Additivespkthreequaters_Eone,2),1);
         if size(Additivespkthreequaters_Eone,2)>1 %if there is only one matching amplitude then you cannot generate a heatmap
@@ -143,7 +143,7 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
             fignum=fignum.Number;
             chosen_trials_amp=AMP((Desired_trialthreequaterstwo~=0)+(Desired_trialquaterone~=0)==2);
             DepthChangeingSpiking_SM(Additivespkthreequaters_Eone, chosen_trials, fignum,max(cell2mat(TrialParams(:,2))),chosen_trials_amp);%plots heatmap of estimated plots
-            title(['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2-1),2))) ' @ 25/75' ])
+            title(['ESTIMATION Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 75/25' ])
             xt = xticks;
             xticklabels(cellstr(string((xt.*2))));
             %xticklabels(cellstr(string((AMP_double((Desired_trialthreequaterstwo~=0)+(Desired_trialquaterone~=0)==2)))));

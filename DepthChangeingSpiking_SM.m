@@ -89,7 +89,7 @@ z=avgnospT(:,1:length(chosen_trials));
     hcb.Title.Rotation=270;
     hcb.Title.Position= [40,130];
     hcb.Title.FontSize=11;
-    caxis([0, 200])%max(z,[],'all')])
+    caxis([0, 100])%max(z,[],'all')])
 
 %     for loopnumcount=1:maxtid/cond
 %         hold on

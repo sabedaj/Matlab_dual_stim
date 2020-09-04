@@ -98,16 +98,24 @@ end
 [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
 
  %% 8. plotting average electrode response for all electrodes classes as significant and not significant
+ AMP=loadAMP;
+ avgnospT_sps=(1000/(secondstoanalyse-startpointseconds)).*avgnospT;
  cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
- avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));
- testifsignificant=[(avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-1))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-2)))];
+ avgnostim=(avgnospT_sps(:,cell2mat(trialinfo(1:2:end,18))==-1));
+ testifsignificant=[(avgnospT_sps(:,cell2mat(trialinfo(2:2:end,18))==AMP(end))) (avgnospT_sps(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-1))) (avgnospT_sps(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-2)))];
  testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
  
  [h,p]=ttest(testsig_maxamp',avgnostim','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
- AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,1,h);
+ %AllElectrodeResponseCurve_SM(trialinfo,avgnospT_sps,stderrspktrial,1,h);
+% AllElectrodeResponseCurve_SM(trialinfo,avgnospT_sps,(1000/(secondstoanalyse-startpointseconds)).*stderrspktrial,1,h);
 %% Plots Heatmaps
 SavetoPPT=0; %%if single trial, you cannot automatically save to ppt.
 AMPInterestSingleLinePlot=4;%input in uA
+TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse);
+AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse);
+
+
+
 printFigures=1;
 %note electrode preference depends on amplitude
 electrodepreference = Depth_heatmap_and_linecut(AMPInterestSingleLinePlot,trialinfo,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse, printFigures,SavetoPPT); 
@@ -119,7 +127,7 @@ electrodepreference = Depth_heatmap_and_linecut(AMPInterestSingleLinePlot,triali
  chn=17;
 generate_StackedRaster_sab(chn);
  %% Plots unfiltered data
-tID=[30]; %trial ID of interest
+tID=[7]; %trial ID of interest
 Chan=[15];%channels of interest - recommend only one or two for raw
 Chosen_trig=15;
 Binstart=-250;
@@ -131,7 +139,7 @@ xlabel('Time (ms)')
 %% Plots filtered data for selected channels and trial ID
 Binstart=-250;
 Binend=400;
-tID=[30]; %trial ID of interest
+tID=[6]; %trial ID of interest
 Chan=[15];%channels of interest 
 Chosen_trig=15;
 stimConcatenate(tID,Chosen_trig,Chan,'MU',Binstart,Binend);

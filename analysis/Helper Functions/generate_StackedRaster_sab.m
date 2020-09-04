@@ -77,6 +77,17 @@ for count=1:length(CHN)
                 if recordcount<2
                     desiredchannel__singleamp(desiredchannel__singleamp<checkmaxsize)=[];
                 end
+                AMP=loadAMP;
+                for Amploop=1:length(AMP)%used to identify existing 75/25 amplitudes for chn 1
+                    
+                    try
+                        Desired_trial(Amploop)=(desiredchannel__singleamp(cell2mat(trialinfo(desiredchannel__singleamp,18))==AMP(Amploop))+1)/2;%array of mathcning trial number
+                    catch
+                        Desired_trial(Amploop)=0;
+                    end
+                    
+                end
+                desiredchannel__singleamp=Desired_trial'.*2-1;
                 desiredchanneltrial=find(cell2mat(trialinfo(:,2))==CHN(count)+NORECORDELECT(recordcount)+1); %finds trials with desired initial electrode
                 if desiredchanneltrial(end)==length(trialinfo)
                     desiredchanneltrial(end)=[];
