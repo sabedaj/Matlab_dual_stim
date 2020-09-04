@@ -10,7 +10,8 @@ function DepthChangeingSpiking_SM(avgnospT, chosen_trials,fignum, varargin)
 %Start trial, jump trial(usually = cond)
 %End trial
 %%
-AMP=loadAMP;
+loadAMP_all;
+AMP=AMP_all';
 trig = loadTrig(0);
 theseTrig = trig;
 trialinfo=loadTrialInfo;
@@ -33,16 +34,23 @@ else
         nChn=32;
     end
 end
-if nargin ==5
+if nargin ==4
     endtrial=cell2mat(varargin(1));
 else
     endtrial=maxtid;
 end
 
-x=1:32;%ones(nChn,length(chosen_trials));
+x=1:nChn;%ones(nChn,length(chosen_trials));
 x=x';
 x=repelem(x,1,length(chosen_trials));
-y=AMP(1:length(chosen_trials));
+if nargin ==5
+    y=cell2mat(varargin(2));
+else
+    y=AMP(1:length(chosen_trials));
+end
+if ~isrow(y)
+    y=y';
+end
 %y=cell2mat(trialinfo(chosen_trials.*2,18))';
 y(y==-1)=0;
 y=repelem(y,nChn,1);

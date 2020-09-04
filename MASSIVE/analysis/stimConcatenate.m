@@ -19,7 +19,7 @@ if (Blackrock)
 else
     filepath = pwd;
     fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
-    fileinfo = dir([filepath,'\info.rhs']);
+    fileinfo = dir([filepath,filesep, 'info.rhs']);
     if (datetime(fileinfo.date) < fourShank_cutoff)
         nChn=32;
         E_Mapnumber=0;

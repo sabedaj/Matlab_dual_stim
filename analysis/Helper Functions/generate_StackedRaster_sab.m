@@ -228,41 +228,150 @@ for count=1:length(CHN)
                         if cell2mat(trialinfo(ID*2,2))==0
                             title(['Channel ', num2str(find(d==chn)), ' w/ StimChn ', num2str(cell2mat(trialinfo(ID*2-1,2))), ' @ ' num2str(cell2mat(trialinfo(ID*2-1,18))), ' uA'])
                             step=10;
-                            electrodepos=(400-nChn*step):step:400-1; %create variable for electrode position
-                            fakex=295*ones(1,nChn);
                             subplot(2,1,2)
+                            if nChn==32
+                                electrodepos=(400-nChn*step):step:400-1; %create variable for electrode position
+                                fakex=295*ones(1,nChn);
+                                scatter(fakex,electrodepos,25, 'k')
+                                scatter(fakex(1,1),(find(d==chn)-1)*step+electrodepos(1,1),25,'g', 'filled')
+                                scatter(fakex(1,1),(cell2mat(trialinfo(ID*2-1,2))-1)*step+electrodepos(1,1),25,'r', 'filled')
+                            else %equal to 64 for four shank
+                                electrodepos=(400-(nChn/4)*step):step:400-1; %create variable for electrode position
+                                fakex=280*ones(1,nChn/4);
+                                scatter(fakex,electrodepos,25, 'k')
+                                scatter(fakex+5,electrodepos,25, 'k')
+                                scatter(fakex+10,electrodepos,25, 'k')
+                                scatter(fakex+15,electrodepos,25, 'k')
+                                if (find(d==chn))<17
+                                    shank=1;
+                                    epos=(find(d==chn)-1);
+                                elseif (find(d==chn))<33
+                                    shank=2;
+                                    epos=(find(d==chn)-1)-16;
+                                elseif (find(d==chn)-1)<49
+                                    shank=3;
+                                    epos=(find(d==chn)-1)-32;
+                                else
+                                    shank=4;
+                                    epos=(find(d==chn)-1)-48;
+                                end
+                                estim=(cell2mat(trialinfo(ID*2-1,2)));
+                                if estim<17
+                                    shankstim=1;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1);
+                                elseif estim<33
+                                    shankstim=2;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1)-16;
+                                elseif estim<49
+                                    shankstim=3;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1)-32;
+                                else
+                                    shankstim=4;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1)-48;
+                                end
+                                scatter((fakex(1,1)+5*(shank-1)),epos*step+electrodepos(1,1),25,'g', 'filled')
+                                scatter((fakex(1,1)+5*(shankstim-1)),estim*step+electrodepos(1,1),25,'r', 'filled')
+                            end
                             ylim([0 MAX]); xlim([150 300]);
-                            scatter(fakex,electrodepos,25, 'k')
-                            scatter(fakex(1,1),(find(d==chn)-1)*step+electrodepos(1,1),25,'g', 'filled')
-                            scatter(fakex(1,1),(cell2mat(trialinfo(ID*2-1,2))-1)*step+electrodepos(1,1),25,'r', 'filled')
                             set(gcf,'position',[1,1,550,1000])
                             %line([-0.05 -0.008],[400 400-nChn],'color','k')
                             %line([0.05 0.008],[400 400-nChn],'color','k')
                         else
                             title(['Channel ', num2str(find(d==chn)), ' w/ StimChn ', num2str(cell2mat(trialinfo(ID*2-1,2))), ' & ', num2str(cell2mat(trialinfo(ID*2,2))) ' @ ' num2str(cell2mat(trialinfo(ID*2-1,18))), ' uA ', num2str(cell2mat(trialinfo(ID*2,18))), ' uA'])
                             step=10;
-                            electrodepos=(400-nChn*step):step:400-1; %create variable for electrode position
-                            fakex=295*ones(1,nChn);
                             subplot(2,1,2)
-                            ylim([0 MAX]); xlim([150 300]);
-                            scatter(fakex,electrodepos,25, 'k')
-                            scatter(fakex(1,1),(find(d==chn)-1)*step+electrodepos(1,1),25,'g', 'filled')
-                            ratio1=(cell2mat(trialinfo(ID*2-1,18))/(cell2mat(trialinfo(ID*2,18))+cell2mat(trialinfo(ID*2-1,18))));
-                            if ratio1>0.5
-                                ratio1=1;
-                                ratio2=0.5;
-                            elseif ratio1<0.5
-                                ratio1=0.5;
-                                ratio2=1;
-                            else
-                                ratio1=0.75;
-                                ratio2=0.75;
+                            if nChn==32
+                                electrodepos=(400-nChn*step):step:400-1; %create variable for electrode position
+                                fakex=295*ones(1,nChn);
+                                scatter(fakex,electrodepos,25, 'k')
+                                scatter(fakex(1,1),(find(d==chn)-1)*step+electrodepos(1,1),25,'g', 'filled')
+                                ratio1=(cell2mat(trialinfo(ID*2-1,18))/(cell2mat(trialinfo(ID*2,18))+cell2mat(trialinfo(ID*2-1,18))));
+                                if ratio1>0.5
+                                    ratio1=1;
+                                    ratio2=0.5;
+                                elseif ratio1<0.5
+                                    ratio1=0.5;
+                                    ratio2=1;
+                                else
+                                    ratio1=0.75;
+                                    ratio2=0.75;
+                                end
+                                %ratio2=(cell2mat(trialinfo(ID*2,18))/(cell2mat(trialinfo(ID*2,18))+cell2mat(trialinfo(ID*2-1,18))));
+                                scatter(fakex(1,1),(cell2mat(trialinfo(ID*2-1,2))-1)*step+electrodepos(1,1),25,[ratio1 0 0], 'filled')
+                                scatter(fakex(1,1),(cell2mat(trialinfo(ID*2,2))-1)*step+electrodepos(1,1),25,[ratio2 0 0], 'filled')
+                            else %equal to 64 for four shank
+                                electrodepos=(400-(nChn/4)*step):step:400-1; %create variable for electrode position
+                                fakex=280*ones(1,nChn/4);
+                                scatter(fakex,electrodepos,25, 'k')
+                                scatter(fakex+5,electrodepos,25, 'k')
+                                scatter(fakex+10,electrodepos,25, 'k')
+                                scatter(fakex+15,electrodepos,25, 'k')
+
+                                if (find(d==chn))<17
+                                    shank=1;
+                                    epos=(find(d==chn)-1);
+                                elseif (find(d==chn))<33
+                                    shank=2;
+                                    epos=(find(d==chn)-1)-16;
+                                elseif (find(d==chn)-1)<49
+                                    shank=3;
+                                    epos=(find(d==chn)-1)-32;
+                                else
+                                    shank=4;
+                                    epos=(find(d==chn)-1)-48;
+                                end
+                                estim=(cell2mat(trialinfo(ID*2-1,2)));
+                                if estim<17
+                                    shankstim=1;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1);
+                                elseif estim<33
+                                    shankstim=2;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1)-16;
+                                elseif estim<49
+                                    shankstim=3;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1)-32;
+                                else
+                                    shankstim=4;
+                                    estim=(cell2mat(trialinfo(ID*2-1,2))-1)-48;
+                                end
+                                
+                                estim2=(cell2mat(trialinfo(ID*2,2)));
+                                if estim2<17
+                                    shankstim2=1;
+                                    estim2=(cell2mat(trialinfo(ID*2,2))-1);
+                                elseif estim2<33
+                                    shankstim2=2;
+                                    estim2=(cell2mat(trialinfo(ID*2,2))-1)-16;
+                                elseif estim2<49
+                                    shankstim2=3;
+                                    estim2=(cell2mat(trialinfo(ID*2,2))-1)-32;
+                                else
+                                    shankstim2=4;
+                                    estim2=(cell2mat(trialinfo(ID*2,2))-1)-48;
+                                end
+                                
+                                scatter((fakex(1,1)+5*(shank-1)),epos*step+electrodepos(1,1),25,'g', 'filled')
+                                ratio1=(cell2mat(trialinfo(ID*2-1,18))/(cell2mat(trialinfo(ID*2,18))+cell2mat(trialinfo(ID*2-1,18))));
+                                if ratio1>0.5
+                                    ratio1=1;
+                                    ratio2=0.5;
+                                elseif ratio1<0.5
+                                    ratio1=0.5;
+                                    ratio2=1;
+                                else
+                                    ratio1=0.75;
+                                    ratio2=0.75;
+                                end
+                                %ratio2=(cell2mat(trialinfo(ID*2,18))/(cell2mat(trialinfo(ID*2,18))+cell2mat(trialinfo(ID*2-1,18))));
+                                scatter((fakex(1,1)+5*(shankstim-1)),estim*step+electrodepos(1,1),25,[ratio1 0 0], 'filled')
+                                scatter((fakex(1,1)+5*(shankstim2-1)),estim2*step+electrodepos(1,1),25,[ratio2 0 0], 'filled')
                             end
-                            %ratio2=(cell2mat(trialinfo(ID*2,18))/(cell2mat(trialinfo(ID*2,18))+cell2mat(trialinfo(ID*2-1,18))));
-                            scatter(fakex(1,1),(cell2mat(trialinfo(ID*2-1,2))-1)*step+electrodepos(1,1),25,[ratio1 0 0], 'filled')
-                            scatter(fakex(1,1),(cell2mat(trialinfo(ID*2,2))-1)*step+electrodepos(1,1),25,[ratio2 0 0], 'filled')
+                            ylim([0 MAX]); xlim([150 300]);
+
                             set(gcf,'position',[1,1,550,1000])
-                            replace(pictureSlide,'Title',['Channel ', num2str(find(d==chn)), ' w/ StimChn ', num2str(cell2mat(trialinfo(ID*2-1,2))), ' & ', num2str(cell2mat(trialinfo(ID*2,2)))]); %replace title
+                            if (SavetoPPT==1)
+                                replace(pictureSlide,'Title',['Channel ', num2str(find(d==chn)), ' w/ StimChn ', num2str(cell2mat(trialinfo(ID*2-1,2))), ' & ', num2str(cell2mat(trialinfo(ID*2,2)))]); %replace title
+                            end
                         end
                     else
                         title(['Channel ', num2str(find(d==chn)), ' w/ StimChn ', num2str(cell2mat(trialinfo(ID*2,2))), ' ', num2str(cell2mat(trialinfo(ID*2+1,2)))])
@@ -344,12 +453,12 @@ for count=1:length(CHN)
     end
 end
 
-
-close(presentationObj); %close presentation to keep changes
-if ispc
-    winopen('Raster.pptx'); %open presentation (WINDOWS ONLY FUNCTION)
+if SavetoPPT==1
+    close(presentationObj); %close presentation to keep changes
+    if ispc
+        winopen('Raster.pptx'); %open presentation (WINDOWS ONLY FUNCTION)
+    end
+    
 end
-
-
 
 end

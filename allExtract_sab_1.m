@@ -147,11 +147,11 @@ if (justMu)
             end
             fwrite(mu_fid,SCALEFACTOR*mu2,'short');
             time = time + T*1e3;
+            dispstat(sprintf('Progress %03.2f%%',100*((N)/ntimes)),'timestamp');
         end
         if (size(data,2) < FS * T)
             chk = 0;
         end
-        dispstat(sprintf('Progress %03.2f%%',100*((N)/ntimes)),'timestamp');
     end
     fclose(mu_fid);
     clear data mu mu2 tmp flip_data
@@ -194,11 +194,11 @@ if isempty(dir('*.sp.mat'))
                 end
             end
             time = time + T*1e3;
+            dispstat(sprintf('Progress %03.2f%%',100*((N)/ntimes)),'timestamp');
         end
         if (size(mu,2) < FS * T)
             chk = 0;
         end
-        dispstat(sprintf('Progress %03.2f%%',100*((N)/ntimes)),'timestamp');
     end
     
     %% Calculate a zero-condition spike template and r2t

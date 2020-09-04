@@ -14,7 +14,7 @@ par=0;
 
 FS=30000;
 filepath = pwd;
-fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
+fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
 fileinfo = dir([filepath filesep 'info.rhs']);
 if (datetime(fileinfo.date) < fourShank_cutoff)
     nChn=32;
@@ -61,23 +61,124 @@ fclose('all');
 %trialinfo=TrialInfo_sab;
 
 %% 4. Calculate Structure of sorted trials according to IDs
+SavetoPPT=0;
 starttrial=1;
 trialjump=1;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 endtrial=maxid;
 [IDstruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
-
+%%
+if printspiking==1 && SavetoPPT==1
+    import mlreportgen.ppt.* %need this to import ppt save format
+    TemplateFile = 'C:\Users\smei0006\Documents\myRasterTemplate.pptx'; %template where you can alter slide master and selection pane names layout etc.
+    presentationPath = 'Spiking.pptx'; %saving file
+    presentationObj = Presentation(presentationPath,TemplateFile);%create presentation with the specified template
+    for j=1:floor(nChn/10)
+        pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
+        Loopcounter=0;
+        for i=1:2:10
+             if ishandle(i+(j-1)*10)
+                 Loopcounter=Loopcounter+1;
+                 figure(i+(j-1)*10)
+                 fig=gcf;
+                 saveas(gcf,['spike_plot' num2str(i+(j-1)*10) '.png'])
+                 pichandle=Picture(['spike_plot' num2str(i+(j-1)*10) '.png']);%save figure as picture
+                 replace(pictureSlide,['Picture ' num2str(Loopcounter)],pichandle); %replace picture with name Picture X
+             end
+        end
+        replace(pictureSlide,'Title', 'Spiking'); %replace title
+    end
+    close(presentationObj); %close presentation to keep changes
+    if ispc
+        winopen('Spiking.pptx'); %open presentation (WINDOWS ONLY FUNCTION)
+    end
+end
 %% 5. Calculates template of trials and spiking responses (Output in true electrode order)
 [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
-%%
-cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition 
-avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));%avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
-%testifsignificant=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))~=-1));
-testifsignificant=(avgnospT(:,cell2mat(trialinfo(2:2:end,2))==0));
-for i=1:cond
-    testifsignificant_mean(:,i)=mean(testifsignificant(1:nChn,i:cond:size(testifsignificant,2)),2);
+
+
+%% Plots Heatmaps
+SavetoPPT=0;
+AMPInterestSingleLinePlot=2;%input in uA
+printFigures=0;
+%note electrode preference depends on amplitude
+electrodepreference = Depth_heatmap_and_linecut(AMPInterestSingleLinePlot,trialinfo,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse, printFigures,SavetoPPT); 
+ %% Raster or histogram of firing rate
+ chn=17;
+generate_StackedRaster_sab(chn);
+ %% Plots unfiltered data
+tID=[30]; %trial ID of interest
+Chan=[15];%channels of interest - recommend only one or two for raw
+Chosen_trig=15;
+Binstart=-250;
+Binend=400;
+stimConcatenate(tID,Chosen_trig,Chan,'RAW',Binstart,Binend);
+title(['Chn ' ,num2str(Chan), '. Stimchn ' ,num2str(cell2mat(trialinfo(tID*2-1,2))),' & ' num2str(cell2mat(trialinfo(tID*2,2))), ' at ' ,num2str(cell2mat(trialinfo(tID*2-1,18))), 'uA filtered'])
+xlabel('Time (ms)')
+
+%% Plots filtered data for selected channels and trial ID
+Binstart=-250;
+Binend=400;
+tID=[30]; %trial ID of interest
+Chan=[15];%channels of interest 
+Chosen_trig=15;
+stimConcatenate(tID,Chosen_trig,Chan,'MU',Binstart,Binend);
+title(['Chn ' ,num2str(Chan), '. Stimchn ' ,num2str(cell2mat(trialinfo(tID*2-1,2))),' & ' num2str(cell2mat(trialinfo(tID*2,2))), ' at ' ,num2str(cell2mat(trialinfo(tID*2-1,18))), 'uA filtered'])
+xlabel('Time (ms)')
+
+%% 7. Plot stimulating electrode response curve
+StimElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial);
+
+
+ %% hypothesis
+loadStimChn;
+loadNORECORDELECT;
+outputMaxHist=[];
+ for i=1:length(CHN)
+     for j=1:NORECORDELECT(end)+2
+         chn=CHN(i)+j-1;
+         outputMaxHist=hypothplot_sab(chn,outputMaxHist);
+     end
+ end
+ save('outputMaxHist.mat','outputMaxHist');
+ %%
+ AMP=loadAMP;
+ AMP(1)=0;
+ chosenfield='Chn_16_StimChn_19_13';
+ ddddaata=outputMaxHist.(chosenfield);
+ ddddaata(:,1)=mean(ddddaata(:,1));
+ figure
+ hold on
+ for i=1:5
+ plot(AMP(1:4),ddddaata(i,1:4)')
+ end
+legend('100/0','75/25','50/50','25/75','0/100')
+%legend('100/0','50/50','0/100')
+ title(chosenfield,'Interpreter','none')
+ xlabel('Current uA')
+ ylabel('Sp/s')
+ ylim([0 450])
+ %%
+fieldnamesMaxHist=fieldnames(outputMaxHist);
+for i=1:4:length(fieldnamesMaxHist)
+    nme=cell2mat(fieldnamesMaxHist(i));
+    arr=outputMaxHist.(nme);
+ figure(400)
+ hold on
+plot
+ figure(401)
+ hold on
+plot
 end
+ %%
+ cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
+ avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));%avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
+ %testifsignificant=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))~=-1));
+ testifsignificant=(avgnospT(:,cell2mat(trialinfo(2:2:end,2))==0));
+ for i=1:cond
+     testifsignificant_mean(:,i)=mean(testifsignificant(1:nChn,i:cond:size(testifsignificant,2)),2);
+ end
 testsig_maxamp=testifsignificant(:,end-size(avgnostim,2)+1:end);
 %testifsignificant_mean=mean(testifsignificant(1:nChn,1:size(testifsignificant,2)),2);
 %checknumnovsstim=size(testifsignificant,2)/size(avgnostim,2);
@@ -93,28 +194,6 @@ fprintf('The current amplitude in ascending order is: \n');
 fprintf('%d\n',stimamplitudes);
 fprintf('The stimulation channels were: \n');
 fprintf('%d\n',stimChn);
-%% Plots unfiltered data
-tID=[30]; %trial ID of interest
-Chan=[18];%channels of interest - recommend only one or two for raw
-Chosen_trig=10;
-Binstart=-250;
-Binend=400;
-stimConcatenate(tID,Chosen_trig,Chan,'RAW',Binstart,Binend);
-title(['Chn ' ,num2str(Chan), '. Stimchn ' ,num2str(cell2mat(trialinfo(tID*2-1,2))), ' at ' ,num2str(cell2mat(trialinfo(tID*2,18))), 'uA raw'])
-xlabel('Time (ms)')
-
-%% Plots filtered data for selected channels and trial ID
-Binstart=-250;
-Binend=400;
-tID=[30]; %trial ID of interest
-Chan=[18];%channels of interest 
-Chosen_trig=10;
-stimConcatenate(tID,Chosen_trig,Chan,'MU',Binstart,Binend);
-title(['Chn ' ,num2str(Chan), '. Stimchn ' ,num2str(cell2mat(trialinfo(tID*2-1,2))), ' at ' ,num2str(cell2mat(trialinfo(tID*2,18))), 'uA filtered'])
-xlabel('Time (ms)')
-
-%% 7. Plot stimulating electrode response curve
-StimElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial);
 
 %% 8. plotting average electrode response for all electrodes classes as significant and not significant
 AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,h);
@@ -123,7 +202,7 @@ AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,h);
 InbetweenElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial);
 
 %% Extracts responses from chosen single electrode stimulation for specific hannel
-Chan=[15 16 17 18];%can input as many channels of interest as you want
+Chan=[14 15 16 17];%can input as many channels of interest as you want
 stimChn=15;%only one stim chan
 singleElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,Chan,stimChn);
 
@@ -141,29 +220,22 @@ singleElectrodeResponseCurveAMPLITUDE_SM(trialinfo,avgnospT,stderrspktrial,Chan,
  endtrial=30;%trial to stop analysing
  electrode=15;
  trialjump=find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %number of trials to jump for next consecutive response equal to cond as default
- TimeChangeinSpiking_SM(TimeBegin, TimeEnd, TimeStep, electrode, starttrial, trialjump, endtrial); %can input end trial but haven't tested
+ TimeChangeinSpiking_SM(TimeBegin, TimeEnd, TimeStep)%, electrode, starttrial, trialjump, endtrial); %can input end trial but haven't tested
+ 
  %%
- trialjump=find(diff(cell2mat(trialinfo(:,18))),1,'first')/2;
- endtrialelect=30;
- for j=1:(maxid/endtrialelect)
-     for i=1:trialjump
-         starttrial=i+(j-1)*endtrialelect;
-         endtrial=j*endtrialelect;
-         DepthChangeingSpiking_SM(avgnospT, starttrial, trialjump, endtrial);
-     end
- end
+
 %% PCA spike sorting attempt
 % CHNinterest=25;
 % plotPCAspiking_sab(CHNinterest);
 
+%%     %for i=1:length(chosen_trials)%trialjump
+      %   starttrial=chosen_trials(1);%i+(j-1)*endtrialelect;
+      %   endtrial=chosen_trials(end);%j*endtrialelect;
 
 %% Deleting non-original files from filepath
 %Delete_non_orig_sab;
 
 
-%% Raster or histogram of firing rate
-chn=13;
-generate_StackedRaster_sab(chn);
 
 %% MUA response
 
@@ -176,3 +248,110 @@ Chosen_trig=1;
 stimConcatenate(tID,Chosen_trig,Chan,'MUA',Binstart,Binend);
 title(['Chn ', num2str(Chan),' at ' string(trialinfo(tID*2,18)) 'uA MUA (filtered)'])
 xlabel('Time (ms)')
+
+%%
+ SavetoPPT=1;
+if SavetoPPT==1
+    import mlreportgen.ppt.* %need this to import ppt save format
+    TemplateFile = 'C:\Users\smei0006\Documents\myRasterTemplate.pptx'; %template where you can alter slide master and selection pane names layout etc.
+    presentationPath = 'channelActivationSpread.pptx'; %saving file
+    presentationObj = Presentation(presentationPath,TemplateFile);%create presentation with the specified template
+end
+
+loadVarAmp;
+loadNORECORDELECT;
+
+trialjump=find(diff(cell2mat(trialinfo(:,18))),1,'first')/(2);
+endtrialelect=75;
+checkconsecutive=1;
+num_archive=NORECORDELECT(1);
+SMOOTHING=0.6;
+Z=[];
+avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);%avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
+for i=1:endtrialelect*2:maxid*2
+    innerLOOPcounter=0;
+    flag=1;
+    for K=1:length(NORECORDELECT)
+        if SavetoPPT==1
+            pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
+            replace(pictureSlide, 'Title', 'Spread of activation along probe'); %replace title
+        end
+        if length(NORECORDELECT)==1
+            temp=trialjump*2;
+        else 
+            temp=trialjump;
+        end
+        for j=1:2:temp%(maxid/endtrialelect)
+            if (K>1)&&(j>=(trialjump-1))
+            desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(-1+(i-1)+(K-1)*(trialjump+1),2))))+1)/2; %finds trials with desired initial electrode
+            desiredchanneltrial_two=find(cell2mat(trialinfo(:,2))==cell2mat(trialinfo((i-1)+(K-1)*(trialjump+1),2)))/2;
+            chosen_trials=intersect(desiredchanneltrial_one,desiredchanneltrial_two);
+            k=1;
+            else
+            desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(j+(i-1)+(K-1)*(trialjump+1),2))))+1)/2; %finds trials with desired initial electrode
+            desiredchanneltrial_two=find(cell2mat(trialinfo(:,2))==cell2mat(trialinfo(j+1+(i-1)+(K-1)*(trialjump+1),2)))/2;
+            chosen_trials=intersect(desiredchanneltrial_one,desiredchanneltrial_two);
+            k=0;
+            end
+            if (VarAmp==1)&&(~isempty(chosen_trials(diff(chosen_trials)==1)))
+                chosen_trials=chosen_trials(checkconsecutive:3:length(chosen_trials));
+                checkconsecutive=checkconsecutive+1;
+            else
+                checkconsecutive=1;
+            end
+            
+            if (j==1)||(j==5)||(j==9)
+                for l=2:length(chosen_trials)
+                    Z(:, l-1)=avgnospT(:,chosen_trials(l))-avgnostim;
+                    window = normpdf(-2*SMOOTHING:2*SMOOTHING,0,SMOOTHING);
+                    rate = conv(Z(1:nChn,l-1),window);%1000ms over 12-2ms number of trials
+                    rate = rate(round(2*SMOOTHING+1):end-round(2*SMOOTHING));
+
+                    rate = conv(flipud(rate),window);%1000ms over 12-2ms number of trials
+                    rate=flipud(rate);
+                    rate = rate(round(2*SMOOTHING+1):end-round(2*SMOOTHING));
+                    figure(l+600+(i-1)*10+(K-1)*100)
+                    hold on
+                    plot(1:nChn, rate,'LineWidth',1.5);
+                    if (j>=(temp-1))
+                        legend('100/0','50/50','0/100')
+                        ylim([0 160])
+                        xlabel('Channel')
+                        ylabel('average number sp/trial 2-12m')
+                        if K==1
+                            title(['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo(((chosen_trials(2)-3)*2),2))) ' & ' num2str(cell2mat(trialinfo(((chosen_trials(2)-3)*2)-1,2))) ' @ ' num2str(cell2mat(trialinfo((chosen_trials(l)*2)-1,18))) 'uA']);
+                        else
+                            title(['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo(((chosen_trials(1)+2)*2),2))) ' & ' num2str(cell2mat(trialinfo(((chosen_trials(1)+3)*2)-1,2))) ' @ ' num2str(cell2mat(trialinfo((chosen_trials(l)*2)-1,18))) 'uA']);
+                        end
+                        if SavetoPPT==1
+%                             if (length(NORECORDELECT)>1)&&(j/length(NORECORDELECT)>ceil(trialjump/length(NORECORDELECT)*(flag)))
+%                                 pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
+%                                 replace(pictureSlide,'Title', 'Depth Heatmaps'); %replace title
+%                                 flag=flag+1;
+%                                 OVERALLOOPcounter=0;
+%                             end
+                            innerLOOPcounter=innerLOOPcounter+1;
+                            if innerLOOPcounter>5
+                                pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
+                                replace(pictureSlide, 'Title', 'Spread of activation along probe'); %replace title
+                                innerLOOPcounter=1;
+                            end
+                            num=num2str(innerLOOPcounter);
+                            saveas(gcf,['Activation_spread' num2str(l+(j-1)*trialjump+(i-1)+K*trialjump) '.png'])
+                            pichandle=Picture(['Activation_spread' num2str(l+(j-1)*trialjump+(i-1)+K*trialjump) '.png']);%save figure as picture
+                            replace(pictureSlide,['Picture ' num],pichandle); %replace picture with name Picture X
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+ if SavetoPPT==1
+     close(presentationObj); %close presentation to keep changes
+     if ispc
+         winopen('channelActivationSpread.pptx'); %open presentation (WINDOWS ONLY FUNCTION)
+     end
+ end
+ 

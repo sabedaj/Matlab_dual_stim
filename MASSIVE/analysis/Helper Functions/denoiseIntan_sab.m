@@ -12,7 +12,7 @@ end
 if strcmp(dName,'analogin')
     nChn = 1;
 elseif strcmp(dName,'amplifier')
-    fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
+    fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
     fileinfo = dir([filepath, filesep, 'info.rhs']);
     if (datetime(fileinfo.date) < fourShank_cutoff)
         nChn=32;
@@ -30,7 +30,9 @@ end
 shortbytes=2;
 FS = 30000;
 %% Deal with the digital lines
+if isempty(dir('*.trig.dat'))
 cleanTrig_sabquick;
+end
 %% Blank stimulation artefact
 trig = loadTrig(0);
 theseTrig = trig;
@@ -74,7 +76,7 @@ if isempty(dir([dName '_dn_sab.dat']))
             if ~size(v,2)
                 BREAK = 0;
             end
-            %dispstat(sprintf('Progress %03.2f%%',100*((N-1)/nL)),'timestamp');
+            dispstat(sprintf('Progress %03.2f%%',100*((N-1)/nL)),'timestamp');
             % Append saved data to the start of the next loop
             if (N ~= 1)
                 v = [hv v]; %#ok<*AGROW>

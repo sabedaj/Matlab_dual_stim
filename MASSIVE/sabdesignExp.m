@@ -45,6 +45,8 @@ while (HAPPY)
         else
             nChn=32;
         end
+
+        %%
         AMP = input('Please enter stimulus amplitude in uA like so: [x:y:z]\n');
         DUR = input('Please enter stimulus duration in us like so: [x:y:z]\n');
         MAX_CHARGE = AMP(end) * DUR(end) * 1e-6;
@@ -67,8 +69,31 @@ while (HAPPY)
             nTRAIN = 1;
             FREQ = 100;
         end
-        CHN = input('Please enter channels like so: [x,y,z]\n'); % channels on port B are +32 shanks are 16 electrodes each
-        
+        if E_Mapnumber==0
+            CHN = input('Please enter channels like so: [x,y,z]\n'); 
+        else
+            CHN = input('Please enter channels like so: S1E5,S2E10,...,S3E13\n','s'); % channels on port B are +32 shanks are 16 electrodes each
+            shank_electrode=split(CHN,["S","E",","]);
+            shank_electrode=(cellfun(@(x) str2double(x),shank_electrode,'UniformOutput',false));
+            shank_electrode=cell2mat(shank_electrode);
+            shank_electrode=shank_electrode(~isnan(shank_electrode));
+            loopcounter=0;
+            CHN=zeros(1,length(shank_electrode)/2);
+            for shank=1:2:length(shank_electrode)
+                loopcounter=loopcounter+1;
+                if shank_electrode(shank)==1
+                    CHN(loopcounter)=shank_electrode(shank+1);
+                elseif shank_electrode(shank)==2
+                    CHN(loopcounter)=shank_electrode(shank+1)+32;
+                elseif shank_electrode(shank)==3
+                    CHN(loopcounter)=shank_electrode(shank+1)+32+16;
+                elseif shank_electrode(shank)==4
+                    CHN(loopcounter)=shank_electrode(shank+1)+16;
+                elseif shank_electrode(shank)>4
+                    error('Shank does not exist')
+                end                
+            end
+        end
         
        DUALSTIM= input('Please enter whether you would like to stimulate on two electrodes YES=1 NO=0: \n');
         if DUALSTIM==1
@@ -130,13 +155,13 @@ while (HAPPY)
     disp(['The duration of this experiment set is approximately ' num2str(minutes) ' minutes and ' num2str(seconds) ' seconds.']);
     HAPPY = input('Is this duration acceptable? Type "0" for YES.\n');
 end
-%% Initialise
-E_MAP = ProbeMAP;
-E_MAP = E_MAP(:,E_Mapnumber+5);
-
-if isempty(E_MAP{35})
-    E_MAP=E_MAP(1:33);
-end
+        %% Initialise
+        E_MAP = ProbeMAP;
+        E_MAP = E_MAP(:,E_Mapnumber+5);
+        
+        if isempty(E_MAP{35})
+            E_MAP=E_MAP(1:33);
+        end
 
 %% Design the settings for each trial
 settings = newSettings; % This function generates a stimulation settings list of default values

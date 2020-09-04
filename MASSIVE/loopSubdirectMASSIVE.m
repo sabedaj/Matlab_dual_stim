@@ -6,7 +6,15 @@ addpath(genpath(folder)); % adds folder and all subfolders to path for all funct
 fileptochange=folder(1:end-8);%Path name minus '/MASSIVE'
 cd([fileptochange filesep 'Data'])%change working directory to where data is stored - currently manually input
 D_data=dir;
-for k = 3:length(D_data) % avoid using the first ones
-    currD = D_data(k).name; % Get the current subdirectory name
-    MASSIVE_ANALYSIS_LOOP([D_data(k).folder filesep currD]); %Perform data analysis and save files in appropriate folders
-end
+idStr = getenv('SLURM_ARRAY_TASK_ID'); % get task ID string
+arrayTaskID = str2double(idStr); % conv string to number
+currD = D_data(arrayTaskID+2).name; % Get the current subdirectory name  % avoid using the first ones '.' '..'
+fprintf([currD,'\n']);
+MASSIVE_ANALYSIS_LOOP([D_data(arrayTaskID+2).folder filesep currD]); %Perform data analysis and save files in appropriate folders
+
+%% old loop
+
+% for k = 3:length(D_data) % avoid using the first ones
+%     currD = D_data(k).name; % Get the current subdirectory name
+%     MASSIVE_ANALYSIS_LOOP([D_data(k).folder filesep currD]); %Perform data analysis and save files in appropriate folders
+% end

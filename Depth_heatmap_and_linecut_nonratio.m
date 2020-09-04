@@ -4,13 +4,15 @@ function electrodepreference = Depth_heatmap_and_linecut(AMPInterestSingleLinePl
 %SavetoPPT=1;
 %AMPInterestSingleLinePlot=8;%input in uA
 AMP=loadAMP;
-[PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial);
+[PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,printFigures);
 close all
 for createindex=1:length(AMP)
     PlatChnArray(PlatChnArray==AMP(createindex))=createindex;
 end
-[x, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP-AMPInterestSingleLinePlot));
-[x, AMPInterestSingleLinePlotINDEXSINGLE]=min(abs(AMP-AMPInterestSingleLinePlot/2));%x is a throw away variable but it will tell you how close the value is to your chosen val
+[x, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot));
+AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1;
+[x, AMPInterestSingleLinePlotINDEXSINGLE]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot/2));%x is a throw away variable but it will tell you how close the value is to your chosen val
+AMPInterestSingleLinePlotINDEXSINGLE=AMPInterestSingleLinePlotINDEXSINGLE+1;
 avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);%average reponse without stimulation
 if SavetoPPT==1
     import mlreportgen.ppt.* %need this to import ppt save format
@@ -25,13 +27,15 @@ loadNORECORDELECT;
  if isempty(endtrialelect)
      endtrialelect=size(trialinfo,1)/2; %if there is only one set of conditions in the dataset
  end
+lgnd_names{1,(length(NORECORDELECT)*2+1)}=[];
 checkconsecutive=1;
 checkifsecondloop=0;
+numrecordelectinterest=0;
 checkNE=0;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 filepath = pwd;
-fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
+fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
 fileinfo = dir([filepath filesep 'info.rhs']);
 if (datetime(fileinfo.date) < fourShank_cutoff)
     nChn=32;
@@ -51,22 +55,17 @@ if VarAmp==1
     ampratio=find(AMP<=AMP(end)/2);
     indexcomparabletrials=zeros(length(ampratio),1);
     failtrials=zeros(length(ampratio),1);
+    electrodepreference=zeros((size(trialinfo,1)/2)/endtrialelect,4);
 else
     singleLineplotval=zeros(nChn,3);
     singleLineplotvalstd=zeros(nChn,3);
+    electrodepreference=zeros((size(trialinfo,1)/2)/(endtrialelect/length(NORECORDELECT)),4);
 end
 estimatelineplotval=zeros(nChn,3);
-electrodepreference=zeros((size(trialinfo,1)/2)/endtrialelect,4);
 Largeloopcounter=0;
 
  for i=1:endtrialelect*2:maxid*2 %i is used to go through groups of related trials
-     if SavetoPPT==1
-         pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
-         replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
-     end
-     innerLOOPcounter=0;
      Largeloopcounter=Largeloopcounter+1;
-     flag=1;
      for j=1:2:trialjump*2 %goes through trials related by trial jump
          desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(j+(i-1),2))))+1)/2; %finds trials with desired initial electrode
          desiredchanneltrial_two=find(cell2mat(trialinfo(:,2))==cell2mat(trialinfo(j+1+(i-1),2)))/2; %finds trials with desired second electrode
@@ -88,17 +87,7 @@ Largeloopcounter=0;
                  xlim([0 AMP(end)/2]) % makes axes comparable on single stim trials
              end
              if SavetoPPT==1 %saves to powerpoint
-                 if (length(NORECORDELECT)>1)&&(j/length(NORECORDELECT)>ceil(trialjump/length(NORECORDELECT)*(flag)))
-                     pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
-                     replace(pictureSlide,'Title', 'Depth Heatmaps'); %replace title
-                     flag=flag+1;
-                     innerLOOPcounter=0;
-                 end
-                 innerLOOPcounter=innerLOOPcounter+1;
-                 num=num2str(innerLOOPcounter);
                  saveas(gcf,['Depth_plot' num2str(j+(i-1)) '.png'])
-                 pichandle=Picture(['Depth_plot' num2str(j+(i-1)) '.png']);%save figure as picture
-                 replace(pictureSlide,['Picture ' num],pichandle); %replace picture with name Picture X
              end
          end
          singleLineplotval(:,(j+1)/2)=normalisedAvgspikingT(:,AMPInterestSingleLinePlotINDEXDUAL); %finds amplitude of interest trial i.e. 3rd AMP level for dual trials
@@ -108,20 +97,17 @@ Largeloopcounter=0;
              singleLineplotval(:,(j+1)/2)=normalisedAvgspikingT(:,AMPInterestSingleLinePlotINDEXSINGLE);% matches second AMP level of single trials
              singleLineplotvalstd(:,(j+1)/2)=(1000/(secondstoanalyse-startpointseconds))*stdsp(:,AMPInterestSingleLinePlotINDEXSINGLE); %single amp trial standard deviation converted to Sp/s
              checkifsecondloop=checkifsecondloop+1;%used to determine if values from two single electrode trials are available
-             if checkifsecondloop==2
-                 if SavetoPPT==1
-                     pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
-                     replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
-                 end
-                 
-                 if length(NORECORDELECT)>1&&checkNE==1 %used for if NORECORDELECT>1 since there is only one set of single electrode trials for both second electrode trials
-                     checkNE=0;
-                     checkifsecondloop=0;
-                 elseif length(NORECORDELECT)>1 && checkNE==0
-                     checkifsecondloop=1;
-                     checkNE=1;
+             if checkifsecondloop>=2
+                 if length(NORECORDELECT)>1 && checkNE==0
+                     if numrecordelectinterest==length(NORECORDELECT)-1
+                        checkifsecondloop=0;
+                     else 
+                         checkifsecondloop=1;
+                     end
+                     numrecordelectinterest=numrecordelectinterest+1;
                  else
                      checkifsecondloop=0;
+                     numrecordelectinterest=1;
                  end
                  
                  if VarAmp==1
@@ -149,15 +135,9 @@ Largeloopcounter=0;
                              yline(cell2mat(trialinfo(j+(i-1),2)),'Color','r','Linewidth',3*(ratioplot),'Alpha',1)
                              if SavetoPPT==1
                                  saveas(gcf,['Depth_plot_estimate' num2str(i*100+j*5+3*ratioplot/0.25) '.png'])
-                                 pichandle=Picture(['Depth_plot_estimate' num2str(i*100+j*5+3*ratioplot/0.25) '.png']);%save figure as picture
-                                 replace(pictureSlide,['Picture ' num2str((ratioplot/0.25)+1)],pichandle); %replace picture with name Picture X
                              end
                          end
                          estimatelineplotval(:,(ratioplot/0.25))=additivespikingsingchn(:,AMPInterestSingleLinePlotINDEXDUAL);
-                     end
-                     if SavetoPPT==1
-                         pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
-                         replace(pictureSlide, 'Title', 'Depth Heatmaps ERROR'); %replace title
                      end
                      for ratioplot=0.25:0.25:0.75 %ratio values to iterate through
                          %PLOTTING OF ERROR GRAPH
@@ -191,16 +171,11 @@ Largeloopcounter=0;
                              caxis([-150 150])
                              if SavetoPPT==1
                                  saveas(gcf,['Depth_plot_ERROR' num2str(i*100+j*5+3*ratioplot/0.25) '.png'])
-                                 pichandle=Picture(['Depth_plot_ERROR' num2str(i*100+j*5+3*ratioplot/0.25) '.png']);%save figure as picture
-                                 replace(pictureSlide,['Picture ' num2str((ratioplot/0.25)+1)],pichandle); %replace picture with name Picture X
                              end
                          end
                      end
+                     errorlineplot=singleLineplotval(:,2:4)-estimatelineplotval;
                      if printFigures==1
-                         if SavetoPPT==1
-                             pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
-                             replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
-                         end
                          figure %plotting estimation line plot
                          ax = gca;
                          ax.ColorOrderIndex=ax.ColorOrderIndex+1;%skips single electrode colouring
@@ -222,12 +197,7 @@ Largeloopcounter=0;
                          title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2))) ' ESTIMATION'])
                          if SavetoPPT==1
                              saveas(gcf,['LineplotEstimation' num2str(i*100+j*5+3*ratioplot/0.25) '.png'])
-                             pichandle=Picture(['LineplotEstimation' num2str(i*100+j*5+3*ratioplot/0.25) '.png']);%save figure as picture
-                             replace(pictureSlide,['Picture ' num2str(3)],pichandle); %replace picture with name Picture X
                          end
-                     end
-                     errorlineplot=singleLineplotval(:,2:4)-estimatelineplotval;
-                     if printFigures==1
                          figure %plotting error line plot
                          ax = gca;
                          ax.ColorOrderIndex=ax.ColorOrderIndex+1;%skips single electrode colouring
@@ -249,37 +219,36 @@ Largeloopcounter=0;
                          title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2))) ' ERROR'])
                          if SavetoPPT==1
                              saveas(gcf,['LineplotERROR' num2str(i*100+j*5+3*ratioplot/0.25) '.png'])
-                             pichandle=Picture(['LineplotERROR' num2str(i*100+j*5+3*ratioplot/0.25) '.png']);%save figure as picture
-                             replace(pictureSlide,['Picture ' num2str(4)],pichandle); %replace picture with name Picture X
                          end
                      end
-                     
-                     
-                 else
+                 elseif (length(NORECORDELECT)~=1) || (NORECORDELECT(1)~=0)
                      additivespikingsingchn=normalisedAvgspikingTsingchn1+normalisedAvgspikingT;%adds together ratio of spike rates for prediction based on single electrode trials
                      estimatelineplotval=additivespikingsingchn(:,AMPInterestSingleLinePlotINDEXDUAL);
-                     errorlineplot=singleLineplotval(:,1)-estimatelineplotval;
+                     errorlineplot=singleLineplotval(:,numrecordelectinterest)-estimatelineplotval;
                      if printFigures==1
-                         fignum=i*2;
+                         figure
+                         fignum=gcf;
+                         fignum=fignum.Number;
                          DepthChangeingSpiking_SM(additivespikingsingchn, chosen_trials,fignum);%plots heatmap of estimated plots
                          title(['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo(j+(i-1),2))) ' ' num2str(cell2mat(trialinfo(chnT1,2))) ' ESTIMATED '  '50/50'])
                          yline(cell2mat(trialinfo(chnT1,2)),'Color','r','Linewidth',1.5,'Alpha',1)
                          yline(cell2mat(trialinfo(j+(i-1),2)),'Color','r','Linewidth',1.5,'Alpha',1)
                          if SavetoPPT==1
                              saveas(gcf,['Depth_plot_estimate' num2str(i*100+j*5+3) '.png'])
-                             pichandle=Picture(['Depth_plot_estimate' num2str(i*100+j*5+3) '.png']);%save figure as picture
-                             replace(pictureSlide,['Picture ' num2str(2)],pichandle); %replace picture with name Picture X
                          end
+                         ZdataEstimateplot=additivespikingsingchn;
                          %PLOTTING OF ERROR GRAPH
-                         fignum=j+(i-1)-4;
+                         if length(NORECORDELECT)>1
+                             fignum=j+(i-1)-4-length(NORECORDELECT);
+                         else
+                             fignum=j+(i-1)-4;
+                         end
                          figure(fignum)
                          object_handles = findall(gcf,'Type','Surface');
                          ZdataResultplot=object_handles.ZData;
-                         fignum=i*2;
-                         figure(fignum)
-                         object_handles = findall(gcf,'Type','Surface');
-                         ZdataEstimateplot=object_handles.ZData;
-                         fignum=i*3;
+                         figure
+                         fignum=gcf;
+                         fignum=fignum.Number;
                          DepthChangeingSpiking_SM(ZdataResultplot-ZdataEstimateplot, chosen_trials,fignum);%plots heatmap of estimated plots
                          title(['ERROR in estimation. Stimchn: ' num2str(cell2mat(trialinfo(j+(i-1),2))) ' ' num2str(cell2mat(trialinfo(chnT1,2))) ' @ '  '50/50'])
                          yline(cell2mat(trialinfo(chnT1,2)),'Color','r','Linewidth',1.5,'Alpha',1)
@@ -287,12 +256,6 @@ Largeloopcounter=0;
                          caxis([-150 150])
                          if SavetoPPT==1
                              saveas(gcf,['Depth_plot_ERROR' num2str(i*100+j*5+3) '.png'])
-                             pichandle=Picture(['Depth_plot_ERROR' num2str(i*100+j*5+3) '.png']);%save figure as picture
-                             replace(pictureSlide,['Picture ' num2str(3)],pichandle); %replace picture with name Picture X
-                         end
-                         if SavetoPPT==1
-                             pictureSlide = add(presentationObj,'PictureLayout2'); %Create picture slide - custom layout
-                             replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
                          end
                          figure %plotting estimation line plot
                          hold on
@@ -305,18 +268,16 @@ Largeloopcounter=0;
                          end
                          ylabel('Sp/s')
                          xlabel('Channel number')
-                         xlim([1 32])
-                         xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'-.k')
-                         xline(cell2mat(trialinfo((chosen_trials(3)-2)*2,2)),'k')
+                         xlim([1 nChn])
+                         dualtrial=floor( chosen_trials(1) / trialjump ) * trialjump +1;
+                         xline(cell2mat(trialinfo(dualtrial*2-1,2)),'-.k')
+                         xline(cell2mat(trialinfo(dualtrial*2,2)),'k')
                          legend('50/50', 'Stim E1','Stim E2')
-                         title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2))) ' ESTIMATION'])
+                         title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(1))*2-1,2))) ' & ' num2str(cell2mat(trialinfo((chnT1),2))) ' ESTIMATION'])
                          if SavetoPPT==1
                              saveas(gcf,['LineplotEstimation' num2str(i*100+j*5+3) '.png'])
-                             pichandle=Picture(['LineplotEstimation' num2str(i*100+j*5+3) '.png']);%save figure as picture
-                             replace(pictureSlide,['Picture ' num2str(3)],pichandle); %replace picture with name Picture X
                          end
-                         
-                         
+
                          figure %plotting error line plot
                          
                          hold on
@@ -330,71 +291,241 @@ Largeloopcounter=0;
                          ylabel('Sp/s')
                          xlabel('Channel number')
                          xlim([1 nChn])
-                         xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'-.k')
-                         xline(cell2mat(trialinfo((chosen_trials(3)-2)*2,2)),'k')
+                         xline(cell2mat(trialinfo((chnT1),2)),'-.k')
+                         xline(cell2mat(trialinfo((chosen_trials(1))*2-1,2)),'k')
                          legend('50/50', 'Stim E1','Stim E2')
-                         title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2))) ' ERROR'])
+                         title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(1))*2-1,2))) ' & ' num2str(cell2mat(trialinfo((chnT1),2)))  ' ERROR'])
                          if SavetoPPT==1
                              saveas(gcf,['LineplotERROR' num2str(i*100+j*5+3) '.png'])
-                             pichandle=Picture(['LineplotERROR' num2str(i*100+j*5+3) '.png']);%save figure as picture
-                             replace(pictureSlide,['Picture ' num2str(4)],pichandle); %replace picture with name Picture X
                          end
                      end
                  end
              else
+                 numrecordelectinterest=0;
                  normalisedAvgspikingTsingchn1=normalisedAvgspikingT;%if this is the first single electrode data, then keep it for the next loop with the second electrode
                  chnT1=j+(i-1);%note which channel number this is so we can use it later
              end
          end
      end
      if printFigures==1
-     figure %plotting real data line plot
-     hold on
-     SMOOTHING=1;
-     window = normpdf(-3*SMOOTHING:3*SMOOTHING,0,SMOOTHING);
-     for p=1:size(singleLineplotval,2)
-     rate = conv(singleLineplotval(:,p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding 
-     rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
-     errorbar(rate,singleLineplotvalstd(:,p))
+         figure %plotting real data line plot
+         hold on
+         SMOOTHING=1;
+         window = normpdf(-3*SMOOTHING:3*SMOOTHING,0,SMOOTHING);
+         if  (NORECORDELECT(1)==0) && (length(NORECORDELECT)==1)
+             for p=1:1
+                 rate = conv(singleLineplotval(:,p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
+                 rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
+                 errorbar(rate,singleLineplotvalstd(:,p))
+             end
+                 ratioplot=0.25;
+                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'k')
+                 legend('100/0','Stim E1')
+                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)))])
+         else
+             for p=1:size(singleLineplotval,2)
+                 rate = conv(singleLineplotval(:,p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
+                 rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
+                 errorbar(rate,singleLineplotvalstd(:,p))
+             end
+             if VarAmp==1
+                 legend('100/0','75/25','50/50','25/75','0/100', 'Stim E1','Stim E2')
+                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'-.k')
+                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2,2)),'k')
+                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)))])
+             elseif (length(NORECORDELECT)==1) && (VarAmp==0) 
+                 legend('50/50','0/100','100/0','Stim E1','Stim E2')
+                 ratioplot=0.25;
+                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'-.k')
+                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2,2)),'k')
+                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)))])
+             else
+                 for looprecordelect=1:length(NORECORDELECT)
+                     lgnd_names{looprecordelect}=['50/50 w/ Stimchn ' num2str(cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(looprecordelect-1))*2,2))) ', ' num2str(cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(looprecordelect-1))*2-1,2)))];
+                 end
+                 for looprecordelect=1:(length(NORECORDELECT)+1)
+                     lgnd_names{(looprecordelect+length(NORECORDELECT))}=['100/0 w/ Stimchn ' num2str(cell2mat(trialinfo((chosen_trials(1)-length(NORECORDELECT)+(looprecordelect-1))*2-1,2)))];
+                 end
+                 linS = {'-','--',':','-.'};
+                 for looprecordelect=1:length(NORECORDELECT)+1
+                     lgnd_names{(looprecordelect+length(NORECORDELECT)*2+1)}=['Stim E' num2str((looprecordelect))];
+                     xline((cell2mat(trialinfo((chosen_trials(1)-length(NORECORDELECT)+(looprecordelect-1))*2-1,2))),'LineStyle', linS{looprecordelect}, 'Color', 'k')
+                 end
+                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA'])
+                 legend(lgnd_names)
+                 ratioplot=0.25;
+             end
+         end
+         ylabel('Sp/s')
+         xlabel('Channel number')
+         xlim([1 nChn])
+         if SavetoPPT==1
+             saveas(gcf,['LineplotReal' num2str(i*100+j*5+3*ratioplot/0.25) '.png'])
+         end
      end
-     
-     xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'-.k')
-     xline(cell2mat(trialinfo((chosen_trials(3)-2)*2,2)),'k')
-     if VarAmp==1
-     legend('100/0','75/25','50/50','25/75','0/100', 'Stim E1','Stim E2')
-     else
-        legend('50/50','0/100','100/0','Stim E1','Stim E2')
-        ratioplot=0.25;
-     end
-     ylabel('Sp/s')
-     xlabel('Channel number')
-     xlim([1 nChn])
-     title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)))])
-
-     if SavetoPPT==1
-         saveas(gcf,['LineplotReal' num2str(i*100+j*5+3*ratioplot/0.25) '.png'])
-         pichandle=Picture(['LineplotReal' num2str(i*100+j*5+3*ratioplot/0.25) '.png']);%save figure as picture
-         replace(pictureSlide,['Picture ' num2str(2)],pichandle); %replace picture with name Picture X
-     end
-     
-     %find where the average peak occurs 
-     if VarAmp==1
-        averagespElect=find(mean(singleLineplotval(:,2:4),2)==max(mean(singleLineplotval(:,2:4),2)));
-     else
-         averagespElect=find(singleLineplotval(:,1)==max(singleLineplotval));
-     end
-     if abs(cell2mat(trialinfo(chosen_trials(1)*2-1,2))-averagespElect)<abs(cell2mat(trialinfo(chosen_trials(1)*2-2,2))-averagespElect)
-         electrodepreference(Largeloopcounter,1)='D';%for deep, note this converts to ascii
-         electrodepreference(Largeloopcounter,2)=averagespElect;%for deep
-         electrodepreference(Largeloopcounter,3)=cell2mat(trialinfo(chosen_trials(1)*2-1,2));
-         electrodepreference(Largeloopcounter,4)=cell2mat(trialinfo(chosen_trials(1)*2-2,2));
-     else
-         electrodepreference(Largeloopcounter,1)='S';%for shallow
-         electrodepreference(Largeloopcounter,2)=averagespElect;%for deep
-         electrodepreference(Largeloopcounter,3)=cell2mat(trialinfo(chosen_trials(1)*2-1,2));
-         electrodepreference(Largeloopcounter,4)=cell2mat(trialinfo(chosen_trials(1)*2-2,2));
+     %find where the average peak occurs
+     if (NORECORDELECT(1)~=0)&&(length(NORECORDELECT)==1)
+         if VarAmp==1
+             averagespElect=find(mean(singleLineplotval(:,2:4),2)==max(mean(singleLineplotval(:,2:4),2)));
+         else
+             averagespElect=find(singleLineplotval(:,1)==max(singleLineplotval(:,1)));
+         end
+         if length(NORECORDELECT)>1 && VarAmp==0
+             for norecrodElect=1:length(NORECORDELECT)
+                 averagespElect=find(singleLineplotval(:,norecrodElect)==max(singleLineplotval(:,norecrodElect)));
+                 if abs(cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(norecrodElect-1))*2-1,2))-averagespElect(1))<abs(cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(norecrodElect-1))*2,2))-averagespElect(1))
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,1)='D';%for deep, note this converts to ascii
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,2)=averagespElect(1);%for deep
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,3)=cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(norecrodElect-1))*2-1,2));
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,4)=cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(norecrodElect-1))*2,2));
+                 else
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,1)='S';%for shallow
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,2)=averagespElect(1);%for deep
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,3)=cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(norecrodElect-1))*2-1,2));
+                     electrodepreference((Largeloopcounter-1)*length(NORECORDELECT)+norecrodElect,4)=cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(norecrodElect-1))*2,2));
+                 end
+             end
+         else
+             if abs(cell2mat(trialinfo(chosen_trials(1)*2-1,2))-averagespElect(1))<abs(cell2mat(trialinfo(chosen_trials(1)*2-2,2))-averagespElect(1))
+                 electrodepreference(Largeloopcounter,1)='D';%for deep, note this converts to ascii
+                 electrodepreference(Largeloopcounter,2)=averagespElect(1);%for deep
+                 electrodepreference(Largeloopcounter,3)=cell2mat(trialinfo(chosen_trials(1)*2-1,2));
+                 electrodepreference(Largeloopcounter,4)=cell2mat(trialinfo(chosen_trials(1)*2-2,2));
+             else
+                 electrodepreference(Largeloopcounter,1)='S';%for shallow
+                 electrodepreference(Largeloopcounter,2)=averagespElect(1);%for deep
+                 electrodepreference(Largeloopcounter,3)=cell2mat(trialinfo(chosen_trials(1)*2-1,2));
+                 electrodepreference(Largeloopcounter,4)=cell2mat(trialinfo(chosen_trials(1)*2-2,2));
+             end
+         end
      end
  end
+ 
+ %%Saving to ppt
+ linkedtrials=length(trialinfo)/(2*endtrialelect);
+ for numbercond=1:linkedtrials
+     if SavetoPPT==1
+         pictureSlide = add(presentationObj,'PictureLayout3'); %Create picture slide - custom layout
+         replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
+     end
+     Loopcounter=0;
+     for plotppt=1+endtrialelect*(numbercond-1)*2:2:endtrialelect+endtrialelect*(numbercond-1)*2
+         Loopcounter=Loopcounter+1;
+         try
+             pichandle=Picture(['Depth_plot' num2str(plotppt) '.png']);%save figure as picture
+             replace(pictureSlide,['Picture ' num2str(Loopcounter)],pichandle); %replace picture with name Picture X
+         catch
+             %%if there are no NORECORDELECTRIALS
+         end
+     end
+     if SavetoPPT==1 && VarAmp==0
+         pictureSlide = add(presentationObj,'PictureLayout3'); %Create picture slide - custom layout
+         replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
+         
+         list = dir('Depth_plot_estimate*');
+         name = {list.name};
+         parts = cellfun(@(x) x(20:end-4),name,'UniformOutput',false);
+         Loopcounter=0;
+         for plotppt=1+length(NORECORDELECT)*(numbercond-1):length(NORECORDELECT)+length(NORECORDELECT)*(numbercond-1)
+             Loopcounter=Loopcounter+1;
+             try
+                 pichandle=Picture(['Depth_plot_estimate' parts{plotppt} '.png']);%save figure as picture
+                 replace(pictureSlide,['Picture ' num2str(Loopcounter)],pichandle); %replace picture with name Picture X
+             catch
+                 %%if there are no NORECORDELECTRIALS
+             end
+         end
+         list = dir('Depth_plot_ERROR*');
+         name = {list.name};
+         parts = cellfun(@(x) x(17:end-4),name,'UniformOutput',false);
+         Loopcounter=0;
+         for plotppt=1+length(NORECORDELECT)*(numbercond-1):length(NORECORDELECT)+length(NORECORDELECT)*(numbercond-1)
+             Loopcounter=Loopcounter+1;
+             try
+                 pichandle=Picture(['Depth_plot_ERROR' parts{plotppt} '.png']);%save figure as picture
+                 replace(pictureSlide,['Picture ' num2str(Loopcounter+length(NORECORDELECT))],pichandle); %replace picture with name Picture X
+             catch
+                 %%if there are no NORECORDELECTRIALS
+             end
+         end
+     elseif SavetoPPT==1 && VarAmp==1
+         pictureSlide = add(presentationObj,'PictureLayout6pics'); %Create picture slide - custom layout
+         replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
+         
+         list = dir('Depth_plot_estimate*');
+         name = {list.name};
+         parts = cellfun(@(x) x(20:end-4),name,'UniformOutput',false);
+         parts=sort(str2double(string(parts)));
+         Loopcounter=0;
+         for plotppt=1+3*(numbercond-1):3+3*(numbercond-1)
+             Loopcounter=Loopcounter+1;
+             try
+                 pichandle=Picture(['Depth_plot_estimate' num2str(parts(plotppt)) '.png']);%save figure as picture
+                 replace(pictureSlide,['Picture ' num2str(Loopcounter)],pichandle); %replace picture with name Picture X
+             catch
+                 %%if there are no NORECORDELECTRIALS
+             end
+         end
+         list = dir('Depth_plot_ERROR*');
+         name = {list.name};
+         parts = cellfun(@(x) x(17:end-4),name,'UniformOutput',false);
+         parts=sort(str2double(string(parts)));
+         Loopcounter=0;
+         for plotppt=1+3*(numbercond-1):3+3*(numbercond-1)
+             Loopcounter=Loopcounter+1;
+             try
+                 pichandle=Picture(['Depth_plot_ERROR' num2str(parts(plotppt)) '.png']);%save figure as picture
+                 replace(pictureSlide,['Picture ' num2str(Loopcounter+3)],pichandle); %replace picture with name Picture X
+             catch
+                 %%if there are no NORECORDELECTRIALS
+             end
+         end
+     end
+     if SavetoPPT==1
+         pictureSlide = add(presentationObj,'PictureLayout3'); %Create picture slide - custom layout
+         replace(pictureSlide, 'Title', 'Depth Heatmaps'); %replace title
+     end
+     list = dir('LineplotERROR*');
+     name = {list.name};
+     parts = cellfun(@(x) x(14:end-4),name,'UniformOutput',false);
+     parts=sort(str2double(string(parts)));
+     Loopcounter=0;
+     for plotppt=1+length(NORECORDELECT)*(numbercond-1):length(NORECORDELECT)+length(NORECORDELECT)*(numbercond-1)
+         Loopcounter=Loopcounter+1;
+         try
+             pichandle=Picture(['LineplotERROR' num2str(parts(plotppt)) '.png']);%save figure as picture
+             replace(pictureSlide,['Picture ' num2str(Loopcounter+length(NORECORDELECT))],pichandle); %replace picture with name Picture X
+         catch
+             %%if there are no NORECORDELECTRIALS
+         end
+     end
+     
+     list = dir('LineplotEstimation*');
+     name = {list.name};
+     parts = cellfun(@(x) x(19:end-4),name,'UniformOutput',false);
+     parts=sort(str2double(string(parts)));
+     Loopcounter=0;
+     for plotppt=1+length(NORECORDELECT)*(numbercond-1):length(NORECORDELECT)+length(NORECORDELECT)*(numbercond-1)
+         Loopcounter=Loopcounter+1;
+         try
+             pichandle=Picture(['LineplotEstimation' num2str(parts(plotppt)) '.png']);%save figure as picture
+             replace(pictureSlide,['Picture ' num2str(Loopcounter)],pichandle); %replace picture with name Picture X
+         catch
+             %%if there are no NORECORDELECTRIALS
+         end
+     end
+     list = dir('LineplotReal*');
+     name = {list.name};
+     parts = cellfun(@(x) x(13:end-4),name,'UniformOutput',false);
+     parts=sort(str2double(string(parts)));
+     try
+     pichandle=Picture(['LineplotReal' num2str(parts(numbercond)) '.png']);%save figure as picture
+     replace(pictureSlide,['Picture ' num2str(5)],pichandle); %replace picture with name Picture X
+     catch
+         %%In case you're silly and try to save to ppt with single stim
+     end
+ end
+ 
  if SavetoPPT==1
      replace(pictureSlide,'Title', 'Depth Heatmaps'); %replace title
      close(presentationObj); %close presentation to keep changes

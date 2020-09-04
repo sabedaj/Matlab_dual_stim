@@ -1,4 +1,4 @@
-function [trialinfo] = loadTrialInfo
+function [trialinfo] = loadTrialInfo(varargin)
 % calculates template of trials
 
 %OUTPUT Example of each trial ID in order - array contains all trial info 
@@ -16,5 +16,9 @@ for ID=1:maxtid
     trialinfo(ID+(ID-1)+1,:)=[{ID},TrialParams(num(1),3), StimParams(num(1)+1,:)];
     trialinfo((ID+1)+(ID-1)+1,:)=[{ID},TrialParams(num(2),3), StimParams(num(2)+1,:)];
 end
+if nargin==1
+    trialinfo(1,:)=[];
+end
+
 end
 

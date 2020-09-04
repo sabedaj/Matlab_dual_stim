@@ -30,9 +30,11 @@ if nargin==1
     if E_Mapnumber>0
         nChn=64;
         p=6;
-    else
+    elseif datetime(fileinfo.date) > Flex_cutoff
         nChn=32;
         p=5;
+    else
+        p=3;
     end
 end
 E_MAP = ProbeMAP;

@@ -12,7 +12,7 @@ function [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct)
 
 %Elecrode properties
 filepath = pwd;
-fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
+fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
 fileinfo = dir([filepath filesep 'info.rhs']);
 if (datetime(fileinfo.date) < fourShank_cutoff)
     nChn=32;

@@ -28,7 +28,7 @@ for i = 1:size(CHNlist,1)
                 break;
             end
         end
-        if j>(32+1)
+        if j>(32)
             j=j-32;
         end
         if strncmpi(CHNlist(i,:), 'A',1)

@@ -127,7 +127,7 @@ for n = 1:DUALSTIM:endloopn
     
     if ~test
         fprintf(t,'SET');
-        % Verify successful send of parameters
+        % Verify s23cessful send of parameters
         S = verifyParameters(t,n);
         while ~(S)
             fprintf('WARNING: COMMUNICATIONS INTERRUPTED. RESENDING PARAMETERS\n');

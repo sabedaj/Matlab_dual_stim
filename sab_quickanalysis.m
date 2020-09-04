@@ -97,14 +97,25 @@ end
 %% 5. Calculates template of trials and spiking responses (Output in true electrode order)
 [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
 
-
+ %% 8. plotting average electrode response for all electrodes classes as significant and not significant
+ cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
+ avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));
+ testifsignificant=[(avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-1))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-2)))];
+ testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
+ 
+ [h,p]=ttest(testsig_maxamp',avgnostim','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
+ AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,1,h);
 %% Plots Heatmaps
-SavetoPPT=0;
-AMPInterestSingleLinePlot=2;%input in uA
-printFigures=0;
+SavetoPPT=0; %%if single trial, you cannot automatically save to ppt.
+AMPInterestSingleLinePlot=4;%input in uA
+printFigures=1;
 %note electrode preference depends on amplitude
 electrodepreference = Depth_heatmap_and_linecut(AMPInterestSingleLinePlot,trialinfo,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse, printFigures,SavetoPPT); 
- %% Raster or histogram of firing rate
+
+
+
+
+%% Raster or histogram of firing rate
  chn=17;
 generate_StackedRaster_sab(chn);
  %% Plots unfiltered data
@@ -143,47 +154,39 @@ outputMaxHist=[];
  end
  save('outputMaxHist.mat','outputMaxHist');
  %%
+ loadVarAmp;
  AMP=loadAMP;
  AMP(1)=0;
- chosenfield='Chn_16_StimChn_19_13';
+ chosenfield='Chn_5_StimChn_8_3';
  ddddaata=outputMaxHist.(chosenfield);
  ddddaata(:,1)=mean(ddddaata(:,1));
  figure
  hold on
- for i=1:5
- plot(AMP(1:4),ddddaata(i,1:4)')
+ if VarAmp==1
+     for i=1:5
+         plot(AMP(1:4),ddddaata(i,1:4)')
+     end
+     legend('100/0','75/25','50/50','25/75','0/100')
+ else
+     for i=1:3
+         plot(AMP(1:4),ddddaata(i,1:4)')
+     end
+     legend('100/0','50/50','0/100')
  end
-legend('100/0','75/25','50/50','25/75','0/100')
-%legend('100/0','50/50','0/100')
+
  title(chosenfield,'Interpreter','none')
  xlabel('Current uA')
  ylabel('Sp/s')
  ylim([0 450])
- %%
-fieldnamesMaxHist=fieldnames(outputMaxHist);
-for i=1:4:length(fieldnamesMaxHist)
-    nme=cell2mat(fieldnamesMaxHist(i));
-    arr=outputMaxHist.(nme);
- figure(400)
- hold on
-plot
- figure(401)
- hold on
-plot
-end
- %%
+
+ %% 8. plotting average electrode response for all electrodes classes as significant and not significant
  cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
- avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));%avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
- %testifsignificant=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))~=-1));
- testifsignificant=(avgnospT(:,cell2mat(trialinfo(2:2:end,2))==0));
- for i=1:cond
-     testifsignificant_mean(:,i)=mean(testifsignificant(1:nChn,i:cond:size(testifsignificant,2)),2);
- end
-testsig_maxamp=testifsignificant(:,end-size(avgnostim,2)+1:end);
-%testifsignificant_mean=mean(testifsignificant(1:nChn,1:size(testifsignificant,2)),2);
-%checknumnovsstim=size(testifsignificant,2)/size(avgnostim,2);
-[h,p]=ttest(avgnostim',testsig_maxamp');%testifsignificant(1:nChn,1:size(avgnostim,2))');
-h(isnan(h))=0;
+ avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));
+ testifsignificant=[(avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-1))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-2)))];
+ testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
+ 
+ [h,p]=ttest(testsig_maxamp',avgnostim','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
+ AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,1,h);
 
 %% 6. Print all trial details
 Legend=cell(nChn,1);
@@ -196,7 +199,7 @@ fprintf('The stimulation channels were: \n');
 fprintf('%d\n',stimChn);
 
 %% 8. plotting average electrode response for all electrodes classes as significant and not significant
-AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,h);
+AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,1,h);
 
 %% 9. plotting electrodes between stim and stim electrodes
 InbetweenElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial);

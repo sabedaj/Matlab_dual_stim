@@ -15,7 +15,7 @@ else
     end
 end
 name = pwd;
-[filepath,name,ext] = fileparts(name);
+[FP,name,ext] = fileparts(name);
 name = name(1:end-14);
 %% Deal with the digital lines
 disp('Cleaning the digital lines');

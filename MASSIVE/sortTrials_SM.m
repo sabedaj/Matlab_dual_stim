@@ -11,7 +11,7 @@ function [IDstruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,s
 
 %Elecrode properties
 filepath = pwd;
-fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
+fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
 fileinfo = dir([filepath filesep 'info.rhs']);
 if (datetime(fileinfo.date) < fourShank_cutoff)
     nChn=32;
@@ -124,22 +124,15 @@ for tID=starttrial:trialjump:endtrial
                     spike=size(spikedetailstrig,1);
                     if printspiking>0
                         if (size(varargin,2)==0) || (cell2mat(varargin(1))==0)
-                            if ((tID>20) && (tID<31)) && (((indT>=1) && (indT<=10))) %%||( (tID>15) && (tID<19)) %
+                            if ((tID>5) && (tID<15)) && (((indT>=10) && (indT<=25))) %%||( (tID>15) && (tID<19)) %
                                 figure(find(E_MAP==chsp))
                                 hold on
                                 plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50))
                                 title(['Channel ' num2str(find(E_MAP==chsp))])
                                 ylabel('Spike amplitude (uV)')
                                 xlabel('Time (ms)')
+                                
                             end
-%                             if ((tID>73) && (tID<78)) && ((indT>=40) && (indT<=50)) %%||( (tID>15) && (tID<19)) %
-%                                 figure(E_MAP(chsp)+32)
-%                                 hold on
-%                                 plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50))
-%                                 title(['Channel ' num2str(E_MAP(chsp))])
-%                                 ylabel('Spike amplitude (uV)')
-%                                 xlabel('Time (ms)')
-%                             end
                         else
                             if ((tID>0) && (tID<=maxtid)) && (indT<=1)% prints all spikes after trigger
                                 figure(find(E_MAP==chsp))

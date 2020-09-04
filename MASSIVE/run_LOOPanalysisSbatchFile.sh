@@ -4,8 +4,9 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-user=sabrina.meikle@monash.edu
 #SBATCH --job-name=Loop_dataAnalysis
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=40000
+#SBATCH --array=1-3
+#SBATCH --mem-per-cpu=30000
 module load matlab
 matlab -nodisplay -nojvm -nosplash < loopSubdirectMASSIVE.m

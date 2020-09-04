@@ -4,16 +4,7 @@ function [PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(trialinfo,avgno
 %INPUT - the trial information array, the average number of spikes per
 %trial array, and the standard error per trial array. An array of ones and
 %zeros denoting whether a channel had a significant increase in spiking
-if nargin==5
-   h=cell2mat(varargin(2));
-   printFigures=cell2mat(varargin(1));
-elseif nargin==4
-    h=ones(32,1);
-    printFigures=cell2mat(varargin(1));
-else 
-    h=ones(32,1);
-    printFigures=1;
-end
+
 filepath = pwd;
 fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
 fileinfo = dir([filepath, filesep 'info.rhs']);
@@ -27,6 +18,16 @@ else
     else
         nChn=32;
     end
+end
+if nargin==5
+   h=cell2mat(varargin(2));
+   printFigures=cell2mat(varargin(1));
+elseif nargin==4
+    h=ones(nChn,1);
+    printFigures=cell2mat(varargin(1));
+else 
+    h=ones(nChn,1);
+    printFigures=1;
 end
 E_MAP = Depth(E_Mapnumber);
 loadStimChn;
@@ -72,7 +73,7 @@ if sum(h)==nChn
             mean_error_array=mean(error_array,1);
             if printFigures==1
             hold on
-            errorbar(AMP,mean_result_array,mean_error_array)
+            errorbar([0 AMP(2:end)],mean_result_array,mean_error_array)
             title('Significant Channel Comparison')
             ylabel('Average number of spikes')
             xlabel('Current uA')
@@ -92,7 +93,7 @@ if sum(h)==nChn
     end
 else
     if printFigures==1
-    subplot(1,2,1)
+    ax1=subplot(1,2,1);
     hold on
     end
     result_array=zeros(size(result_trial_array,1),size(result_trial_array,2));
@@ -109,7 +110,7 @@ else
             mean_error_array=mean(error_array,1);
             if printFigures==1
             hold on
-            errorbar(AMP,mean_result_array,mean_error_array)
+            errorbar([0 AMP(2:end)],mean_result_array,mean_error_array)
             title('Significant Channel Comparison')
             ylabel('Average number of spikes')
             xlabel('Current uA')
@@ -121,7 +122,7 @@ else
     legend_names=legend_names(logical(h));
     legend(strsplit(num2str(legend_names)))
     
-    subplot(1,2,2)
+    ax2=subplot(1,2,2);
     hold on
     end
     result_array=zeros(size(result_trial_array,1),size(result_trial_array,2));
@@ -138,7 +139,7 @@ else
             mean_error_array=mean(error_array,1);
             if printFigures==1
             hold on
-            errorbar(AMP,mean_result_array,mean_error_array)
+            errorbar([0 AMP(2:end)],mean_result_array,mean_error_array)
             title('Not Significant Channel Comparison')
             ylabel('Average number of spikes')
             xlabel('Current uA')
@@ -147,9 +148,11 @@ else
     end
     h=abs(h-1);
     if printFigures==1
-    legend_names=1:nChn;
-    legend_names=legend_names(logical(h));
-    legend(strsplit(num2str(legend_names)))
+        linkaxes([ax1,ax2],'xy');
+
+        legend_names=1:nChn;
+        legend_names=legend_names(logical(h));
+        legend(strsplit(num2str(legend_names)))
     end
 end
 end
