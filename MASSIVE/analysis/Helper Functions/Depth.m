@@ -41,8 +41,13 @@ E_MAP = ProbeMAP;
 depth = zeros(1,nChn);
 for n = 2:nChn+1
     str = E_MAP{n,p};
-    str = str(4:5);
-    str = str2double(str);
+    if strcmp(str(1),'A')
+        str = str(4:5);
+        str = str2double(str);
+    elseif strcmp(str(1),'B')
+        str = str(4:5);
+        str = str2double(str)+32;
+    end
     depth(n-1) = str;
 end
 depth = depth';

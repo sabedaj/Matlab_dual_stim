@@ -6,7 +6,7 @@ Overall_time_to_analyse=0;%time from beginning of Startpoint_analyse (rememberin
 artefact=-150; %removes spikes below this threshold
 artefact_high=100; %removes spikes above this threshold
 startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)? 
-secondstoanalyse=12; %How long after the trigger do you want to analyse spikes for(ms)? 
+secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)? 
 printspiking=0;
 par=0;
 
@@ -109,10 +109,11 @@ end
  %AllElectrodeResponseCurve_SM(trialinfo,avgnospT_sps,stderrspktrial,1,h);
 % AllElectrodeResponseCurve_SM(trialinfo,avgnospT_sps,(1000/(secondstoanalyse-startpointseconds)).*stderrspktrial,1,h);
 %% Plots Heatmaps
+depthdriven=1500-50;%in um -50 frm tip
 SavetoPPT=0; %%if single trial, you cannot automatically save to ppt.
 AMPInterestSingleLinePlot=4;%input in uA
-TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse);
-AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse);
+TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse,depthdriven);
+AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse,depthdriven);
 
 
 
@@ -139,7 +140,7 @@ xlabel('Time (ms)')
 %% Plots filtered data for selected channels and trial ID
 Binstart=-250;
 Binend=400;
-tID=[6]; %trial ID of interest
+tID=[7]; %trial ID of interest
 Chan=[15];%channels of interest 
 Chosen_trig=15;
 stimConcatenate(tID,Chosen_trig,Chan,'MU',Binstart,Binend);
@@ -224,12 +225,12 @@ trialjump=5;%number of trials to jump for next consecutive response
 singleElectrodeResponseCurveAMPLITUDE_SM(trialinfo,avgnospT,stderrspktrial,Chan,starttrial,trialjump);
 
 %% Plot response curve change over time (3D graph)
- TimeBegin=2; %How long after the trigger do you want skip spike analysis(ms)? 
- TimeEnd=20; %How long after the trigger do you want to stop spike analysis(ms)? 
+ TimeBegin=0; %How long after the trigger do you want skip spike analysis(ms)? 
+ TimeEnd=14; %How long after the trigger do you want to stop spike analysis(ms)? 
  TimeStep=2; %Timestep of spike analysis between TimeBegin and TimeEnd(ms)? 
- starttrial=3;%starting trial to analyse
- endtrial=30;%trial to stop analysing
- electrode=15;
+ starttrial=1;%starting trial to analyse
+ endtrial=7;%trial to stop analysing
+ electrode=17;
  trialjump=find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %number of trials to jump for next consecutive response equal to cond as default
  TimeChangeinSpiking_SM(TimeBegin, TimeEnd, TimeStep)%, electrode, starttrial, trialjump, endtrial); %can input end trial but haven't tested
  

@@ -17,6 +17,15 @@ trialinfo(1,:)=[];
 cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition 
 TrialParams = loadTrialParams;
 maxtid=max(cell2mat(TrialParams(:,2)));
+loadNREP;
+try
+    loadoriginalEND;
+    if (originalEND/cond)<maxtid
+        maxtid=originalEND/cond;
+    end
+catch
+    %%code was made before loadoriginalEND
+end
 Loopnum=floor((TimeEnd-TimeBegin)/TimeStep);
 loadStimChn;
 if nargin==3 || nargin ==4
@@ -39,9 +48,9 @@ elseif nargin ==7
     starttrial=cell2mat(varargin(2));
     trialjump=cell2mat(varargin(3));
     endtrial=cell2mat(varargin(4));
-    x=zeros(Loopnum,ceil((endtrial-starttrial)/jumptrial));
-    y=zeros(Loopnum,ceil((endtrial-starttrial)/jumptrial));
-    z=zeros(Loopnum,ceil((endtrial-starttrial)/jumptrial));
+    x=zeros(Loopnum,ceil((endtrial-starttrial)/trialjump));
+    y=zeros(Loopnum,ceil((endtrial-starttrial)/trialjump));
+    z=zeros(Loopnum,ceil((endtrial-starttrial)/trialjump));
 end
     for counter=1:Loopnum
         [IDstruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,starttrial,trialjump,endtrial);
@@ -139,7 +148,7 @@ end
     end
     xticklabels(xticks_names(1,1:size(y(1,:),2)))
     colorbar
-    caxis([0, 0.6]);
+    caxis([0, max(y,[],'all')]);
 end
     
 %     for loopnumcount=1:maxtid/cond

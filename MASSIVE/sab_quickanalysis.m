@@ -6,7 +6,7 @@ Overall_time_to_analyse=0;%time from beginning of Startpoint_analyse (rememberin
 artefact=-150; %removes spikes below this threshold
 artefact_high=100; %removes spikes above this threshold
 startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)? 
-secondstoanalyse=12; %How long after the trigger do you want to analyse spikes for(ms)? 
+secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)? 
 printspiking=0;
 par=0;
 
@@ -97,18 +97,38 @@ end
 %% 5. Calculates template of trials and spiking responses (Output in true electrode order)
 [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
 
-
+ %% 8. plotting average electrode response for all electrodes classes as significant and not significant
+ AMP=loadAMP;
+ avgnospT_sps=(1000/(secondstoanalyse-startpointseconds)).*avgnospT;
+ cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
+ avgnostim=(avgnospT_sps(:,cell2mat(trialinfo(1:2:end,18))==-1));
+ testifsignificant=[(avgnospT_sps(:,cell2mat(trialinfo(2:2:end,18))==AMP(end))) (avgnospT_sps(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-1))) (avgnospT_sps(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-2)))];
+ testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
+ 
+ [h,p]=ttest(testsig_maxamp',avgnostim','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
+ %AllElectrodeResponseCurve_SM(trialinfo,avgnospT_sps,stderrspktrial,1,h);
+% AllElectrodeResponseCurve_SM(trialinfo,avgnospT_sps,(1000/(secondstoanalyse-startpointseconds)).*stderrspktrial,1,h);
 %% Plots Heatmaps
-SavetoPPT=0;
-AMPInterestSingleLinePlot=2;%input in uA
-printFigures=0;
+depthdriven=1500-50;%in um -50 frm tip
+SavetoPPT=0; %%if single trial, you cannot automatically save to ppt.
+AMPInterestSingleLinePlot=4;%input in uA
+TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse,depthdriven);
+AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse,depthdriven);
+
+
+
+printFigures=1;
 %note electrode preference depends on amplitude
 electrodepreference = Depth_heatmap_and_linecut(AMPInterestSingleLinePlot,trialinfo,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse, printFigures,SavetoPPT); 
- %% Raster or histogram of firing rate
+
+
+
+
+%% Raster or histogram of firing rate
  chn=17;
 generate_StackedRaster_sab(chn);
  %% Plots unfiltered data
-tID=[30]; %trial ID of interest
+tID=[7]; %trial ID of interest
 Chan=[15];%channels of interest - recommend only one or two for raw
 Chosen_trig=15;
 Binstart=-250;
@@ -120,7 +140,7 @@ xlabel('Time (ms)')
 %% Plots filtered data for selected channels and trial ID
 Binstart=-250;
 Binend=400;
-tID=[30]; %trial ID of interest
+tID=[7]; %trial ID of interest
 Chan=[15];%channels of interest 
 Chosen_trig=15;
 stimConcatenate(tID,Chosen_trig,Chan,'MU',Binstart,Binend);
@@ -143,47 +163,39 @@ outputMaxHist=[];
  end
  save('outputMaxHist.mat','outputMaxHist');
  %%
+ loadVarAmp;
  AMP=loadAMP;
  AMP(1)=0;
- chosenfield='Chn_16_StimChn_19_13';
+ chosenfield='Chn_5_StimChn_8_3';
  ddddaata=outputMaxHist.(chosenfield);
  ddddaata(:,1)=mean(ddddaata(:,1));
  figure
  hold on
- for i=1:5
- plot(AMP(1:4),ddddaata(i,1:4)')
+ if VarAmp==1
+     for i=1:5
+         plot(AMP(1:4),ddddaata(i,1:4)')
+     end
+     legend('100/0','75/25','50/50','25/75','0/100')
+ else
+     for i=1:3
+         plot(AMP(1:4),ddddaata(i,1:4)')
+     end
+     legend('100/0','50/50','0/100')
  end
-legend('100/0','75/25','50/50','25/75','0/100')
-%legend('100/0','50/50','0/100')
+
  title(chosenfield,'Interpreter','none')
  xlabel('Current uA')
  ylabel('Sp/s')
  ylim([0 450])
- %%
-fieldnamesMaxHist=fieldnames(outputMaxHist);
-for i=1:4:length(fieldnamesMaxHist)
-    nme=cell2mat(fieldnamesMaxHist(i));
-    arr=outputMaxHist.(nme);
- figure(400)
- hold on
-plot
- figure(401)
- hold on
-plot
-end
- %%
+
+ %% 8. plotting average electrode response for all electrodes classes as significant and not significant
  cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
- avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));%avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
- %testifsignificant=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))~=-1));
- testifsignificant=(avgnospT(:,cell2mat(trialinfo(2:2:end,2))==0));
- for i=1:cond
-     testifsignificant_mean(:,i)=mean(testifsignificant(1:nChn,i:cond:size(testifsignificant,2)),2);
- end
-testsig_maxamp=testifsignificant(:,end-size(avgnostim,2)+1:end);
-%testifsignificant_mean=mean(testifsignificant(1:nChn,1:size(testifsignificant,2)),2);
-%checknumnovsstim=size(testifsignificant,2)/size(avgnostim,2);
-[h,p]=ttest(avgnostim',testsig_maxamp');%testifsignificant(1:nChn,1:size(avgnostim,2))');
-h(isnan(h))=0;
+ avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1));
+ testifsignificant=[(avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-1))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-2)))];
+ testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
+ 
+ [h,p]=ttest(testsig_maxamp',avgnostim','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
+ AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,1,h);
 
 %% 6. Print all trial details
 Legend=cell(nChn,1);
@@ -196,7 +208,7 @@ fprintf('The stimulation channels were: \n');
 fprintf('%d\n',stimChn);
 
 %% 8. plotting average electrode response for all electrodes classes as significant and not significant
-AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,h);
+AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,1,h);
 
 %% 9. plotting electrodes between stim and stim electrodes
 InbetweenElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial);
@@ -213,12 +225,12 @@ trialjump=5;%number of trials to jump for next consecutive response
 singleElectrodeResponseCurveAMPLITUDE_SM(trialinfo,avgnospT,stderrspktrial,Chan,starttrial,trialjump);
 
 %% Plot response curve change over time (3D graph)
- TimeBegin=2; %How long after the trigger do you want skip spike analysis(ms)? 
- TimeEnd=20; %How long after the trigger do you want to stop spike analysis(ms)? 
+ TimeBegin=0; %How long after the trigger do you want skip spike analysis(ms)? 
+ TimeEnd=14; %How long after the trigger do you want to stop spike analysis(ms)? 
  TimeStep=2; %Timestep of spike analysis between TimeBegin and TimeEnd(ms)? 
  starttrial=3;%starting trial to analyse
- endtrial=30;%trial to stop analysing
- electrode=15;
+ endtrial=35;%trial to stop analysing
+ electrode=17;
  trialjump=find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %number of trials to jump for next consecutive response equal to cond as default
  TimeChangeinSpiking_SM(TimeBegin, TimeEnd, TimeStep)%, electrode, starttrial, trialjump, endtrial); %can input end trial but haven't tested
  

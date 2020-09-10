@@ -136,8 +136,7 @@ for n = 1:DUALSTIM:endloopn
                 for i=1:DUALSTIM
                     
                     if ~test
-                        parametRecordings
-                        er_update(t,TRIAL.StimParams(n+1,:),n);
+                        parameter_update(t,TRIAL.StimParams(n+1,:),n);
                         % Send the parameter update
                         OK = checkTCPOK(t);
                         if OK ~= 1

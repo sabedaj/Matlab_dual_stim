@@ -17,6 +17,15 @@ trialinfo(1,:)=[];
 cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition 
 TrialParams = loadTrialParams;
 maxtid=max(cell2mat(TrialParams(:,2)));
+loadNREP;
+try
+    loadoriginalEND;
+    if ((originalEND-1)/(n_REP_true*2))<maxtid
+        maxtid=((originalEND-1)/(n_REP_true*2));
+    end
+catch
+    %%code was made before loadoriginalEND
+end
 Loopnum=floor((TimeEnd-TimeBegin)/TimeStep);
 loadStimChn;
 if nargin==3 || nargin ==4
@@ -39,17 +48,17 @@ elseif nargin ==7
     starttrial=cell2mat(varargin(2));
     trialjump=cell2mat(varargin(3));
     endtrial=cell2mat(varargin(4));
-    x=zeros(Loopnum,ceil((endtrial-starttrial)/jumptrial));
-    y=zeros(Loopnum,ceil((endtrial-starttrial)/jumptrial));
-    z=zeros(Loopnum,ceil((endtrial-starttrial)/jumptrial));
+    x=zeros(Loopnum,ceil((endtrial-starttrial)/trialjump));
+    y=zeros(Loopnum,ceil((endtrial-starttrial)/trialjump));
+    z=zeros(Loopnum,ceil((endtrial-starttrial)/trialjump));
 end
     for counter=1:Loopnum
         [IDstruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,starttrial,trialjump,endtrial);
         [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
         if nargin==3 %averages all trials for all electrodes
-            averageallelectrodes=mean(avgnospT,1);
-            z(counter,:)=(TimeStep*(counter)+TimeBegin).*ones(1,length(averageallelectrodes));
-            x(counter,:)=1:length(averageallelectrodes);
+            averageallelectrodes=mean(avgnospT(:,starttrial:endtrial),1);
+            z(counter,:)=(TimeStep*(counter)+TimeBegin).*ones(1,endtrial);
+            x(counter,:)=1:endtrial;
             y(counter,:)=averageallelectrodes;
             x_namelabel='Maximum Current (uA)';
             title_namelabel='Average time varying changes according to trial (All electrodes)';
@@ -132,7 +141,7 @@ end
         xlim([1 size(y(1,:),2)]) 
     else 
         xticks(1:size(y(1,:),2))
-        xlim([1 (ceil((endtrial-starttrial)/jumptrial))])
+        xlim([1 (ceil((endtrial-starttrial)/trialjump))])
         for xline_number=1:cond:maxtid
             xline(xline_number,'Color','w','LineWidth',2)
         end

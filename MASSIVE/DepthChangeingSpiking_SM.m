@@ -1,4 +1,4 @@
-function DepthChangeingSpiking_SM(avgnospT, chosen_trials,fignum, varargin)
+function DepthChangeingSpiking_SM(avgnospT, chosen_trials,fignum,depthdriven, varargin)
 
 %   Plots the response curve according to trial change over time. 
 %   Analyses spiking according to trial ID and Time. Creates a 3
@@ -10,7 +10,8 @@ function DepthChangeingSpiking_SM(avgnospT, chosen_trials,fignum, varargin)
 %Start trial, jump trial(usually = cond)
 %End trial
 %%
-AMP=loadAMP;
+loadAMP_all;
+AMP=AMP_all';
 trig = loadTrig(0);
 theseTrig = trig;
 trialinfo=loadTrialInfo;
@@ -33,16 +34,23 @@ else
         nChn=32;
     end
 end
-if nargin ==5
+if nargin ==4
     endtrial=cell2mat(varargin(1));
 else
     endtrial=maxtid;
 end
 
-x=1:32;%ones(nChn,length(chosen_trials));
+x=depthdriven:-50:depthdriven-(nChn-1)*50;%ones(nChn,length(chosen_trials));
 x=x';
 x=repelem(x,1,length(chosen_trials));
-y=AMP(1:length(chosen_trials));
+if nargin==6
+    y=cell2mat(varargin(2));
+else
+    y=AMP(1:length(chosen_trials));
+end
+if ~isrow(y)
+    y=y';
+end
 %y=cell2mat(trialinfo(chosen_trials.*2,18))';
 y(y==-1)=0;
 y=repelem(y,nChn,1);
@@ -66,22 +74,25 @@ z=avgnospT(:,1:length(chosen_trials));
     surf(y,x,z,'FaceColor','interp','EdgeColor','interp')
     xlabel('Amplitude (uA)')
     zlabel('Average spiking')
-    ylabel('Channel number')
+    ylabel('Depth (um)')
     if cell2mat(trialinfo(chosen_trials(2)*2,2))~=0%rem(starttrial,cond)&&(rem((starttrial-1),cond))
         title_namelabel=['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((chosen_trials(2)*2),2))) ' @ ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '/' num2str(cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18))))];
     else
         title_namelabel=['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
     end
-    yline(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)),'Color','r','Linewidth',cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))/35,'Alpha',1)
-    yline(cell2mat(trialinfo((chosen_trials(2)*2),2)),'Color','r','Linewidth',cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18)))/35,'Alpha',1)
+    yline((depthdriven-50*(cell2mat(trialinfo((chosen_trials(2)*2)-1,2))-1)),'Color','r','Linewidth',cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))/35,'Alpha',1)
+    if cell2mat(trialinfo(chosen_trials(2)*2,2))~=0
+        yline((depthdriven-50*(cell2mat(trialinfo(chosen_trials(2)*2,2))-1)),'Color','r','Linewidth',cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18)))/35,'Alpha',1)
+    end
     title(title_namelabel)
-    ylim([1 nChn])
+    set(gca, 'YDir','reverse')
+    ylim([depthdriven-50*(nChn-1) depthdriven])
     hcb=colorbar;
     hcb.Title.String = "Sp/s";
     hcb.Title.Rotation=270;
     hcb.Title.Position= [40,130];
     hcb.Title.FontSize=11;
-    caxis([0, 200])%max(z,[],'all')])
+    caxis([0, 250])%max(z,[],'all')])
 
 %     for loopnumcount=1:maxtid/cond
 %         hold on

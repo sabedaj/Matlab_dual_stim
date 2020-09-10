@@ -65,7 +65,6 @@ estimatelineplotval=zeros(nChn,3);
 Largeloopcounter=0;
 
  for i=1:endtrialelect*2:maxid*2 %i is used to go through groups of related trials
-
      Largeloopcounter=Largeloopcounter+1;
      for j=1:2:trialjump*2 %goes through trials related by trial jump
          desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(j+(i-1),2))))+1)/2; %finds trials with desired initial electrode

@@ -115,22 +115,17 @@ while (HAPPY)
                 varamplitude= input('Please enter whether you would like to vary the amplitude between the stimulating electrodes during the dual stimulation experiment YES=1 NO=0: \n'); %default 0/100 25/75 50/50 75/25 100/0
                 if varamplitude==1
                     n_REP=n_REP*5-(n_REP_true*(length(NORECORDELECT)-1));
-                    MissAmpFill= input('Please enter whether you would like to fill in missing single stim amplitudes YES=1 NO=0: \n'); %i.e. the 75% amplitude may not be accounted for
-
                     %             percentsingdual=input('Please enter number of dual electrode stimulation trials out of 10 i.e. input of "7"=7dual:3single: \n');
                     %             n_REP=ceil((n_REP/(10-percentsingdual))+((n_REP/(10-percentsingdual))*percentsingdual));
                 else
-                    MissAmpFill=0;
                     n_REP=n_REP+n_REP_true*length(NORECORDELECT)+n_REP_true;
                     NORECORDELECT=[NORECORDELECT, 0, -1.*NORECORDELECT];
                 end
             else 
-                MissAmpFill=0;
                 varamplitude=0;
             end
 
         else
-            MissAmpFill=0;
             singanddual=0;
             varamplitude=0;
             NORECORDELECT=-1;
@@ -206,7 +201,6 @@ for C = 1:length(CHN)
         end
     end
 end
-
 
 %% Randomize the order of trials
 StimParams = newStimParams(n_Trials);
@@ -340,9 +334,9 @@ if DUALSTIM==1
                             StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
                             TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
                             if StimParams{i,16}~=-1
-                                StimParams{i,16}=StimParams{i,16}*0.25;%assigns amplitude of 25%
+                                StimParams{i,16}=StimParams{i,16}*2*0.25;%assigns amplitude of 25%
                                 StimParams{i,17}=StimParams{i,16};%ensures both pos and neg phase amplitude balanced
-                                StimParams{i-1,16}=StimParams{i-1,16}*0.75;%assigns amplitudes of 75%
+                                StimParams{i-1,16}=StimParams{i-1,16}*2*0.75;%assigns amplitudes of 75%
                                 StimParams{i-1,17}=StimParams{i-1,16};%ensures both pos and neg phase amplitude balanced
                             end
 %                         TrialParams(i-1,2)={cell2mat(TrialParams(i,2))+maxID*electrecord};
@@ -352,9 +346,9 @@ if DUALSTIM==1
                             StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
                             TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
                             if StimParams{i,16}~=-1
-                                StimParams{i,16}=StimParams{i,16}*0.5;%assigns amplitude
+                                StimParams{i,16}=StimParams{i,16}*2*0.5;%assigns amplitude
                                 StimParams{i,17}=StimParams{i,16};%ensures both pos and neg phase amplitude balanced
-                                StimParams{i-1,16}=StimParams{i-1,16}*0.5;%assigns amplitudes
+                                StimParams{i-1,16}=StimParams{i-1,16}*2*0.5;%assigns amplitudes
                                 StimParams{i-1,17}=StimParams{i-1,16};%ensures both pos and neg phase amplitude balanced
                             end
 %                         TrialParams(i-1,2)={cell2mat(TrialParams(i,2))+maxID*2*electrecord};
@@ -364,9 +358,9 @@ if DUALSTIM==1
                             StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
                             TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
                             if StimParams{i,16}~=-1
-                                StimParams{i,16}=StimParams{i,16}*0.75;%assigns amplitude
+                                StimParams{i,16}=StimParams{i,16}*2*0.75;%assigns amplitude
                                 StimParams{i,17}=StimParams{i,16};%ensures both pos and neg phase amplitude balanced
-                                StimParams{i-1,16}=StimParams{i-1,16}*0.25;%assigns amplitudes
+                                StimParams{i-1,16}=StimParams{i-1,16}*2*0.25;%assigns amplitudes
                                 StimParams{i-1,17}=StimParams{i-1,16};%ensures both pos and neg phase amplitude balanced
                             end
 %                         TrialParams(i-1,2)={cell2mat(TrialParams(i,2))+maxID*3*electrecord};
@@ -393,35 +387,22 @@ if DUALSTIM==1
 
 end
 
-
 %% For missing single trials enabling a prediction to be made
-if MissAmpFill==1
-    AllstimAMP = unique(cell2mat(StimParams(2:end,16)));
-    MissingSingleAMP = setdiff(AllstimAMP,AMP);
-    stimCHN = unique(cell2mat(TrialParams(2:end,3)));
-    stimCHN(stimCHN==0)=[];
-    originalEND=size(StimParams,1);
-    StimParams=[StimParams;repmat(StimParams(end,:),n_REP_true*length(MissingSingleAMP)*length(stimCHN)*2,1)];
-    TrialParams=[TrialParams;repmat(TrialParams(end,:),n_REP_true*length(MissingSingleAMP)*length(stimCHN)*2,1)];
-    ar=(originalEND-1)/2+1:1:(size(StimParams,1)-1)/2;
-    ar = repelem(ar,2)';
-    TrialParams(originalEND+1:end,1)=num2cell(ar);
-    TrialParams(originalEND+1:end,3)={0};
-    for chosenchn=1:length(stimCHN)
-        for chosenamp=1:length(MissingSingleAMP)
-            StimParams(originalEND+n_REP_true*(chosenamp-1)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP)+1:originalEND+n_REP_true*(chosenamp)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP),16)={MissingSingleAMP(chosenamp)};
-            StimParams(originalEND+n_REP_true*(chosenamp-1)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP)+1:originalEND+n_REP_true*(chosenamp)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP),17)={MissingSingleAMP(chosenamp)};
-            StimParams(originalEND+n_REP_true*(chosenamp-1)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP)+1:originalEND+n_REP_true*(chosenamp)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP),1)={E_MAP{stimCHN(chosenchn)+1,1}};
-            TrialParams(originalEND+n_REP_true*(chosenamp-1)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP)+1:originalEND+n_REP_true*(chosenamp)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP),2)={cell2mat(TrialParams(originalEND,2))+(chosenamp)+(chosenchn-1)*length(MissingSingleAMP)};
-            TrialParams(originalEND+n_REP_true*(chosenamp-1)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP)+1:2:originalEND+n_REP_true*(chosenamp)*2+n_REP_true*(chosenchn-1)*2*length(MissingSingleAMP),3)={stimCHN(chosenchn)};
-        end
+AllstimAMP = unique(StimParams(:,16));
+stimCHN = unique(TrialParams(:,3)~=0);
+MissingSingleAMP = setdiff(AllstimAMP,AMP);
+originalEND=size(StimParams,1);
+StimParams=[StimParams;repmat(StimParams(end,:),n_REP_true*length(MissingSingleAMP)*length(stimCHN)*2,1)];
+TrialParams=[TrialParams;repmat(TrialParams(end,:),n_REP_true*length(MissingSingleAMP)*length(stimCHN)*2,1)];
+
+for chosenchn=1:length(stimCHN)
+    for chosenamp=1:length(MissingSingleAMP)
+        StimParams(originalEND+n_REP_true*(chosenamp-1)*2:originalEND+n_REP_true*(chosenamp)*2,16)=MissingSingleAMP(chosenamp);
+        StimParams(originalEND+n_REP_true*(chosenamp-1)*2:originalEND+n_REP_true*(chosenamp)*2,17)=MissingSingleAMP(chosenamp);
+        TrialParams(originalEND+n_REP_true*(chosenamp-1)*2:originalEND+n_REP_true*(chosenamp)*2,1)
     end
-    n_Trials=n_Trials+n_REP_true*length(MissingSingleAMP)*length(stimCHN);
-else
-    originalEND=size(StimParams,1);
 end
 %%
-
 if DUALSTIM==1
     rand_order = randperm(n_Trials).*2;
     rand_order_1 = rand_order-1;
@@ -478,9 +459,9 @@ if ~(exist('NORECORDELECT(2)')) &&  (NORECORDELECT(1)==-1)
     DUALSTIM=0;
 end
 if DUALSTIM==1
-    save(NEWFILE,'TrialParams','StimParams','n_Trials','E_MAP','NORECORDELECT','E_MAT','E_DIAM','n_REP','n_REP_true','rand_order','AMP','DUR','CHN','PARAM','PULSE','FREQ','TRAIN','DUALSTIM','varamplitude','singanddual','E_Mapnumber','originalEND');
+    save(NEWFILE,'TrialParams','StimParams','n_Trials','E_MAP','NORECORDELECT','E_MAT','E_DIAM','n_REP','n_REP_true','rand_order','AMP','DUR','CHN','PARAM','PULSE','FREQ','TRAIN','DUALSTIM','varamplitude','singanddual','E_Mapnumber');
 else
-    save(NEWFILE,'TrialParams','StimParams','n_Trials','E_MAP','E_MAT','E_DIAM','n_REP','n_REP_true','rand_order','AMP','DUR','CHN','PARAM','PULSE','FREQ','TRAIN','DUALSTIM','varamplitude','singanddual','E_Mapnumber','originalEND');
+    save(NEWFILE,'TrialParams','StimParams','n_Trials','E_MAP','E_MAT','E_DIAM','n_REP','n_REP_true','rand_order','AMP','DUR','CHN','PARAM','PULSE','FREQ','TRAIN','DUALSTIM','varamplitude','singanddual','E_Mapnumber');
 
 end
 disp(['Experimental datafile: ' NAME '_exp_datafile_' fileID '.mat has been saved']);

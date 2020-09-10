@@ -4,13 +4,10 @@ if isempty(tparams)
     return
 end
 tparams = tparams.name;
+try
 load(tparams,'NORECORDELECT');
 NORECORDELECT = NORECORDELECT(NORECORDELECT>0);
+catch
+    NORECORDELECT=0;
+end
 
-
-
-%%original code
-% stimChn = dir('*_exp_datafile_*.mat');
-% stimChn = stimChn.name;
-% load(stimChn,'CHN');
-% stimChn = CHN;

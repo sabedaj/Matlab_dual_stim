@@ -67,6 +67,12 @@ save('IDstruct.mat', 'IDstruct')
 [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
 save('Averagetrialresponse.mat','avgnospT','stderrspktrial')
 
+%% 6. Work out where the stim electrode was and what layers were activated
+AMPInterestSingleLinePlot=4;
+depthdriven=1500-50;
+cutoffsp=50;
+ActivationDepth(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse,depthdriven,cutoffsp)
+
 cd(folder)
 fprintf(['End of Analysis for: ' SubDir_Path newline])
 end
