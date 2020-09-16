@@ -1,11 +1,11 @@
-function truedatastruct=TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse,depthdriven)
+function [bh,bf]=regression3Dplot(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse)
 %Creates Heatmaps of dual electrode stimulation and a linecut at the
 %amplitude of interest input into the function
 
 trialinfo=loadTrialInfo(0);
 lastwarn('', '');
 loadNORECORDELECT;
-[warnMsg, warnId] = lastwarn();
+[~, warnId] = lastwarn();
 if(~isempty(warnId))
     NORECORDELECT=[];
 end
@@ -46,12 +46,10 @@ truedatastruct=[];
 maxid=(originalEND-1)/(n_REP_true*2);
 checkconsecutive=1;
 singleLineplotval=zeros(nChn,trialjump);
+singleLineplotvalHALVE=zeros(nChn,trialjump);
 singleLineplotvalstd=zeros(nChn,trialjump);
 
 for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through groups of related trials
-    figure
-    fignum=gcf;
-    fignum=fignum.Number;
      for TJ_related=1:2:trialjump*2 %goes through trials related by trial jump
          desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(TJ_related+(group_related-1),2))))+1)/2; %finds trials with desired initial electrode
          desiredchanneltrial_two=find(cell2mat(trialinfo(:,2))==cell2mat(trialinfo(TJ_related+1+(group_related-1),2)))/2; %finds trials with desired second electrode
@@ -72,6 +70,9 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
              %pick a level not tested)
              [~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP_original(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
              AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
+            [~, halveAMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP_original(2:end)-AMPInterestSingleLinePlot/2)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+             halveAMPInterestSingleLinePlotINDEXDUAL=halveAMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
+
          else
              chosen_trials=Desired_trialequal;
              checkconsecutive=1;
@@ -79,6 +80,8 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
              %pick a level not tested)
              [~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
              AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
+            [~, halveAMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot/2)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+             halveAMPInterestSingleLinePlotINDEXDUAL=halveAMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
          end
          chosen_trials(chosen_trials>endtrialelect*(group_related))=[]; % removes any trials that are greater than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
          chosen_trials(chosen_trials<group_related/2)=[]; % removes any trials that are smaller than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
@@ -88,26 +91,23 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
          singleLineplotval(:,loopcounter)=normalisedAvgspikingT(:,AMPInterestSingleLinePlotINDEXDUAL);
          singleLineplotvalstd(:,loopcounter)=(1000/(secondstoanalyse-startpointseconds)).*stdsp(:,AMPInterestSingleLinePlotINDEXDUAL);
 
-         
-         if length(chosen_trials)==length(AMP)
-             chosen_trials_amp=AMP';
-         elseif length(chosen_trials)==length(AMP_original)
-             chosen_trials_amp=AMP_original;
-         end
+         singleLineplotvalHALVE(:,loopcounter)=normalisedAvgspikingT(:,halveAMPInterestSingleLinePlotINDEXDUAL);
+
          if cell2mat(trialinfo((chosen_trials(2)*2),2))==0 
              check=['T100_' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
              if TJ_related==1 && ~isempty(NORECORDELECT)
-                 subplot(3,2,1)
+
+                 E1=num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)));
              elseif ~isempty(NORECORDELECT)
-                 subplot(3,2,2)
+                E2=num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)));
+
              end
          else
              check=['T' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '_' num2str(cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '_' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
-             subplot(2,3,loopcounter+2)
          end
-         DepthChangeingSpiking_SM(normalisedAvgspikingT, chosen_trials,fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp); %plots heat maps
-
-
+         %DepthChangeingSpiking_SM(normalisedAvgspikingT, chosen_trials,fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp); %plots heat maps
+        
+         
          truedatastruct.(check) = normalisedAvgspikingT;
          %          if VarAmp==1 && cell2mat(trialinfo(TJ_related+1+(TJ_related-1),2))==0
 %              xlim([0 AMP(end)/2]) % makes axes comparable on single stim trials
@@ -115,59 +115,42 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
      end
          figure %plotting real data line plot
          hold on
-         SMOOTHING=1;
-         window = normpdf(-3*SMOOTHING:3*SMOOTHING,0,SMOOTHING);
-         if (length(NORECORDELECT)==1)&& (NORECORDELECT(1)==0)
-             for p=1:1
-                 rate = conv(singleLineplotval(:,p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
-                 rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
-                 errorbar(rate,singleLineplotvalstd(:,p))
-             end
-                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'k')
-                 legend('100/0','Stim E1')
-                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)))])
-         else
-             for p=1:size(singleLineplotval,2)
-                 rate = conv(singleLineplotval(:,p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
-                 rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
-                 errorbar(rate,singleLineplotvalstd(:,p))
-             end
-             if VarAmp==1
-                 xline(cell2mat(trialinfo((chosen_trials(1)-2)*2,2)),'k')
-                 xline(cell2mat(trialinfo((chosen_trials(1)-2)*2-1,2)),'-.k')
-                 legend('100/0','75/25','50/50','25/75','0/100', 'Stim E1','Stim E2')
-                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(1)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(1)-2)*2-1,2)))])
-             elseif (length(NORECORDELECT)==1) && (VarAmp==0) 
-                 legend('50/50','0/100','100/0','Stim E1','Stim E2')
-                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)),'-.k')
-                 xline(cell2mat(trialinfo((chosen_trials(3)-2)*2,2)),'k')
-                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA StimChn: ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2,2))) ' & ' num2str(cell2mat(trialinfo((chosen_trials(3)-2)*2-1,2)))])
-             else
-                 for looprecordelect=1:length(NORECORDELECT)
-                     lgnd_names{looprecordelect}=['50/50 w/ Stimchn ' num2str(cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(looprecordelect-1))*2,2))) ', ' num2str(cell2mat(trialinfo((chosen_trials(1)-trialjump+1+(looprecordelect-1))*2-1,2)))];
-                 end
-                 for looprecordelect=1:(length(NORECORDELECT)+1)
-                     lgnd_names{(looprecordelect+length(NORECORDELECT))}=['100/0 w/ Stimchn ' num2str(cell2mat(trialinfo((chosen_trials(1)-length(NORECORDELECT)+(looprecordelect-1))*2-1,2)))];
-                 end
-                 linS = {'-','--',':','-.'};
-                 for looprecordelect=1:length(NORECORDELECT)+1
-                     lgnd_names{(looprecordelect+length(NORECORDELECT)*2+1)}=['Stim E' num2str((looprecordelect))];
-                     xline((cell2mat(trialinfo((chosen_trials(1)-length(NORECORDELECT)+(looprecordelect-1))*2-1,2))),'LineStyle', linS{looprecordelect}, 'Color', 'k')
-                 end
-                 title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA'])
-                 legend(lgnd_names)
-             end
-         end
-         ylabel('Sp/s')
-         xlabel('Channel number')
-         xlim([1 nChn])
-         xticklabel_depth=(depthdriven-50*4):-50*5:depthdriven-(nChn-1)*50;
-         xticklabels(cellstr(string((xticklabel_depth))));
+         scatter3(singleLineplotval(:,1),singleLineplotval(:,5),singleLineplotval(:,3))
+         xlabel(['Channel ' E1 ' Sp/s'])
+         ylabel(['Channel ' E2 ' Sp/s'])
+         zlabel('E1+E2')
+         title('Full')
+         X_line=best_fit_3D_line([singleLineplotval(:,1),singleLineplotval(:,5),singleLineplotval(:,3)]);
+         plot3(X_line(:,1),X_line(:,2),X_line(:,3),'-r','LineWidth',3) % best fit line 
+         figure %plotting real data line plot
+         hold on
+         scatter3(singleLineplotvalHALVE(:,1),singleLineplotvalHALVE(:,5),singleLineplotval(:,3))
+         X_line=best_fit_3D_line([singleLineplotvalHALVE(:,1),singleLineplotvalHALVE(:,5),singleLineplotval(:,3)]);
+         plot3(X_line(:,1),X_line(:,2),X_line(:,3),'-r','LineWidth',3) % best fit line 
+         xlabel(['Channel ' E1 ' Sp/s'])
+         ylabel(['Channel ' E2 ' Sp/s'])
+         zlabel('E1+E2')
+         title('Half')
+         
+         figure 
+         scatter(singleLineplotval(:,1),singleLineplotval(:,5))
+         bf = singleLineplotval(:,1)\singleLineplotval(:,5);
+         ycalc=bf*singleLineplotval(:,1);
+         hold on
+         plot(singleLineplotval(:,1),ycalc)
+         xlabel(['Channel ' E1 ' Sp/s'])
+         ylabel(['Channel ' E2 ' Sp/s'])
+         title([num2str(AMPInterestSingleLinePlot) 'uA'])
+         figure
+         scatter(singleLineplotvalHALVE(:,1),singleLineplotvalHALVE(:,5))
+         bh = singleLineplotvalHALVE(:,1)\singleLineplotvalHALVE(:,5);
+         ycalc=bh*singleLineplotvalHALVE(:,1);
+         hold on
+         plot(singleLineplotvalHALVE(:,1),ycalc)
+         xlabel(['Channel ' E1 ' Sp/s'])
+         ylabel(['Channel ' E2 ' Sp/s'])
+         title([num2str(AMPInterestSingleLinePlot/2) 'uA'])
          loopcounter=0;
- end
- figure(fignum)
- ax=colorbar('Position',[0.93 0.1 0.03 0.85]);
- ax.Label.String='Sp/s';
- ax.Label.Rotation=270;
+end
 end
 

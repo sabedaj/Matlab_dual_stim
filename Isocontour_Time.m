@@ -42,19 +42,22 @@ figure
 for Ampchange=starttrial:trialjump:endtrial
     overallcounter=overallcounter+1;
 for counter=1:Loopnum
-        [IDstruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,starttrial,trialjump,endtrial);
+        [IDstruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,1,1,endtrial);
         [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
+        avgnostim=avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1);%average reponse without stimulation
+        avgnostim(:,avgnostim(1,:)==-500)=[];
+        avgnostim=mean(avgnostim,2);
         z(counter,:)=(TimeStep*(counter)+TimeBegin).*ones(1,length(avgnospT(:,Ampchange)));
         x(counter,:)=depthdriven:-50:depthdriven-(nChn-1)*50;%1:length(avgnospT(:,Ampchange));
-        y(counter,:)=(1000/(TimeStep-TimeBegin)).*avgnospT(:,Ampchange)+adjustplot*(counter-1);
+        y(counter,:)=(1000/(TimeStep-TimeBegin)).*(avgnospT(:,Ampchange)-avgnostim)+adjustplot*(counter-1);
 end
-        subplot((length(AMP)-1)/2,2,overallcounter)
+        subplot(ceil((length(AMP)-1)/2),2,overallcounter)
         hold on
         plot(y',x','k')
         hold on
-        plot([100; 200], [-0; -0], '-k', 'LineWidth', 2)
+        plot([100; 200], [depthdriven-(nChn-1)*50 + 200; depthdriven-(nChn-1)*50 + 200], '-k', 'LineWidth', 2)
         hold off
-        text(160,-60, '100Sp/s', 'HorizontalAlignment','center', 'FontSize',4)
+        text(160,depthdriven-(nChn-1)*50 + 200-60, '100Sp/s', 'HorizontalAlignment','center', 'FontSize',4)
         xticks(0:adjustplot:adjustplot*Loopnum)
         xticklabels(cellstr(string(TimeStep:TimeStep:TimeEnd)))
         yline(depthdriven-(cell2mat(trialinfo(Ampchange*2-1,2))-1)*50,'Color','r','LineWidth',2)

@@ -1,4 +1,4 @@
-function AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse, depthdriven)
+function predictdatastruct=AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT, stderrspktrial,startpointseconds, secondstoanalyse, depthdriven)
 %Creates a prediction of dual electrode stimulation based on single
 %stimulation data to remove bias 
 
@@ -7,11 +7,15 @@ loadNORECORDELECT;
 loadStimChn;
 loadAMP_all;
 AMPorig=loadAMP;
+predictdatastruct=[];
 AMP=AMP_all';
 TrialParams=loadTrialParams;
+[PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,0);
+AmpPlatVal=(1000/(secondstoanalyse-startpointseconds)).*AmpPlatVal;
 avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);%average reponse without stimulation
 %find closest AMP level to your chosen amp level to analyse (in case you
 %pick a level not tested)
+AMPInterestSingleLinePlot=AMPInterestSingleLinePlot/2;
 [~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
 AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
 filepath = pwd;
@@ -65,12 +69,11 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         end
 
     end
-    %%fixtitle for 002
     normalisedAvgspikingTchnone(:,Desired_trialequal~=0)=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,Desired_trialequal(Desired_trialequal~=0))-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
     normalisedspkthreequaterschnone(:,Desired_trialthreequatersone~=0)=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,Desired_trialthreequatersone(Desired_trialthreequatersone~=0))-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
     normalisedspkquaterchnone(:,Desired_trialquaterone~=0)=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,Desired_trialquaterone(Desired_trialquaterone~=0))-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
-
     
+
     for singlecond=1:length(NORECORDELECT) %used for stimulating channel two
         
         desiredchanneltwotrial=find(cell2mat(trialinfo(:,2))==(stimChn(Chosenstimchn)+NORECORDELECT(singlecond)+1)); %finds trials with desired initial electrode
@@ -103,21 +106,54 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         Additivespkequal=normalisedAvgspikingTchnone+normalisedAvgspikingTchntwo;
         Additivespkthreequaters_Eone=normalisedspkthreequaterschnone+normalisedspkquaterchntwo;
         Additivespkthreequaters_Eone=Additivespkthreequaters_Eone(:,(Desired_trialquatertwo~=0)+(Desired_trialthreequatersone~=0)==2);%only includes columns that had additive values for both conditions
+        Additivespkthreequaters_Eone=[zeros(nChn,1) Additivespkthreequaters_Eone];
         Additivespkquater_Eone=normalisedspkquaterchnone+normalisedspkthreequaterschntwo;
         Additivespkquater_Eone=Additivespkquater_Eone(:,(Desired_trialthreequaterstwo~=0)+(Desired_trialquaterone~=0)==2);%only includes columns that had additive values for both conditions
+        Additivespkquater_Eone=[zeros(nChn,1) Additivespkquater_Eone];
         
+
+        %used to check if the additive spiking level is above the plateu
+        %for each channel
+        for chncount=1:nChn
+            for replaceval=1:size(Additivespkequal,2)
+                if Additivespkequal(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
+                    Additivespkequal(chncount,replaceval)=AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount);
+                end
+            end
+        end
+        for chncount=1:nChn
+            for replaceval=1:size(Additivespkthreequaters_Eone,2)
+                if Additivespkthreequaters_Eone(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
+                    Additivespkthreequaters_Eone(chncount,replaceval)=AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount);
+                end
+            end
+        end
+        for chncount=1:nChn
+            for replaceval=1:size(Additivespkquater_Eone,2)
+                if Additivespkquater_Eone(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
+                    Additivespkquater_Eone(chncount,replaceval)=AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount);
+                end
+            end
+        end
+        check=['T50_50_' num2str(CHN(Chosenstimchn))];
+        predictdatastruct.(check) = Additivespkequal;
+        check=['T75_25_' num2str(CHN(Chosenstimchn))];
+        predictdatastruct.(check) = Additivespkthreequaters_Eone;
+        check=['T25_75_' num2str(CHN(Chosenstimchn))];
+        predictdatastruct.(check) = Additivespkquater_Eone;
         %%%%PLOTTING
         
         %HEATMAPS
         %75E2/25E1
-        chosen_trials=(Desired_trialfirst(2)+4)*ones(size(Additivespkquater_Eone,2),1);
+        chosen_trials=(Desired_trialfirst(2)+2)*ones(size(Additivespkquater_Eone,2),1);
+        figure
+        fignum=gcf;
+        fignum=fignum.Number;
         if size(Additivespkquater_Eone,2)>1
-            figure
-            fignum=gcf;
-            fignum=fignum.Number;
-            chosen_trials_amp=AMP((Desired_trialthreequatersone~=0)+(Desired_trialquatertwo~=0)==2);
+            subplot(1,3,1)
+            chosen_trials_amp=[0 AMP((Desired_trialthreequatersone~=0)+(Desired_trialquatertwo~=0)==2)];
             DepthChangeingSpiking_SM(Additivespkquater_Eone, chosen_trials, fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp);%plots heatmap of estimated plots
-            title(['ESTIMATION Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 25/75' ])
+            title(['ESTIMATION Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 25/75' ])
             xt = xticks;
             %labelxx=AMP((Desired_trialthreequatersone~=0)+(Desired_trialquatertwo~=0)==2);
             xticklabels(cellstr(string((xt.*2))));
@@ -127,29 +163,27 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         %50/50
         chosen_trials=(Desired_trialfirst(2)+3)*ones(size(Additivespkequal,2),1);
         chosen_trials_amp=AMP((Desired_trialequal~=0)+(Desired_trialequaltwo~=0)==2);
-        figure
-        fignum=gcf;
-        fignum=fignum.Number;
+        subplot(1,3,2)
         DepthChangeingSpiking_SM(Additivespkequal, chosen_trials, fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp);%plots heatmap of estimated plots
-        title(['ESTIMATION Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 50/50' ])
+        title(['ESTIMATION Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 50/50' ])
         xt = xticks;
         xticklabels(cellstr(string((xt.*2))));
-        xlim([0 4]);
+        xlim([0 AMP(end)/2]);
         %25E2/75E1
         chosen_trials=(Desired_trialfirst(2)+4)*ones(size(Additivespkthreequaters_Eone,2),1);
         if size(Additivespkthreequaters_Eone,2)>1 %if there is only one matching amplitude then you cannot generate a heatmap
-            figure
-            fignum=gcf;
-            fignum=fignum.Number;
-            chosen_trials_amp=AMP((Desired_trialthreequaterstwo~=0)+(Desired_trialquaterone~=0)==2);
+            subplot(1,3,3)
+            chosen_trials_amp=[0 AMP((Desired_trialthreequaterstwo~=0)+(Desired_trialquaterone~=0)==2)];
             DepthChangeingSpiking_SM(Additivespkthreequaters_Eone, chosen_trials, fignum,depthdriven, max(cell2mat(TrialParams(:,2))),chosen_trials_amp);%plots heatmap of estimated plots
-            title(['ESTIMATION Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 75/25' ])
+            title(['ESTIMATION Stimchn: ' num2str(cell2mat(trialinfo((Desired_trialfirst(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((Desired_trialsecond(2)*2-1),2))) ' @ 75/25' ])
             xt = xticks;
             xticklabels(cellstr(string((xt.*2))));
             %xticklabels(cellstr(string((AMP_double((Desired_trialthreequaterstwo~=0)+(Desired_trialquaterone~=0)==2)))));
         end
 
-
+        ax=colorbar('Position',[0.93 0.1 0.03 0.85]);
+        ax.Label.String='Sp/s';
+        ax.Label.Rotation=270;
         %LINECUTS
         Additivespkequal=normalisedAvgspikingTchnone+normalisedAvgspikingTchntwo;
         Additivespkequal=Additivespkequal(:,AMPInterestSingleLinePlotINDEXDUAL);
@@ -166,7 +200,27 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         else
             Additivespkquater_Eone=zeros(nChn,1);
         end
-
+        for chncount=1:nChn
+            for replaceval=1:size(Additivespkequal,2)
+                if Additivespkequal(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
+                    Additivespkequal(chncount,replaceval)=AmpPlatVal(chncount)+0.1*AmpPlatVal(chncount);
+                end
+            end
+        end
+        for chncount=1:nChn
+            for replaceval=1:size(Additivespkthreequaters_Eone,2)
+                if Additivespkthreequaters_Eone(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
+                    Additivespkthreequaters_Eone(chncount,replaceval)=AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount);
+                end
+            end
+        end
+        for chncount=1:nChn
+            for replaceval=1:size(Additivespkquater_Eone,2)
+                if Additivespkquater_Eone(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
+                    Additivespkquater_Eone(chncount,replaceval)=AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount);
+                end
+            end
+        end
         
         figure %plotting estimation line plot
         ax = gca;

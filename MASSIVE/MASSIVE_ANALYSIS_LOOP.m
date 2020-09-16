@@ -7,7 +7,7 @@ Overall_time_to_analyse=0;%time from beginning of Startpoint_analyse (rememberin
 artefact=-150; %removes spikes below this threshold
 artefact_high=100; %removes spikes above this threshold
 startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)?
-secondstoanalyse=12; %How long after the trigger do you want to analyse spikes for(ms)?
+secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)?
 printspiking=0;
 par=0;
 
@@ -72,6 +72,31 @@ AMPInterestSingleLinePlot=4;
 depthdriven=1500-50;
 cutoffsp=50;
 ActivationDepth(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse,depthdriven,cutoffsp)
+
+ AMP=loadAMP;
+ loadStimChn;
+ avgnospT_sps=(1000/(secondstoanalyse-startpointseconds)).*avgnospT;
+ cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
+ avgnostim=mean(avgnospT_sps(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
+ numofsigperchn=zeros(nChn,1);
+ whichchn=zeros(nChn,1);
+ %testifsignificant=[(avgnospT_sps(:,cell2mat(trialinfo(16:2:28,18))==AMP(end))) (avgnospT_sps(:,cell2mat(trialinfo(14:2:28,18))==AMP(end-1))) (avgnospT_sps(:,cell2mat(trialinfo(14:2:28,18))==AMP(end-2)))];
+ %testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
+ for Chosenstimchn=1:length(stimChn)
+    desiredchanneltrial=find(cell2mat(trialinfo(:,2))==stimChn(Chosenstimchn)); %finds trials with desired initial electrode
+    desiredchannel__singleampmath=desiredchanneltrial((cell2mat(trialinfo(desiredchanneltrial+1,2))==(0)),1);% finds trials with matching recording electrode spacing
+    Desired_trialfirst=cell2mat(trialinfo(desiredchannel__singleampmath,1));%array of mathcning trial number
+     testifsignificant=(avgnospT_sps(:,Desired_trialfirst(end-2:end)));
+     chn_sig=zeros(1,nChn);
+     for i=1:nChn
+         [h,p]=ttest(testifsignificant(i,:)',avgnostim(i)','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
+         chn_sig(i)=h;
+     end
+     chn_sig(isnan(chn_sig))=0;
+     numofsigperchn(stimChn(Chosenstimchn))=sum(chn_sig);
+     whichchn(stimChn(Chosenstimchn))=1;
+ end
+save('sigchn.mat','numofsigperchn','whichchn')
 
 cd(folder)
 fprintf(['End of Analysis for: ' SubDir_Path newline])

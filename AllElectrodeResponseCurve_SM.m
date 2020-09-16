@@ -33,6 +33,8 @@ E_MAP = Depth(E_Mapnumber);
 loadStimChn;
 loadAMP_all;
 AMP=AMP_all';
+trialinfo=loadTrialInfo;
+trialinfo(1,:)=[];
 counter=0;
 
 for count=1:length(stimChn) %loop to find the correct trials
