@@ -6,9 +6,9 @@ else
     chnchk = 1;
 end
 filepath = pwd;
-tmp = dir([filepath '\*.sp.mat']);
+tmp = dir([filepath filesep '*.sp.mat']);
 if ~isempty(tmp)
-    tmp = [filepath '\' tmp.name];
+    tmp = [filepath filesep tmp.name];
     sp = load(tmp,'sp');
      sp = sp.sp;
 end

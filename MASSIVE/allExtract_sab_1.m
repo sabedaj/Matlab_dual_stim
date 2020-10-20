@@ -12,7 +12,7 @@ elseif strcmp(dName,'amplifier')
         nChn=32;
         E_Mapnumber=0;
     else
-        E_Mapnumber=loadMapNum;
+        E_Mapnumber=1;
         if E_Mapnumber>0
             nChn=64;
         else

@@ -29,7 +29,8 @@ if (datetime(fileinfo.date) < fourShank_cutoff)
 else
     E_Mapnumber=loadMapNum;
     if E_Mapnumber>0
-        nChn=64;
+        %nChn=64;
+        nChn=16; %per shank
     else
         nChn=32;
     end
@@ -74,25 +75,26 @@ z=avgnospT(:,1:length(chosen_trials));
     surf(y,x,z,'FaceColor','interp','EdgeColor','interp')
     xlabel('Amplitude (uA)')
     zlabel('Average spiking')
-    ylabel('Depth (um)')
+    ylabel('Estimated depth (um)')
     if cell2mat(trialinfo(chosen_trials(2)*2,2))~=0%rem(starttrial,cond)&&(rem((starttrial-1),cond))
-        title_namelabel=['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((chosen_trials(2)*2),2))) ' @ ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '/' num2str(cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18))))];
+        title_namelabel=['Stimchn: ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2))) ' ' num2str(cell2mat(trialinfo((chosen_trials(2)*2),2))) ' @ ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '/' num2str(cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18))))];
     else
-        title_namelabel=['Channel changes in spiking. Stimchn: ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
+        title_namelabel=['Stimchn: ' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
     end
+    if nChn==32
     yline((depthdriven-50*(cell2mat(trialinfo((chosen_trials(2)*2)-1,2))-1)),'Color','r','Linewidth',cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))/35,'Alpha',1)
     if cell2mat(trialinfo(chosen_trials(2)*2,2))~=0
         yline((depthdriven-50*(cell2mat(trialinfo(chosen_trials(2)*2,2))-1)),'Color','r','Linewidth',cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18)))/35,'Alpha',1)
     end
+    end
     title(title_namelabel)
     set(gca, 'YDir','reverse')
     ylim([depthdriven-50*(nChn-1) depthdriven])
-    hcb=colorbar;
     hcb.Title.String = "Sp/s";
     hcb.Title.Rotation=270;
     hcb.Title.Position= [40,130];
     hcb.Title.FontSize=11;
-    caxis([0, 250])%max(z,[],'all')])
+    caxis([0, 400])%max(z,[],'all')])
 
 %     for loopnumcount=1:maxtid/cond
 %         hold on

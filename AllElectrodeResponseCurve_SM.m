@@ -1,4 +1,4 @@
-function [PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,varargin)
+function [PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(AMPInterestSingleLinePlotINDEXDUAL,avgnospT,stderrspktrial,varargin)
 % Response curve at stimulating electrode
 
 %INPUT - the trial information array, the average number of spikes per
@@ -52,8 +52,15 @@ for count=1:length(stimChn) %loop to find the correct trials
         result_trial_array(counter:counter+1,1:length(AMP))=temp_resultarray;
         counter=counter+1;
     else
-        result_trial_array(count,1:length(Desired_trial))=Desired_trial;%trials for each current Amp
+        for Amploop=1:length(AMP)
+            try
+                result_trial_array(count,Amploop)=(desiredchannel__singleampmath(cell2mat(trialinfo(desiredchannel__singleampmath,18))==AMP(Amploop))+1)/2;%array of mathcning trial number
+            catch
+                result_trial_array(Amploop)=0;
+            end
+        end
     end
+
 end
 PlatChnArray=zeros(nChn,1);
 AmpPlatVal=zeros(nChn,1);
@@ -74,6 +81,7 @@ if sum(h)==nChn
             end
             mean_result_array=mean(result_array,1);
             mean_error_array=mean(error_array,1);
+            
             if printFigures==1
             hold on
             errorbar([0 AMP(2:end)],mean_result_array,mean_error_array)
@@ -82,12 +90,12 @@ if sum(h)==nChn
             xlabel('Current uA')
             end
             for i=2:length(mean_result_array)
-                if mean_result_array(i)>(mean_result_array(i-1)+mean_result_array(i-1)*0.1)
+                if mean_result_array(i)>(mean_result_array(i-1)+mean_result_array(i-1)*0.05)
                     PlatChnArray(Chncount)=AMP(i);
-                    AmpPlatVal(Chncount)=mean_result_array(i);
+                    AmpPlatVal(Chncount)=mean_result_array(i);%%for plateau
+                    %AmpPlatVal(Chncount)=mean_resultopfour;
                 end
             end
-
         end
     end
     if printFigures==1

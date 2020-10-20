@@ -104,6 +104,11 @@ if length(trig)<(length(TP)/2)
     StimParams(1,:) = [];
     StimParams(1:2:end,:) = [];
     NoStimTrials=find(cell2mat(StimParams(:,16))==-1);
+    for i=length(NoStimTrials):-1:1
+        if NoStimTrials(i)>length(trig)
+            NoStimTrials(i)=[];
+        end
+    end
     Trigs_to_Check = trig(NoStimTrials);
     BIN = [-50 50];
     for t=1:length(Trigs_to_Check)
@@ -121,7 +126,9 @@ if length(trig)<(length(TP)/2)
     end
 
 end
-
+if length(trig)~=size(TP,1)/2
+    trig=[trig -500*ones(size(TP,1)/2-length(trig),1)'];
+end
 trig_fid = fopen([name '.trig.dat'],'w');
 fwrite(trig_fid,trig,'double');
 fclose(trig_fid);

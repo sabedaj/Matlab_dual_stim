@@ -141,7 +141,7 @@ end
         xlim([1 size(y(1,:),2)]) 
     else 
         xticks(1:size(y(1,:),2))
-        xlim([1 (ceil((endtrial-starttrial)/jumptrial))])
+        xlim([1 (ceil((endtrial-starttrial)/trialjump))])
         for xline_number=1:cond:maxtid
             xline(xline_number,'Color','w','LineWidth',2)
         end

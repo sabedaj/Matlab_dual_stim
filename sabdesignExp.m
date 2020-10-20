@@ -96,15 +96,23 @@ while (HAPPY)
         end
         
        DUALSTIM= input('Please enter whether you would like to stimulate on two electrodes YES=1 NO=0: \n');
-        if DUALSTIM==1
-            
-            NORECORDELECT= input('Please enter the number of recording electrodes you would like in between the stimulating electrodes like so: [x,y,z]\n');
-            checklength=CHN+NORECORDELECT(end)+1; %if electrode spacing causes it to exceed probe length
-            n_REP=n_REP*length(NORECORDELECT);
-            if any(checklength(:) > nChn)%probe length
-                disp('The requested electrode spacing is not possible.');
-                error('Please try again');
-            end
+       if DUALSTIM==1
+           if E_Mapnumber==1
+               lam_cross = input('Please enter "1" for laminar or "0" for across shanks: \n');
+           end
+           if lam_cross==0
+               NORECORDELECT=CHN(2);
+               CHN=CHN(1);
+           else
+               NORECORDELECT= input('Please enter the number of recording electrodes you would like in between the stimulating electrodes like so: [x,y,z]\n');
+               lam_cross=-1;
+               checklength=CHN+NORECORDELECT(end)+1; %if electrode spacing causes it to exceed probe length
+               n_REP=n_REP*length(NORECORDELECT);
+               if any(checklength(:) > nChn)%probe length
+                   disp('The requested electrode spacing is not possible.');
+                   error('Please try again');
+               end
+           end
             singanddual= input('Please enter whether you would like to stimulate with both single electrodes and multiple electrodes YES=1 NO=0: \n');
             
             if singanddual==1
@@ -127,6 +135,7 @@ while (HAPPY)
             else 
                 MissAmpFill=0;
                 varamplitude=0;
+                lam_cross=-1;
             end
 
         else
@@ -135,6 +144,7 @@ while (HAPPY)
             varamplitude=0;
             NORECORDELECT=-1;
             DUALSTIM=1;
+            lam_cross=-1;
         end
         % How long do we need to recover from a parameter update: about 200
         % msec seems normal
@@ -337,20 +347,33 @@ if DUALSTIM==1
 %                         TrialParams(i,2)={cell2mat(TrialParams(i,2))+maxID*electrecord};%assign new parameters trial iDs based on original trial numbers
                     elseif singledualpulsesignal(i/2-0.5)==1
                        % if StimParams{i,16}~=-1
+                            if lam_cross==0
+                                StimParams(i,1)=E_MAP(NORECORDELECT+1,1);
+                                TrialParams(i,3)={NORECORDELECT};
+                            else
                             StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
                             TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
+                            end
+                            
                             if StimParams{i,16}~=-1
                                 StimParams{i,16}=StimParams{i,16}*0.25;%assigns amplitude of 25%
                                 StimParams{i,17}=StimParams{i,16};%ensures both pos and neg phase amplitude balanced
                                 StimParams{i-1,16}=StimParams{i-1,16}*0.75;%assigns amplitudes of 75%
                                 StimParams{i-1,17}=StimParams{i-1,16};%ensures both pos and neg phase amplitude balanced
                             end
+                            
 %                         TrialParams(i-1,2)={cell2mat(TrialParams(i,2))+maxID*electrecord};
 %                         TrialParams(i,2)={cell2mat(TrialParams(i,2))+maxID*electrecord};%assign new parameters trial iDs based on original trial numbers
                     elseif singledualpulsesignal(i/2-0.5)==2
-                       % if StimParams{i,16}~=-1
+                        % if StimParams{i,16}~=-1
+                        if lam_cross==0
+                            StimParams(i,1)=E_MAP(NORECORDELECT+1,1);
+                            TrialParams(i,3)={NORECORDELECT};
+                        else
                             StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
                             TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
+                        end
+
                             if StimParams{i,16}~=-1
                                 StimParams{i,16}=StimParams{i,16}*0.5;%assigns amplitude
                                 StimParams{i,17}=StimParams{i,16};%ensures both pos and neg phase amplitude balanced
@@ -361,8 +384,13 @@ if DUALSTIM==1
 %                         TrialParams(i,2)={cell2mat(TrialParams(i,2))+maxID*2*electrecord};%assign new parameters trial iDs based on original trial numbers
                     elseif singledualpulsesignal(i/2-0.5)==3
                       %  if StimParams{i,16}~=-1
+                        if lam_cross==0
+                            StimParams(i,1)=E_MAP(NORECORDELECT+1,1);
+                            TrialParams(i,3)={NORECORDELECT};
+                        else
                             StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
                             TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
+                        end
                             if StimParams{i,16}~=-1
                                 StimParams{i,16}=StimParams{i,16}*0.75;%assigns amplitude
                                 StimParams{i,17}=StimParams{i,16};%ensures both pos and neg phase amplitude balanced
@@ -373,8 +401,13 @@ if DUALSTIM==1
 %                         TrialParams(i,2)={cell2mat(TrialParams(i,2))+maxID*3*electrecord};%assign new parameters trial iDs based on original trial numbers
                     elseif singledualpulsesignal(i/2-0.5)==4
 %                        if StimParams{i,16}~=-1
+                        if lam_cross==0
+                            StimParams(i,1)=E_MAP(NORECORDELECT+1,1);
+                            TrialParams(i,3)={NORECORDELECT};
+                        else
                             StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
                             TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
+                        end
                             StimParams(i-1,1)=StimParams(i,1);%assigns parameters of second renamed electrode to the original channel for 100%
                             TrialParams(i-1,3)=TrialParams(i,3);
                             TrialParams(i,3)={0};
@@ -386,8 +419,13 @@ if DUALSTIM==1
                     TrialParams(i,2)={floor((i-3)/(n_REP_true*2))+1};%assign new parameters trial iDs based on original trial numbers
                 end
             else
-                StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
-                TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
+                if lam_cross==0
+                    StimParams(i,1)=E_MAP(NORECORDELECT+1,1);
+                    TrialParams(i,3)={NORECORDELECT};
+                else
+                    StimParams(i,1)=E_MAP(count+NORECORDELECT(electrecord)+1,1);
+                    TrialParams(i,3)={TrialParams{i,3}+NORECORDELECT(electrecord)+1};
+                end
             end
         end
 

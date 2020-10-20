@@ -10,7 +10,7 @@ function [MUAfilt, LFPfilt] = generate_Filters(FS,MUA_len,MUA_BW,LFP_len,LFP_BW)
 %% Initialisation of parameters
 if (nargin <= 3)
     LFP_len = 0.0025;
-    LFP_BW = 500;
+    LFP_BW = 500;%500
 end
 if (nargin <= 1)
     MUA_len = 0.002;%0.002

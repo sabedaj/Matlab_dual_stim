@@ -1,4 +1,4 @@
-function predictdatastruct=AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT, stderrspktrial,startpointseconds, secondstoanalyse, depthdriven)
+function [predictdatastruct,ratio_all]=AdditivePrediction_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT, stderrspktrial,startpointseconds, secondstoanalyse, depthdriven)
 %Creates a prediction of dual electrode stimulation based on single
 %stimulation data to remove bias 
 
@@ -10,13 +10,15 @@ AMPorig=loadAMP;
 predictdatastruct=[];
 AMP=AMP_all';
 TrialParams=loadTrialParams;
-[PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,0);
+[~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
+[PlatChnArray, AmpPlatVal]=AllElectrodeResponseCurve_SM(AMPInterestSingleLinePlotINDEXDUAL,avgnospT,stderrspktrial,0);
 AmpPlatVal=(1000/(secondstoanalyse-startpointseconds)).*AmpPlatVal;
 avgnostim=mean(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1),2);%average reponse without stimulation
 %find closest AMP level to your chosen amp level to analyse (in case you
 %pick a level not tested)
 AMPInterestSingleLinePlot=AMPInterestSingleLinePlot/2;
-[~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+[~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will te ll you how close the value is to your chosen val
 AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
 filepath = pwd;
 fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
@@ -102,15 +104,27 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         normalisedAvgspikingTchntwo(:,Desired_trialequaltwo~=0)=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,Desired_trialequaltwo(Desired_trialequaltwo~=0))-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
         normalisedspkthreequaterschntwo(:,Desired_trialthreequaterstwo~=0)=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,Desired_trialthreequaterstwo(Desired_trialthreequaterstwo~=0))-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
         normalisedspkquaterchntwo(:,Desired_trialquatertwo~=0)=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,Desired_trialquatertwo(Desired_trialquatertwo~=0))-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
+      
         
-        Additivespkequal=normalisedAvgspikingTchnone+normalisedAvgspikingTchntwo;
-        Additivespkthreequaters_Eone=normalisedspkthreequaterschnone+normalisedspkquaterchntwo;
+        [bfequal]=regression3Dplot(avgnospT,stderrspktrial,startpointseconds, secondstoanalyse, AMPInterestSingleLinePlot, AMPInterestSingleLinePlot);
+        avgratioE1E2equal=(((bfequal)/(bfequal+1))*2);%multiply by two so the (1-b) and B ratio works. divide by two for the average
+        avgratioE1E2=1;
+        Additivespkequal=(avgratioE1E2).*normalisedAvgspikingTchnone+(2-avgratioE1E2).*normalisedAvgspikingTchntwo;
+        [bfthreequaters]=regression3Dplot(avgnospT,stderrspktrial,startpointseconds, secondstoanalyse, AMP_threequaters(AMPInterestSingleLinePlotINDEXDUAL),AMP_quater(AMPInterestSingleLinePlotINDEXDUAL));
+        
+        avgratioE1E2threequaters=(((bfthreequaters)/(bfthreequaters+1))*2);%multiply by two so the (1-b) and B ratio works. divide by two for the average
+        avgratioE1E2=1;
+        Additivespkthreequaters_Eone=(avgratioE1E2).*normalisedspkthreequaterschnone+(2-avgratioE1E2).*normalisedspkquaterchntwo;
         Additivespkthreequaters_Eone=Additivespkthreequaters_Eone(:,(Desired_trialquatertwo~=0)+(Desired_trialthreequatersone~=0)==2);%only includes columns that had additive values for both conditions
         Additivespkthreequaters_Eone=[zeros(nChn,1) Additivespkthreequaters_Eone];
-        Additivespkquater_Eone=normalisedspkquaterchnone+normalisedspkthreequaterschntwo;
+        [bfquater]=regression3Dplot(avgnospT,stderrspktrial,startpointseconds, secondstoanalyse, AMP_quater(AMPInterestSingleLinePlotINDEXDUAL),AMP_threequaters(AMPInterestSingleLinePlotINDEXDUAL));
+        avgratioE1E2quater=(((bfquater)/(bfquater+1))*2);%multiply by two so the (1-b) and B ratio works. divide by two for the average
+        avgratioE1E2=1;
+        Additivespkquater_Eone=(avgratioE1E2).*normalisedspkquaterchnone+(2-avgratioE1E2).*normalisedspkthreequaterschntwo;
         Additivespkquater_Eone=Additivespkquater_Eone(:,(Desired_trialthreequaterstwo~=0)+(Desired_trialquaterone~=0)==2);%only includes columns that had additive values for both conditions
         Additivespkquater_Eone=[zeros(nChn,1) Additivespkquater_Eone];
         
+        ratio_all=[bfquater,bfequal,bfthreequaters];
 
         %used to check if the additive spiking level is above the plateu
         %for each channel
@@ -184,43 +198,27 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         ax=colorbar('Position',[0.93 0.1 0.03 0.85]);
         ax.Label.String='Sp/s';
         ax.Label.Rotation=270;
+             
+        
         %LINECUTS
-        Additivespkequal=normalisedAvgspikingTchnone+normalisedAvgspikingTchntwo;
-        Additivespkequal=Additivespkequal(:,AMPInterestSingleLinePlotINDEXDUAL);
+
         if (Desired_trialquatertwo(AMPInterestSingleLinePlotINDEXDUAL)~=0)&&(Desired_trialthreequatersone(AMPInterestSingleLinePlotINDEXDUAL)~=0)
-            Additivespkthreequaters_Eone=normalisedspkthreequaterschnone+normalisedspkquaterchntwo;
-            Additivespkthreequaters_Eone=Additivespkthreequaters_Eone(:,AMPInterestSingleLinePlotINDEXDUAL);%only includes columns that had additive values for both conditions
+            [~, AMPInterestSingleLinePlotINDEXDUALt]=min(abs(AMPorig(2:end)-AMPInterestSingleLinePlot*2)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+            AMPInterestSingleLinePlotINDEXDUALt=AMPInterestSingleLinePlotINDEXDUALt+1; %since you did not check -1 condition add one to the index AMP(2:end)
+            Additivespkthreequaters_Eone=Additivespkthreequaters_Eone(:, AMPInterestSingleLinePlotINDEXDUALt);%only includes columns that had additive values for both conditions
         else 
             Additivespkthreequaters_Eone=zeros(nChn,1);
         end
-        
         if (Desired_trialquaterone(AMPInterestSingleLinePlotINDEXDUAL)~=0)&&(Desired_trialthreequaterstwo(AMPInterestSingleLinePlotINDEXDUAL)~=0)
-            Additivespkquater_Eone=normalisedspkquaterchnone+normalisedspkthreequaterschntwo;
-            Additivespkquater_Eone=Additivespkquater_Eone(:,AMPInterestSingleLinePlotINDEXDUAL);%only includes columns that had additive values for both conditions
+            [~, AMPInterestSingleLinePlotINDEXDUALt]=min(abs(AMPorig(2:end)-AMPInterestSingleLinePlot*2)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+            AMPInterestSingleLinePlotINDEXDUALt=AMPInterestSingleLinePlotINDEXDUALt+1; %since you did not check -1 condition add one to the index AMP(2:end)
+             Additivespkquater_Eone= Additivespkquater_Eone(:, AMPInterestSingleLinePlotINDEXDUALt);%only includes columns that had additive values for both conditions
+ 
         else
             Additivespkquater_Eone=zeros(nChn,1);
         end
-        for chncount=1:nChn
-            for replaceval=1:size(Additivespkequal,2)
-                if Additivespkequal(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
-                    Additivespkequal(chncount,replaceval)=AmpPlatVal(chncount)+0.1*AmpPlatVal(chncount);
-                end
-            end
-        end
-        for chncount=1:nChn
-            for replaceval=1:size(Additivespkthreequaters_Eone,2)
-                if Additivespkthreequaters_Eone(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
-                    Additivespkthreequaters_Eone(chncount,replaceval)=AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount);
-                end
-            end
-        end
-        for chncount=1:nChn
-            for replaceval=1:size(Additivespkquater_Eone,2)
-                if Additivespkquater_Eone(chncount,replaceval)>AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount)
-                    Additivespkquater_Eone(chncount,replaceval)=AmpPlatVal(chncount)+0.15*AmpPlatVal(chncount);
-                end
-            end
-        end
+        Additivespkequal=Additivespkequal(:,AMPInterestSingleLinePlotINDEXDUAL);
+
         
         figure %plotting estimation line plot
         ax = gca;
@@ -231,14 +229,17 @@ for Chosenstimchn=1:length(CHN) %used for stimulating channel one
         
         rate = conv(Additivespkquater_Eone,window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
         rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
+%rate = Additivespkquater_Eone;        
         plot(rate)
 
         rate = conv(Additivespkequal,window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
         rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
+        %rate = Additivespkequal; 
         plot(rate)
 
         rate = conv(Additivespkthreequaters_Eone,window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
         rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
+        %rate = Additivespkthreequaters_Eone;
         plot(rate)
         
         ylabel('Sp/s')

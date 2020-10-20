@@ -1,9 +1,16 @@
-function TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse,depthdriven)
+function truedatastruct=TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse,depthdriven)
 %Creates Heatmaps of dual electrode stimulation and a linecut at the
 %amplitude of interest input into the function
 
 trialinfo=loadTrialInfo(0);
+lastwarn('', '');
 loadNORECORDELECT;
+[warnMsg, warnId] = lastwarn();
+if(~isempty(warnId))
+    NORECORDELECT=[];
+end
+
+
 loadStimChn;
 loadVarAmp;
 loadNREP;
@@ -29,6 +36,7 @@ else
         nChn=32;
     end
 end
+truedatastruct=[];
  loopcounter=0;
  trialjump=find(diff(cell2mat(trialinfo(:,18))),1,'first')/2;%trials to jump over
  endtrialelect=(find(cell2mat(trialinfo((trialjump*2+1):end,18))==-1,1)+trialjump*2-1)/2; %trials for one set of conditions 
@@ -39,7 +47,11 @@ maxid=(originalEND-1)/(n_REP_true*2);
 checkconsecutive=1;
 singleLineplotval=zeros(nChn,trialjump);
 singleLineplotvalstd=zeros(nChn,trialjump);
- for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through groups of related trials
+
+for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through groups of related trials
+    figure
+    fignum=gcf;
+    fignum=fignum.Number;
      for TJ_related=1:2:trialjump*2 %goes through trials related by trial jump
          desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(TJ_related+(group_related-1),2))))+1)/2; %finds trials with desired initial electrode
          desiredchanneltrial_two=find(cell2mat(trialinfo(:,2))==cell2mat(trialinfo(TJ_related+1+(group_related-1),2)))/2; %finds trials with desired second electrode
@@ -75,26 +87,39 @@ singleLineplotvalstd=zeros(nChn,trialjump);
          loopcounter=loopcounter+1;
          singleLineplotval(:,loopcounter)=normalisedAvgspikingT(:,AMPInterestSingleLinePlotINDEXDUAL);
          singleLineplotvalstd(:,loopcounter)=(1000/(secondstoanalyse-startpointseconds)).*stdsp(:,AMPInterestSingleLinePlotINDEXDUAL);
-         figure
-         fignum=gcf;
-         fignum=fignum.Number;
+
+         
          if length(chosen_trials)==length(AMP)
              chosen_trials_amp=AMP';
          elseif length(chosen_trials)==length(AMP_original)
              chosen_trials_amp=AMP_original;
          end
-         
-         DepthChangeingSpiking_SM(normalisedAvgspikingT, chosen_trials,fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp); %plots heat maps
-%          if VarAmp==1 && cell2mat(trialinfo(TJ_related+1+(TJ_related-1),2))==0
+         if cell2mat(trialinfo((chosen_trials(2)*2),2))==0 
+             check=['T100_' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
+             if TJ_related==1 && ~isempty(NORECORDELECT)
+                 subplot(3,2,1)
+             elseif ~isempty(NORECORDELECT)
+                 subplot(3,2,2)
+             end
+         else
+             check=['T' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '_' num2str(cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '_' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
+             subplot(2,3,loopcounter+2)
+         end
+DepthChangeingSpiking_SM(normalisedAvgspikingT, chosen_trials,fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp); %plots heat maps
+
+          yline(1450-(16-1)*50,'k')
+          yline(1450-(32-1)*50,'k')
+          yline(1450-(32+16-1)*50,'k')
+         truedatastruct.(check) = normalisedAvgspikingT;
+         %          if VarAmp==1 && cell2mat(trialinfo(TJ_related+1+(TJ_related-1),2))==0
 %              xlim([0 AMP(end)/2]) % makes axes comparable on single stim trials
 %          end
      end
-     %%%%%fix title 001
          figure %plotting real data line plot
          hold on
          SMOOTHING=1;
          window = normpdf(-3*SMOOTHING:3*SMOOTHING,0,SMOOTHING);
-         if  (NORECORDELECT(1)==0) && (length(NORECORDELECT)==1)
+         if (length(NORECORDELECT)==1)&& (NORECORDELECT(1)==0)
              for p=1:1
                  rate = conv(singleLineplotval(:,p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
                  rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
@@ -136,12 +161,17 @@ singleLineplotvalstd=zeros(nChn,trialjump);
              end
          end
          ylabel('Sp/s')
-         xlabel('Channel number')
+         xlabel('Depth (um)')
          xlim([1 nChn])
          xticklabel_depth=(depthdriven-50*4):-50*5:depthdriven-(nChn-1)*50;
          xticklabels(cellstr(string((xticklabel_depth))));
          loopcounter=0;
- end
 
+ end
+ figure(fignum)
+ ax=colorbar('Position',[0.93 0.1 0.03 0.85]);
+ ax.Label.String='Sp/s';
+ ax.Label.Rotation=270;
+ save('truedatastruct.mat','truedatastruct')
 end
 

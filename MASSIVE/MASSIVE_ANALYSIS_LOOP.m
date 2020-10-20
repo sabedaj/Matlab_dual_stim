@@ -4,8 +4,8 @@ function MASSIVE_ANALYSIS_LOOP(SubDir_Path)
 % Parameters to alter
 Startpoint_analyse=0; %set to 0 for no input
 Overall_time_to_analyse=0;%time from beginning of Startpoint_analyse (remembering there is 20s of no stim at beginning) %set to zero fo no input
-artefact=-150; %removes spikes below this threshold
-artefact_high=100; %removes spikes above this threshold
+artefact=-500; %removes spikes below this threshold
+artefact_high=500; %removes spikes above this threshold
 startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)?
 secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)?
 printspiking=0;
@@ -49,6 +49,7 @@ elseif Overall_time_to_analyse~=0
 end
 
 denoiseIntan_sab(filepath, dName, T, par, Startpoint_analyse, Overall_time_to_analyse);
+cleanTrig_sabquick;
 trig = loadTrig(0);
 %% 2. Thresholds & Mu
 allExtract_sab_1(dName,filepath,T,par,artefact,artefact_high);% alternate -allExtract_sab(dName,T,par,artefact,artefact_high,trig,amp_issue);
@@ -72,6 +73,7 @@ AMPInterestSingleLinePlot=4;
 depthdriven=1500-50;
 cutoffsp=50;
 ActivationDepth(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse,depthdriven,cutoffsp)
+%%
 
  AMP=loadAMP;
  loadStimChn;
@@ -94,9 +96,21 @@ ActivationDepth(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoa
      end
      chn_sig(isnan(chn_sig))=0;
      numofsigperchn(stimChn(Chosenstimchn))=sum(chn_sig);
+     chn_sigboth(Chosenstimchn,:)=chn_sig;
      whichchn(stimChn(Chosenstimchn))=1;
  end
-save('sigchn.mat','numofsigperchn','whichchn')
+save('sigchn.mat','numofsigperchn','whichchn','chn_sigboth')
+
+depthdriven=1000-50;%in um -50 frm tip
+
+AMPInterestSingleLinePlot=4;%input in uA
+
+truedatastruct=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven);
+
+ratioALLnormalise;
+
+
+
 
 cd(folder)
 fprintf(['End of Analysis for: ' SubDir_Path newline])

@@ -3,23 +3,25 @@ function allExtract_sab_1(dName,filepath,T,par,artefact,artefact_high)
 % and constructs mu
 %% Variables
 FS = 30000;
-if strcmp(dName,'analogin')
-    nChn = 1;
-elseif strcmp(dName,'amplifier')
-    fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
-    fileinfo = dir([filepath filesep 'info.rhs']);
-    if (datetime(fileinfo.date) < fourShank_cutoff)
-        nChn=32;
-        E_Mapnumber=0;
-    else
-        E_Mapnumber=loadMapNum;
-        if E_Mapnumber>0
-            nChn=64;
-        else
-            nChn=32;
-        end
-    end
-end
+% if strcmp(dName,'analogin')
+%     nChn = 1;
+% elseif strcmp(dName,'amplifier')
+%     fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
+%     fileinfo = dir([filepath filesep 'info.rhs']);
+%     if (datetime(fileinfo.date) < fourShank_cutoff)
+%         nChn=32;
+%         E_Mapnumber=0;
+%     else
+%         E_Mapnumber=loadMapNum;
+%         if E_Mapnumber>0
+%             nChn=64;
+%         else
+%             nChn=32;
+%         end
+%     end
+% end
+nChn=64;
+E_Mapnumber=1;
 threshfac = -4.5;
 sp = cell(1, nChn);
 thresh = cell(1, nChn);

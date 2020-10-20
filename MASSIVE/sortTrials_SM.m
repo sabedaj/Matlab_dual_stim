@@ -75,7 +75,7 @@ for tID=starttrial:trialjump:endtrial
 
                 %spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms)/1000)&(v(:,1)<(trigtID(indT)+mstoanalyse)/1000)),:);
                 if ~isempty(spikedetailstrig)
-                    if any(spikedetailstrig(:,2:end)>(150))%used to check if any are above the specified threshold
+                    if any(spikedetailstrig(:,2:end)>(500))%used to check if any are above the specified threshold
                         %Use this to plot the .mu data for any trial
                         fileID=fopen([name '.mu_sab.dat'],'r');
                         shortbytes=2;
@@ -124,7 +124,7 @@ for tID=starttrial:trialjump:endtrial
                     spike=size(spikedetailstrig,1);
                     if printspiking>0
                         if (size(varargin,2)==0) || (cell2mat(varargin(1))==0)
-                            if ((tID>5) && (tID<15)) && (((indT>=10) && (indT<=25))) %%||( (tID>15) && (tID<19)) %
+                            if ((tID>15) && (tID<37)) && (((indT>=10) && (indT<=13))) %%||( (tID>15) && (tID<19)) %
                                 figure(find(E_MAP==chsp))
                                 hold on
                                 plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50))

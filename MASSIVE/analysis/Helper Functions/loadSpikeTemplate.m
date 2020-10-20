@@ -1,8 +1,8 @@
 function [template,r2t] = loadSpikeTemplate
 filepath = pwd;
-tmp = dir([filepath '\*.sp.mat']);
+tmp = dir([filepath filesep '*.sp.mat']);
 if ~isempty(tmp)
-    tmp = [filepath '\' tmp.name];
+    tmp = [filepath filesep tmp.name];
     t = load(tmp,'template');
     template = t.template;
     r = load(tmp,'r2t');
