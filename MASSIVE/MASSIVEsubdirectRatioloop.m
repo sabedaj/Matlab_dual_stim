@@ -26,7 +26,10 @@ meansig7525array=[];
 stdersig50array=[];
 stdersig7525array=[];
 Stimchnall=[];
+Ratiosingelect=[];
 currentvariation50=[];
+currentvariation75=[];
+currentvariation25=[];
 MSEalltrials=0;
 clear electarray75 electarray25 electarray stimshankarray othershankarray realelectarray75 realelectarray25 
 for k = 3:length(D_data) % avoid using the first ones
@@ -36,7 +39,7 @@ for k = 3:length(D_data) % avoid using the first ones
     end
     
     try
-        [electsig,electnonsig,electall, electsig75,electnonsig75,electall75,electsig25,electnonsig25,electall25,p,stimshank,othershank,meansig50, meansig75,meansig25, stdersig50, stdersig75,stdersig25,Stimchn, currentavg50]=RATIOLOOP_MASSIVE([D_data(k).folder filesep currD])
+        [electsig,electnonsig,electall, electsig75,electnonsig75,electall75,electsig25,electnonsig25,electall25,p,stimshank,othershank,meansig50, meansig75,meansig25, stdersig50, stdersig75,stdersig25,Stimchn, currentavg50,currentavg25,currentavg75, electfitratio]=RATIOLOOP_MASSIVE([D_data(k).folder filesep currD])
 
         electsigall=electsig+electsigall;
         electarray(k-2)=electsig;
@@ -86,6 +89,10 @@ for k = 3:length(D_data) % avoid using the first ones
        subdirectpath.(['N' num2str(k)])=SubDir_Path;
        Stimchnall=[Stimchnall; Stimchn'];
        currentvariation50=[currentvariation50; currentavg50];
+       currentvariation75=[currentvariation75; currentavg75];
+       currentvariation25=[currentvariation25; currentavg25];
+
+       Ratiosingelect=[Ratiosingelect;electfitratio];
     catch
     end
 
@@ -103,5 +110,7 @@ save('Ratio_all.mat', 'electsigall', 'electnonsigall', 'electallall', ...
     'electsigall75', 'electnonsigall75', 'electallall75', ...
     'electsigall25', 'electnonsigall25', 'electallall25', 'MSEalltrials','pall','num',...
     'meansig50array', 'meansig7525array', 'stdersig50array', 'stdersig7525array',...
-    'realelectarray75','realelectarray25','Stimchnall', 'subdirectpath')
+    'realelectarray75','realelectarray25','Stimchnall', 'subdirectpath', 'Ratiosingelect',...
+    'currentvariation50','currentvariation75','currentvariation25')
+
 fprintf(['Number of successfully completed trials: ' num2str(num) newline])

@@ -1,9 +1,9 @@
-function truedatastruct=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven)
+function [stimshankcentroid,truedatastruct]=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven)
 %Creates Heatmaps of dual electrode stimulation and a linecut at the
 %amplitude of interest input into the function
-plottingnorm=0;
+plottingnorm=1;
 plotheat=0;
-plotdata=0;
+plotdata=1;
 trialinfo=loadTrialInfo(0);
 lastwarn('', '');
 loadNORECORDELECT;
@@ -40,7 +40,7 @@ else
 end
 E_MAP = Depth(E_Mapnumber);
 
-
+stimshankcentroid=zeros(20,1);
 nostim=[];
 trialnostim=find(cell2mat(trialinfo(1:2:end,18))==-1);
 for Tnum=1:length(trialnostim)
@@ -102,7 +102,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
          end
          chosen_trials(chosen_trials>endtrialelect*(group_related))=[]; % removes any trials that are greater than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
          chosen_trials(chosen_trials<group_related/2)=[]; % removes any trials that are smaller than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
-         normalisedAvgspikingT=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,chosen_trials)-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
+         normalisedAvgspikingT=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,chosen_trials));%-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
          stdsp=stderrspktrial(:,chosen_trials); %finds the standard deviation of chosen trials for plotting
          loopcounter=loopcounter+1;
          singleLineplotval(:,loopcounter)=normalisedAvgspikingT(:,AMPInterestSingleLinePlotINDEXDUAL);
@@ -206,6 +206,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
      end
      
      if plotdata==1
+
          figure %plotting real data line plot
          hold on
          SMOOTHING=1;
@@ -229,6 +230,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                      title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA Shank: ' num2str(1)])
                      if (cell2mat(trialinfo(2*2,2)))<17 && (cell2mat(trialinfo(2*2,2))>0)
                          yline((cell2mat(trialinfo(2*2,2))),'k')
+
                      end
                      if (cell2mat(trialinfo(2*2-1,2)))<17 && (cell2mat(trialinfo(2*2-1,2))>0)
                          yline((cell2mat(trialinfo(2*2-1,2))),'k')
@@ -238,6 +240,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                      title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA Shank: ' num2str(4)])
                      if ((cell2mat(trialinfo(2*2,2)))<33) && cell2mat(trialinfo(2*2,2))>16
                          yline((cell2mat(trialinfo(2*2,2))-16),'k')
+
                      end
                      if ((cell2mat(trialinfo(2*2-1,2)))<33) && (cell2mat(trialinfo(2*2-1,2))>16)
                          yline((cell2mat(trialinfo(2*2-1,2))-16),'k')
@@ -247,6 +250,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                      title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA Shank: ' num2str(2)])
                      if ((cell2mat(trialinfo(2*2,2)))<49) && cell2mat(trialinfo(2*2,2))>32
                          yline((cell2mat(trialinfo(2*2,2))-32),'k')
+
                      end
                      if ((cell2mat(trialinfo(2*2-1,2)))<49) && (cell2mat(trialinfo(2*2-1,2))>32)
                          yline((cell2mat(trialinfo(2*2-1,2))-32),'k')
@@ -257,16 +261,17 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                      title([num2str(AMP(AMPInterestSingleLinePlotINDEXDUAL)) 'uA Shank: ' num2str(3)])
                      if ((cell2mat(trialinfo(2*2,2)))<65) && (cell2mat(trialinfo(2*2,2))>48)
                          yline((cell2mat(trialinfo(2*2,2))-48),'k')
+                         stimplot=4;
                      end
                      if ((cell2mat(trialinfo(2*2-1,2)))<65) && (cell2mat(trialinfo(2*2-1,2))>48)
                          yline((cell2mat(trialinfo(2*2-1,2))-48),'k')
                      end
                  end
                  for p=1:size(singleLineplotval,2)
-                     %                      if p>1
-                     %                          ax = gca;
-                     %                          ax.ColorOrderIndex=ax.ColorOrderIndex+1;%skips single electrode colouring
-                     %                      end
+%                                           if p==2
+%                                               ax = gca;
+%                                               ax.ColorOrderIndex=ax.ColorOrderIndex+1;%skips single electrode colouring
+%                                           end
                      if plottingnorm==1
                          maxplot=max(singleLineplotval,[],2);
                          normspk=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p)./maxplot(1+((shankplot-1)*16):(shankplot*16));%varnostim(1+((shankplot-1)*16):(shankplot*16))';
@@ -280,6 +285,17 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                          end
                          hold on
                          plot(rate,1:16)
+                         rate(rate<0)=0;
+                         A = trapz(1:16, rate);
+                         B(1)=0;
+
+                         for lims = 2:16
+                             B(lims) =  trapz(1:lims, rate(1:lims));
+                         end
+
+                         [~,electrodecentroid]=min(abs(B-(A/2)));
+                         stimshankcentroid(p+(shankplot-1)*5)=electrodecentroid;
+
                          xlabel('Normalised spike rate')
                      else
                          rate = conv(singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
@@ -294,15 +310,18 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                          errorbar(rate,1:16,singleLineplotvalstd(1+((shankplot-1)*16):(shankplot*16),p),'horizontal')
                      end
                  end
-                 if shankplot==2
+                 if shankplot==4
                      lgd = legend;
                      lgd.Position=[0.922,0.7036,0.06,0.149];
                      lgd.String={'Stim Elect','Stim Elect','0/100','25/75','50/50','75/25','100/0'};
                      %lgd.String={'Stim Elect','Stim Elect','0/100','50/50','100/0'};
                      %lgd.String={'Stim Elect','Stim Elect','25/75','75/25'};
+                     %lgd.String={'Stim Elect','Stim Elect','25/75','50/50','75/25'};
                  end
                  %set(gca, 'YDir','reverse')
                  ylabel('Electrode')
+%                  newcolors = {'#330000' '#990000', '#FF0000', '#FF6666', '#CBA8A8'};
+%                  colororder(newcolors)
                  ylim([1 16])
              end
              
@@ -329,6 +348,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
              scatter(shankk,scchn*itamount, 'r', 'filled')
              xlabel('shank')
              title('Average accross all electrodes on each shank. Dotted line is 50% max spkrate')
+            
          end
          
          %              temp=singleLineplotval;
@@ -358,6 +378,6 @@ if plotheat==1
     ax.Label.String='Sp/s';
     ax.Label.Rotation=270;
 end
-save('truedatastruct.mat','truedatastruct')
+%save('truedatastruct.mat','truedatastruct')
 end
 

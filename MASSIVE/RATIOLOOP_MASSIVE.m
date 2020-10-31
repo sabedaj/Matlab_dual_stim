@@ -1,4 +1,4 @@
-function [electsig,electnonsig,electall, electsig75,electnonsig75,electall75,electsig25,electnonsig25,electall25,p,stimshank,othershank, meansig50, meansig75,meansig25,stdersig50, stdersig75,stdersig25,stimChn,currentavg50]=RATIOLOOP_MASSIVE(SubDir_Path)
+function [electsig,electnonsig,electall, electsig75,electnonsig75,electall75,electsig25,electnonsig25,electall25,p,stimshank,othershank, meansig50, meansig75,meansig25,stdersig50, stdersig75,stdersig25,stimChn,currentavg50,currentavg25,currentavg75,electfitratio]=RATIOLOOP_MASSIVE(SubDir_Path)
 %%for analysing data on massive and saving denoised files
 folder = fileparts(which('RATIOLOOP_MASSIVE')); % Determines filepath to folder containing your .m file.
 addpath(genpath(folder)); % Add that folder plus all subfolders to the path.
@@ -50,7 +50,9 @@ load('Significantnm.mat','stdersig50')
 load('Significantnm.mat','stdersig75')
 load('Significantnm.mat','stdersig25')
 load('Significantnm.mat','currentavg50')
-
+load('Significantnm.mat','currentavg75')
+load('Significantnm.mat','currentavg25')
+load('Significantnm.mat','electfitratio')
 
 
 % 

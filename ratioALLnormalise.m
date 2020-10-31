@@ -1,7 +1,7 @@
 
 %% Load in data from current directory
 [electfit]=BoltzmannSigmoidFit;
-
+%%
 load('truedatastruct.mat','truedatastruct')
 filepath = pwd;
 fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
@@ -56,12 +56,32 @@ currentavg25=zeros(nChn,length(AMP_orig));
 stdersig50=zeros(nChn,1);
 stdersig75=zeros(nChn,1);
 stdersig25=zeros(nChn,1);
-
+electfitratio=zeros(nChn,10);
 if any((NORECORDELECT+CHN(1)+1)==cell2mat(trialinfo(2:end,2)))
     laminar=1;
 else
     laminar=0;
 end
+
+%%no stim
+
+    check=['T100_' num2str(CHN(chosenstimchn))];
+    electrodeampint100ns=truedatastruct.(check)(:,1);
+    check=['T75_25_' num2str(CHN(chosenstimchn))];
+    electrodeampint75ns=truedatastruct.(check)(:,1);
+    check=['T25_75_'  num2str(CHN(chosenstimchn))];
+    electrodeampint25ns=truedatastruct.(check)(:,1);
+    check=['T50_50_'  num2str(CHN(chosenstimchn))];
+    electrodeampint50ns=truedatastruct.(check)(:,1);
+    if laminar==1
+        check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
+    else
+        check=['T100_' num2str(NORECORDELECT(1))];
+    end
+    electrodeampint0ns=truedatastruct.(check)(:,1);
+ns=[electrodeampint100ns electrodeampint75ns electrodeampint25ns electrodeampint50ns electrodeampint0ns];
+nsE=mean(ns,2);
+%%
 channels=find(electfit(:,1)==1);
 
 counter=0;
@@ -79,7 +99,7 @@ for elect=1:nChn
     else
         check=['T100_' num2str(NORECORDELECT(1))];
     end
-    electrodeampint0=truedatastruct.(check)(elect,1:end);
+    electrodeampint0=truedatastruct.(check)(elect,2:end);
     [~,pos]=intersect(AMP, AMP_orig./2);
     AMP_halfp=AMP_half(pos);
 
@@ -163,6 +183,7 @@ for elect=1:nChn
 %     stim0=electrodeampint0(pos);
 %     stim0nm=log(((stim0(AMPInterestindex:AMPInterestindex2))./electfit(elect,3))./(1-((stim0(AMPInterestindex:AMPInterestindex2))./electfit(elect,3))))+5;
 %     stim0=log((mean(stim0(AMPInterestindex:AMPInterestindex2))/electfit(elect,3))/(1-(mean(stim0(AMPInterestindex:AMPInterestindex2))/electfit(elect,3))))+5;
+     stim25=mean(electrodeampint25(AMPInterestindex:AMPInterestindex2));
 
     stim75=mean(electrodeampint75(AMPInterestindex:AMPInterestindex2));
     stim50=mean(electrodeampint50(AMPInterestindex:AMPInterestindex2));
@@ -229,8 +250,11 @@ if (intersect(elect,channels))==elect
         stdersig75(elect)=std(((stim75nm-(stim1003qnm+stim0qnm))./abs(stim1003qnm+stim0qnm)))/sqrt(length(stim75nm));
         stdersig25(elect)=std((stim25nm-(stim1003qnm+stim0qnm))./abs(stim100qnm+stim03qnm))/sqrt(length(stim25nm));
         
-        currentavg50(elect,1:length(pos))=electrodeampint50./(electrodeampint0(pos)+electrodeampint100(pos));
-        
+        currentavg50(elect,1:length(pos))=(electrodeampint50-(electrodeampint0(pos)+electrodeampint100(pos)))./abs(electrodeampint0(pos)+electrodeampint100(pos));
+         [~,pos3]=intersect(AMP, AMP_orig.*(3/4));
+         [~,pos1]=intersect(AMP, AMP_orig.*(1/4));
+        currentavg75(elect,1:length(pos))=(electrodeampint75-(electrodeampint0(pos1)+electrodeampint100(pos3)))./abs(electrodeampint0(pos1)+electrodeampint100(pos3));
+        currentavg25(elect,1:length(pos))=(electrodeampint25-(electrodeampint0(pos3)+electrodeampint100(pos1)))./abs(electrodeampint0(pos3)+electrodeampint100(pos1));
 else
         ratiosingdualn(elect)=(stim50-(stim100+stim0))/abs(stim100+stim0);
         ratiosingdualn75(elect)=(stim75-(stim1003q+stim0q))/abs(stim1003q+stim0q);
@@ -257,7 +281,7 @@ ratiosingduals75nm(abs(ratiosingduals75nm)>100)=0;
 ratiosingdualn75nm(abs(ratiosingdualn75nm)>100)=0;
 ratiosingduals25nm(abs(ratiosingduals25nm)>100)=0;
 ratiosingdualn25nm(abs(ratiosingdualn25nm)>100)=0;
-save('Significant.mat','ratiosingduals','ratiosingduals75','ratiosingduals25','sigtest','counter','currentavg50')
+save('Significant.mat','ratiosingduals','ratiosingduals75','ratiosingduals25','sigtest','counter','currentavg50','currentavg25','currentavg75','electfitratio')
 save('NonSignificant.mat','ratiosingdualn','ratiosingdualn75','ratiosingdualn25')
 
 

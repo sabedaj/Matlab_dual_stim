@@ -1,6 +1,6 @@
 close all
 clc
-clear
+
 tic
 nChn=32;
 fs=30000;
