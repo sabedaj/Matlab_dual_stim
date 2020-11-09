@@ -62,6 +62,26 @@ if any((NORECORDELECT+CHN(1)+1)==cell2mat(trialinfo(2:end,2)))
 else
     laminar=0;
 end
+
+%%no stim
+
+    check=['T100_' num2str(CHN(chosenstimchn))];
+    electrodeampint100ns=truedatastruct.(check)(:,1);
+    check=['T75_25_' num2str(CHN(chosenstimchn))];
+    electrodeampint75ns=truedatastruct.(check)(:,1);
+    check=['T25_75_'  num2str(CHN(chosenstimchn))];
+    electrodeampint25ns=truedatastruct.(check)(:,1);
+    check=['T50_50_'  num2str(CHN(chosenstimchn))];
+    electrodeampint50ns=truedatastruct.(check)(:,1);
+    if laminar==1
+        check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
+    else
+        check=['T100_' num2str(NORECORDELECT(1))];
+    end
+    electrodeampint0ns=truedatastruct.(check)(:,1);
+ns=[electrodeampint100ns electrodeampint75ns electrodeampint25ns electrodeampint50ns electrodeampint0ns];
+nsE=mean(ns,2);
+%%
 channels=find(electfit(:,1)==1);
 
 counter=0;
@@ -79,7 +99,7 @@ for elect=1:nChn
     else
         check=['T100_' num2str(NORECORDELECT(1))];
     end
-    electrodeampint0=truedatastruct.(check)(elect,1:end);
+    electrodeampint0=truedatastruct.(check)(elect,2:end);
     [~,pos]=intersect(AMP, AMP_orig./2);
     AMP_halfp=AMP_half(pos);
 

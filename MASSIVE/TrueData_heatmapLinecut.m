@@ -1,7 +1,7 @@
 function truedatastruct=TrueData_heatmapLinecut(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,startpointseconds, secondstoanalyse,depthdriven)
 %Creates Heatmaps of dual electrode stimulation and a linecut at the
 %amplitude of interest input into the function
-
+plotdata=0;
 trialinfo=loadTrialInfo(0);
 lastwarn('', '');
 loadNORECORDELECT;
@@ -49,9 +49,11 @@ singleLineplotval=zeros(nChn,trialjump);
 singleLineplotvalstd=zeros(nChn,trialjump);
 
 for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through groups of related trials
+    if plotdata==1
     figure
     fignum=gcf;
     fignum=fignum.Number;
+    end
      for TJ_related=1:2:trialjump*2 %goes through trials related by trial jump
          desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(TJ_related+(group_related-1),2))))+1)/2; %finds trials with desired initial electrode
          desiredchanneltrial_two=find(cell2mat(trialinfo(:,2))==cell2mat(trialinfo(TJ_related+1+(group_related-1),2)))/2; %finds trials with desired second electrode
@@ -105,16 +107,19 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
              check=['T' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))*100/(cell2mat(trialinfo((chosen_trials(2)*2)-1,18))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '_' num2str(cell2mat(trialinfo((chosen_trials(2)*2),18))*100/((cell2mat(trialinfo((chosen_trials(2)*2)-1,18)))+cell2mat(trialinfo((chosen_trials(2)*2),18)))) '_' num2str(cell2mat(trialinfo((chosen_trials(2)*2)-1,2)))];
              subplot(2,3,loopcounter+2)
          end
-DepthChangeingSpiking_SM(normalisedAvgspikingT, chosen_trials,fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp); %plots heat maps
-
-          yline(1450-(16-1)*50,'k')
-          yline(1450-(32-1)*50,'k')
-          yline(1450-(32+16-1)*50,'k')
+         if plotdata==1
+             DepthChangeingSpiking_SM(normalisedAvgspikingT, chosen_trials,fignum,depthdriven,max(cell2mat(TrialParams(:,2))),chosen_trials_amp); %plots heat maps
+             
+             yline(1450-(16-1)*50,'k')
+             yline(1450-(32-1)*50,'k')
+             yline(1450-(32+16-1)*50,'k')
+         end
          truedatastruct.(check) = normalisedAvgspikingT;
          %          if VarAmp==1 && cell2mat(trialinfo(TJ_related+1+(TJ_related-1),2))==0
 %              xlim([0 AMP(end)/2]) % makes axes comparable on single stim trials
 %          end
      end
+     if plotdata==1
          figure %plotting real data line plot
          hold on
          SMOOTHING=1;
@@ -166,12 +171,14 @@ DepthChangeingSpiking_SM(normalisedAvgspikingT, chosen_trials,fignum,depthdriven
          xticklabel_depth=(depthdriven-50*4):-50*5:depthdriven-(nChn-1)*50;
          xticklabels(cellstr(string((xticklabel_depth))));
          loopcounter=0;
-
- end
+     end
+end
+ if plotdata==1
  figure(fignum)
  ax=colorbar('Position',[0.93 0.1 0.03 0.85]);
  ax.Label.String='Sp/s';
  ax.Label.Rotation=270;
+ end
  save('truedatastruct.mat','truedatastruct')
 end
 

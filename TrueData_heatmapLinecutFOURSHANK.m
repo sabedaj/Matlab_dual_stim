@@ -1,9 +1,9 @@
-function [stimshankcentroid,truedatastruct]=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven)
+function [stimshankcentroid,truedatastruct,stackedacross]=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven)
 %Creates Heatmaps of dual electrode stimulation and a linecut at the
 %amplitude of interest input into the function
-plottingnorm=0;
-plotheat=0;
-plotdata=0;
+plottingnorm=1;
+plotheat=1;
+plotdata=1;
 trialinfo=loadTrialInfo(0);
 lastwarn('', '');
 loadNORECORDELECT;
@@ -41,6 +41,7 @@ end
 E_MAP = Depth(E_Mapnumber);
 
 stimshankcentroid=zeros(20,1);
+peakshank=zeros(20,1);
 nostim=[];
 trialnostim=find(cell2mat(trialinfo(1:2:end,18))==-1);
 for Tnum=1:length(trialnostim)
@@ -102,7 +103,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
          end
          chosen_trials(chosen_trials>endtrialelect*(group_related))=[]; % removes any trials that are greater than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
          chosen_trials(chosen_trials<group_related/2)=[]; % removes any trials that are smaller than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
-         normalisedAvgspikingT=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,chosen_trials)-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
+         normalisedAvgspikingT=(1000/(secondstoanalyse-startpointseconds))*(avgnospT(:,chosen_trials));%-avgnostim); %normalises data by subtracting no stim trials and converts to spikes per second
          stdsp=stderrspktrial(:,chosen_trials); %finds the standard deviation of chosen trials for plotting
          loopcounter=loopcounter+1;
          singleLineplotval(:,loopcounter)=normalisedAvgspikingT(:,AMPInterestSingleLinePlotINDEXDUAL);
@@ -280,7 +281,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                          rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
                          acrossshankplot(p,shankplot)=mean(rate);
                          if p==5
-                             stackedacross(:,shankplot)=rate;
+                             stackedacross(:,shankplot)=rate;%singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p);
                              itamount=0.5;
                          end
                          hold on
@@ -295,7 +296,8 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
 
                          [~,electrodecentroid]=min(abs(B-(A/2)));
                          stimshankcentroid(p+(shankplot-1)*5)=electrodecentroid;
-
+                         %[~,electrodemax]=max(rate);
+                         %stimshankcentroid(p+(shankplot-1)*5)=electrodemax;
                          xlabel('Normalised spike rate')
                      else
                          rate = conv(singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
@@ -381,37 +383,38 @@ end
 
 %%no stim
 
-    check=['T100_' num2str(CHN(chosenstimchn))];
-    electrodeampint100ns=truedatastruct.(check)(:,1);
-    check=['T75_25_' num2str(CHN(chosenstimchn))];
-    electrodeampint75ns=truedatastruct.(check)(:,1);
-    check=['T25_75_'  num2str(CHN(chosenstimchn))];
-    electrodeampint25ns=truedatastruct.(check)(:,1);
-    check=['T50_50_'  num2str(CHN(chosenstimchn))];
-    electrodeampint50ns=truedatastruct.(check)(:,1);
-    if laminar==1
-        check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
-    else
-        check=['T100_' num2str(NORECORDELECT(1))];
-    end
-    electrodeampint0ns=truedatastruct.(check)(:,1);
-ns=[electrodeampint100ns electrodeampint75ns electrodeampint25ns electrodeampint50ns electrodeampint0ns];
-nsE=mean(ns,2);
-    check=['T100_' num2str(CHN(chosenstimchn))];
-    truedatastruct.(check)(:,1)=nsE;
-    check=['T75_25_' num2str(CHN(chosenstimchn))];
-    truedatastruct.(check)(:,1)=nsE;
-    check=['T25_75_'  num2str(CHN(chosenstimchn))];
-    truedatastruct.(check)(:,1)=nsE;
-    check=['T50_50_'  num2str(CHN(chosenstimchn))];
-    truedatastruct.(check)(:,1)=nsE;
-    if laminar==1
-        check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
-    else
-        check=['T100_' num2str(NORECORDELECT(1))];
-    end
-    truedatastruct.(check)(:,1)=nsE;
+%     check=['T100_' num2str(CHN(chosenstimchn))];
+%     electrodeampint100ns=truedatastruct.(check)(:,1);
+%     check=['T75_25_' num2str(CHN(chosenstimchn))];
+%     electrodeampint75ns=truedatastruct.(check)(:,1);
+%     check=['T25_75_'  num2str(CHN(chosenstimchn))];
+%     electrodeampint25ns=truedatastruct.(check)(:,1);
+%     check=['T50_50_'  num2str(CHN(chosenstimchn))];
+%     electrodeampint50ns=truedatastruct.(check)(:,1);
+%     if laminar==1
+%         check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
+%     else
+%         check=['T100_' num2str(NORECORDELECT(1))];
+%     end
+%     electrodeampint0ns=truedatastruct.(check)(:,1);
+% ns=[electrodeampint100ns electrodeampint75ns electrodeampint25ns electrodeampint50ns electrodeampint0ns];
+% nsE=mean(ns,2);
+%     check=['T100_' num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     check=['T75_25_' num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     check=['T25_75_'  num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     check=['T50_50_'  num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     if laminar==1
+%         check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
+%     else
+%         check=['T100_' num2str(NORECORDELECT(1))];
+%     end
+%     truedatastruct.(check)(:,1)=nsE;
 %%
+
 save('truedatastruct.mat','truedatastruct')
 end
 

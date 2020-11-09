@@ -75,7 +75,7 @@ for tID=starttrial:trialjump:endtrial
                 %spikedetailstrig=v(((v(:,1)>0)&(v(:,1)<20000)),:);
                 timems=mstoanalyse-startpointms;
                 avgtimebs=10;
-                baslinespiketrig=v(((v(:,1)>(trigtID(indT)-5-avgtimebs*timems))&(v(:,1)<(trigtID(indT)-5))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
+                baslinespiketrig=v(((v(:,1)>(trigtID(indT)-5-avgtimebs*timems))&(v(:,1)<(trigtID(indT)-65+timems*avgtimebs))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
 
                 %spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms)/1000)&(v(:,1)<(trigtID(indT)+mstoanalyse)/1000)),:);
                 if ~isempty(spikedetailstrig)

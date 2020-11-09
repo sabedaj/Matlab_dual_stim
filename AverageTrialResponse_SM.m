@@ -1,4 +1,4 @@
-function [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct)
+function [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct, baslinespikestruct)
 % calculates template of trials and spiking responses
 
 %OUTPUT matrix of average spiking avgnospT(electrodes, trials), array of
@@ -31,10 +31,21 @@ stderrspktrial=[];
 trialinfo={};
 TrialParams=loadTrialParams;
 maxtid=max(cell2mat(TrialParams(:,2)));
+loadNREP;
+% try%%%%%%use for timechangeinspiking
+%     loadoriginalEND;
+%     if ((originalEND-1)/(n_REP_true*2))<maxtid
+%         maxtid=((originalEND-1)/(n_REP_true*2));
+%     end
+% catch
+%     %%code was made before loadoriginalEND
+% end
 loadStimParams;
 for ID=1:maxtid
-    avgnospT=meanstruct(avgnospT, ID, IDstruct);
-    stderrspktrial=stderrorstruct(stderrspktrial, ID, IDstruct);
+    check=['T' num2str(ID)];
+    IDstructnobsp.(check)=IDstruct.(check)-baslinespikestruct.(check);
+    avgnospT=meanstruct(avgnospT, ID, IDstructnobsp);
+    stderrspktrial=stderrorstruct(stderrspktrial, ID, IDstructnobsp);
     num=find(cell2mat(TrialParams(1:end,2)) == ID);
     trialinfo(ID+(ID-1),:)=[{ID},TrialParams(num(1),3), StimParams(num(1)+1,:)];
     trialinfo((ID+1)+(ID-1),:)=[{ID},TrialParams(num(2),3), StimParams(num(2)+1,:)];

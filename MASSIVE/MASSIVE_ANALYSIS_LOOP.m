@@ -61,11 +61,11 @@ trialjump=1;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 endtrial=maxid;
-[IDstruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
+[IDstruct, baslinespikestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
 save('IDstruct.mat', 'IDstruct')
 
 %% 5. Calculates template of trials and spiking responses (Output in true electrode order)
-[avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
+[avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct, baslinespikestruct);
 save('Averagetrialresponse.mat','avgnospT','stderrspktrial')
 
 %% 6. Work out where the stim electrode was and what layers were activated

@@ -106,14 +106,6 @@ for elect=1:nChn
         x2fit = min(x2):0.2:max(x2);
         [X1FIT,X2FIT] = meshgrid(x1fit,x2fit);
         YFIT = beta(1)./(1+exp(beta(2)+beta(3).*X1FIT + beta(4).*X2FIT));
-        %YFIT = -beta(2)-beta(3).*X1FIT - beta(4).*X2FIT;
-%         if k1>k2
-%             k=k1;
-%         else
-%             k=k2;
-%         end
-%         YFIT(YFIT>k)=k;
-%         YFIT(YFIT<0)=0;
         figure
         mesh(X1FIT,X2FIT,YFIT);
         hold on

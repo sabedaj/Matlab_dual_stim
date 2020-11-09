@@ -8,6 +8,7 @@ includeResult=0;
  trialinfo=loadTrialInfo;
  trialinfo(1,:)=[];
  loadCHN;
+ loadStimChn;
 chosenstimchn=1;
 filepath = pwd;
 fourShank_cutoff = datetime('04-Aug-2020 00:00:00');
@@ -85,8 +86,10 @@ for elect=1:nChn
         x2=[zeros(1,length(electrodeampint0)) AMP];
         X=[x1' x2'];
     end
+    %modelfun = @(b,X) b(1)+b(2)*X(:,1)+b(3)*X(:,2)+b(4)*X(:,1).^2+b(5)*X(:,2).^2;%quadratic
     modelfun = @(b,X) b(1)./(1+exp(b(2)+b(3).*X(:,1)+b(4).*X(:,2))); %SIGMOIDAL  b1 is asymptote, b2=x50/slope b3=-1/slope b2=-1/slope  This is boltzmann sigmoid
     beta0 = [350 1 1 1]; %SIGMOIDAL
+    %beta0 = [1 1 1 1 1]; %quad
     try
         mdl = fitnlm(X,y',modelfun,beta0);
     catch
@@ -103,22 +106,43 @@ for elect=1:nChn
         x2fit = min(x2):0.2:max(x2);
         [X1FIT,X2FIT] = meshgrid(x1fit,x2fit);
         YFIT = beta(1)./(1+exp(beta(2)+beta(3).*X1FIT + beta(4).*X2FIT));
-        
-%         if k1>k2
-%             k=k1;
-%         else
-%             k=k2;
-%         end
-%         YFIT(YFIT>k)=k;
-%         YFIT(YFIT<0)=0;
         figure
         mesh(X1FIT,X2FIT,YFIT);
         hold on
         scatter3(x1,x2,y,'filled')
+        %scatter3(x1,x2,log((y./beta(1))./(1-(y./beta(1)))),'filled')
         xlabel(['Channel ' num2str(CHN(chosenstimchn)) ' Current level (uA)'])
-        ylabel(['Channel ' num2str(NORECORDELECT(1)) ' Current level (uA)'])
+        %ylabel(['Channel ' num2str(CHN(chosenstimchn+1)) ' Current level (uA)'])
+        ylabel(['Channel ' num2str(stimChn(chosenstimchn+1)) ' Current level (uA)'])
         zlabel('Sp/s')
         title(['Spike rates from electrode ' num2str(elect)])
+        
+        
+        figure
+        hold on
+        x1fit = AMP_orig;
+        x2fit = AMP_orig;
+        YFIT = beta(1)./(1+exp(beta(2)+beta(3).*x1fit + beta(4).*x2fit));
+        YFIT1 = beta(1)./(1+exp(beta(2)+beta(3).*x1fit));
+        YFIT2 = beta(1)./(1+exp(beta(2) + beta(4).*x2fit));
+        plot(AMP_orig,YFIT, 'r')
+        plot(AMP_orig,YFIT1,'k-.')
+        plot(AMP_orig,YFIT2,'k--')
+        plot(AMP_orig,YFIT2+YFIT1,'k')
+                xlabel('current (uA)')
+        ylabel('Sp/s')
+        title(['Model spike rates from electrode ' num2str(elect)])
+        %plot(AMP(1:step:end),electrodeampint100,'k:')
+        plot(AMP_halfp(1:step:end) ,electrodeampint50, 'r:')
+        plot(AMP_halfp(1:step:end),electrodeampint0(pos)+electrodeampint100(pos),'k:')
+        
+        %scatter(AMP(1:step:end),electrodeampint100,10,'k')
+        scatter(AMP_halfp(1:step:end) ,electrodeampint50,10, 'r')
+        scatter(AMP_halfp(1:step:end),electrodeampint0(pos)+electrodeampint100(pos),10,'k')
+
+        legend('Dual model', ['E' num2str(stimChn(chosenstimchn)) ' model'],['E' num2str(stimChn(chosenstimchn+1)) 'model'],['E' num2str(stimChn(chosenstimchn)) '+E' num2str(stimChn(chosenstimchn+1)) ' model'],'Dual real',['E' num2str(stimChn(chosenstimchn)) '+E' num2str(stimChn(chosenstimchn+1)) ' real'])
+
+
     end
     
     %%not included points in the model
@@ -160,6 +184,30 @@ for elect=1:nChn
     if  strcmp(msgid,'')  && (rsq>0.5) && (beta(1)<10000) && ((-beta(2)/beta(3))>0) && ((-beta(2)/beta(4))>0)  && ((beta(3)/beta(4))>(1/5) && (beta(3)/beta(4))<5)% (rsq>0.7)  &&&& (pval<0.05) %&& ((max(electrodeampint0)/max(electrodeampint100))<5 && (max(electrodeampint0)/max(electrodeampint100))>0.2) %&& ((beta(3)/beta(4))>0.5 && (beta(3)/beta(4))<2) % ((max(electrodeampint0)/max(electrodeampint100))<3 && (max(electrodeampint0)/max(electrodeampint100))>0.333)
         electfit(elect,1)=1;
         fprintf('Good fit \n')
+%                 figure
+%         hold on
+%         x1fit = AMP_orig;
+%         x2fit = AMP_orig;
+%         YFIT = beta(1)./(1+exp(beta(2)+beta(3).*x1fit + beta(4).*x2fit));
+%         YFIT1 = beta(1)./(1+exp(beta(2)+beta(3).*x1fit));
+%         YFIT2 = beta(1)./(1+exp(beta(2) + beta(4).*x2fit));
+%         plot(AMP_orig,YFIT, 'r')
+%         plot(AMP_orig,YFIT1,'k-.')
+%         plot(AMP_orig,YFIT2,'k--')
+%         plot(AMP_orig,YFIT2+YFIT1,'k')
+%                 xlabel('current (uA)')
+%         ylabel('Sp/s')
+%         title(['Model spike rates from electrode ' num2str(elect)])
+%         %plot(AMP(1:step:end),electrodeampint100,'k:')
+%         plot(AMP_halfp(1:step:end) ,electrodeampint50, 'r:')
+%         plot(AMP_halfp(1:step:end),electrodeampint0(pos)+electrodeampint100(pos),'k:')
+%         
+%         %scatter(AMP(1:step:end),electrodeampint100,10,'k')
+%         scatter(AMP_halfp(1:step:end) ,electrodeampint50,10, 'r')
+%         scatter(AMP_halfp(1:step:end),electrodeampint0(pos)+electrodeampint100(pos),10,'k')
+% 
+%         legend('Dual model', ['E' num2str(stimChn(chosenstimchn)) ' model'],['E' num2str(stimChn(chosenstimchn+1)) 'model'],['E' num2str(stimChn(chosenstimchn)) '+E' num2str(stimChn(chosenstimchn+1)) ' model'],'Dual real',['E' num2str(stimChn(chosenstimchn)) '+E' num2str(stimChn(chosenstimchn+1)) ' real'])
+
     end
     lastwarn(''); % reset warning state
     electfit(elect,2)=rsq;

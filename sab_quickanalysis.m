@@ -7,7 +7,7 @@ artefact=-500; %removes spikes below this threshold
 artefact_high=500; %removes spikes above this threshold
 startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)? 
 secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)? 
-printspiking=1;
+printspiking=0;
 par=0;
 
 %% 1. Blank stimulus
@@ -67,7 +67,8 @@ trialjump=1;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 endtrial=maxid;
-[IDstruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
+[IDstruct, baslinespikestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
+save('IDstruct.mat','IDstruct','baslinespikestruct')
 %%
 if printspiking==1 && SavetoPPT==1
     import mlreportgen.ppt.* %need this to import ppt save format
@@ -95,8 +96,8 @@ if printspiking==1 && SavetoPPT==1
     end
 end
 %% 5. Calculates template of trials and spiking responses (Output in true electrode order)
-[avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
-
+[avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct, baslinespikestruct);
+ save('Averagetrialresponse.mat','avgnospT','stderrspktrial')
  %% 8. plotting average electrode response for all electrodes classes as significant and not significant
  AMP=loadAMP;
  loadStimChn;

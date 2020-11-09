@@ -1,4 +1,4 @@
-function [stimshankcentroid,truedatastruct]=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven)
+function [stimshankcentroid,truedatastruct,stackedacross]=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven)
 %Creates Heatmaps of dual electrode stimulation and a linecut at the
 %amplitude of interest input into the function
 plottingnorm=1;
@@ -41,6 +41,7 @@ end
 E_MAP = Depth(E_Mapnumber);
 
 stimshankcentroid=zeros(20,1);
+peakshank=zeros(20,1);
 nostim=[];
 trialnostim=find(cell2mat(trialinfo(1:2:end,18))==-1);
 for Tnum=1:length(trialnostim)
@@ -280,7 +281,7 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
                          rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
                          acrossshankplot(p,shankplot)=mean(rate);
                          if p==5
-                             stackedacross(:,shankplot)=rate;
+                             stackedacross(:,shankplot)=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p);
                              itamount=0.5;
                          end
                          hold on
@@ -295,7 +296,8 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
 
                          [~,electrodecentroid]=min(abs(B-(A/2)));
                          stimshankcentroid(p+(shankplot-1)*5)=electrodecentroid;
-
+                         %[~,electrodemax]=max(rate);
+                         %stimshankcentroid(p+(shankplot-1)*5)=electrodemax;
                          xlabel('Normalised spike rate')
                      else
                          rate = conv(singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p),window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
@@ -378,6 +380,41 @@ if plotheat==1
     ax.Label.String='Sp/s';
     ax.Label.Rotation=270;
 end
-%save('truedatastruct.mat','truedatastruct')
+
+%%no stim
+
+%     check=['T100_' num2str(CHN(chosenstimchn))];
+%     electrodeampint100ns=truedatastruct.(check)(:,1);
+%     check=['T75_25_' num2str(CHN(chosenstimchn))];
+%     electrodeampint75ns=truedatastruct.(check)(:,1);
+%     check=['T25_75_'  num2str(CHN(chosenstimchn))];
+%     electrodeampint25ns=truedatastruct.(check)(:,1);
+%     check=['T50_50_'  num2str(CHN(chosenstimchn))];
+%     electrodeampint50ns=truedatastruct.(check)(:,1);
+%     if laminar==1
+%         check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
+%     else
+%         check=['T100_' num2str(NORECORDELECT(1))];
+%     end
+%     electrodeampint0ns=truedatastruct.(check)(:,1);
+% ns=[electrodeampint100ns electrodeampint75ns electrodeampint25ns electrodeampint50ns electrodeampint0ns];
+% nsE=mean(ns,2);
+%     check=['T100_' num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     check=['T75_25_' num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     check=['T25_75_'  num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     check=['T50_50_'  num2str(CHN(chosenstimchn))];
+%     truedatastruct.(check)(:,1)=nsE;
+%     if laminar==1
+%         check=['T100_' num2str(CHN(chosenstimchn)+NORECORDELECT(1)+1)];
+%     else
+%         check=['T100_' num2str(NORECORDELECT(1))];
+%     end
+%     truedatastruct.(check)(:,1)=nsE;
+%%
+
+save('truedatastruct.mat','truedatastruct')
 end
 

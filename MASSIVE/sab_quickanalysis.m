@@ -67,7 +67,8 @@ trialjump=1;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 endtrial=maxid;
-[IDstruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
+[IDstruct, baslinespikestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
+save('IDstruct.mat','IDstruct','baslinespikestruct')
 %%
 if printspiking==1 && SavetoPPT==1
     import mlreportgen.ppt.* %need this to import ppt save format
@@ -95,8 +96,8 @@ if printspiking==1 && SavetoPPT==1
     end
 end
 %% 5. Calculates template of trials and spiking responses (Output in true electrode order)
-[avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
-
+[avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct, baslinespikestruct);
+ save('Averagetrialresponse.mat','avgnospT','stderrspktrial')
  %% 8. plotting average electrode response for all electrodes classes as significant and not significant
  AMP=loadAMP;
  loadStimChn;
@@ -214,6 +215,8 @@ outputMaxHist=[];
 
  %% 8. plotting average electrode response for all electrodes classes as significant and not significant
  chnlist=zeros(nChn,1);
+ trialinfo=loadTrialInfo;
+ trialinfo(1,:)=[];
  for channel=1:nChn
  chn=Depth(1);
  chn=chn(channel);
@@ -233,11 +236,33 @@ outputMaxHist=[];
  end
 
  end
+  chnlist=zeros(nChn,1);
+
+ AMP_orig=loadAMP;
+ AMP_orig=AMP_orig./2;
   avgnostim=(avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1)).*1000/(secondstoanalyse-startpointseconds); 
-  testifsignificant=[(avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-1))) (avgnospT(:,cell2mat(trialinfo(2:2:end,18))==AMP(end-2)))];
- testsig_maxamp=testifsignificant(:,1:size(avgnostim,2)).*1000/(secondstoanalyse-startpointseconds);
-[p,h,stats] = ranksum(testsig_maxamp(2,:),avgnostim(2,:));
- 
+  testifsignificantchn1=[(avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end)) + (cell2mat(trialinfo(2:2:end,18))==AMP_orig(end))+ (cell2mat(trialinfo(1:2:end,2))==stimChn(1)))==3)) ...
+      (avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end-1)) + (cell2mat(trialinfo(2:2:end,18))==AMP_orig(end-1))+ (cell2mat(trialinfo(1:2:end,2))==stimChn(1)))==3))...
+      (avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end-2)) + (cell2mat(trialinfo(2:2:end,18))==AMP_orig(end-2))+ (cell2mat(trialinfo(1:2:end,2))==stimChn(1)))==3))];
+ testifsignificantchn2=[(avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end)) + (cell2mat(trialinfo(2:2:end,18))==AMP_orig(end))+ (cell2mat(trialinfo(1:2:end,2))==stimChn(2)))==3)) ...
+      (avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end-1)) + (cell2mat(trialinfo(2:2:end,18))==AMP_orig(end-1))+ (cell2mat(trialinfo(1:2:end,2))==stimChn(2)))==3))...
+      (avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end-2)) + (cell2mat(trialinfo(2:2:end,18))==AMP_orig(end-2))+ (cell2mat(trialinfo(1:2:end,2))==stimChn(2)))==3))];
+% 
+%    testifsignificantchnb=[(avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end)) + (cell2mat(trialinfo(1:2:end,2))==stimChn(1))+ (cell2mat(trialinfo(2:2:end,2))==stimChn(2)))==3)) ...
+%       (avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end-1)) + (cell2mat(trialinfo(1:2:end,2))==stimChn(1))+ (cell2mat(trialinfo(2:2:end,2))==stimChn(2)))==3))...
+%       (avgnospT(:,((cell2mat(trialinfo(1:2:end,18))==AMP_orig(end-2)) + (cell2mat(trialinfo(1:2:end,2))==stimChn(1))+ (cell2mat(trialinfo(2:2:end,2))==stimChn(2)))==3))];
+
+  testsig_maxamp=testifsignificant(:,1:size(avgnostim,2)).*1000/(secondstoanalyse-startpointseconds);
+ testsigch1=testifsignificantchn1.*1000/(secondstoanalyse-startpointseconds);
+  testsigch2=testifsignificantchn2.*1000/(secondstoanalyse-startpointseconds);
+  testsigchb=testifsignificantchnb.*1000/(secondstoanalyse-startpointseconds);
+ for channel=1:nChn
+     [p1,h,stats] = ranksum(testsigch1(channel,:),avgnostim(channel,:));
+     [p2,h,stats] = ranksum(testsigch2(channel,:),avgnostim(channel,:));
+     if (p1<0.05) && (p2<0.05)
+         chnlist(channel)=1;
+     end
+ end
  [h,p]=ttest(testsig_maxamp',avgnostim','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
  AllElectrodeResponseCurve_SM(trialinfo,avgnospT,stderrspktrial,1,h);
 

@@ -1,4 +1,4 @@
-function [IDstruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,varargin)
+function [IDstruct, baslinespikestruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,varargin)
 %Sort into trial IDs and plot example spikes 
 %OUTPUT - the structure containing spiking information for each trial/repeat where
 %each cell relates to one trial ID. The array in this cell is in the format
@@ -36,6 +36,7 @@ name = name(1:end-14);
 load([name '.sp.mat'])
 maxtid=max(cell2mat(TrialParams(:,2)));
 nospI=[];
+baslinespikestruct=[];
 IDstruct=[];
 
 
@@ -72,6 +73,9 @@ for tID=starttrial:trialjump:endtrial
                 v = sp{chsp};
                 spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms))&(v(:,1)<(trigtID(indT)+mstoanalyse))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                 %spikedetailstrig=v(((v(:,1)>0)&(v(:,1)<20000)),:);
+                timems=mstoanalyse-startpointms;
+                avgtimebs=10;
+                baslinespiketrig=v(((v(:,1)>(trigtID(indT)-5-avgtimebs*timems))&(v(:,1)<(trigtID(indT)-5))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
 
                 %spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms)/1000)&(v(:,1)<(trigtID(indT)+mstoanalyse)/1000)),:);
                 if ~isempty(spikedetailstrig)
@@ -86,6 +90,21 @@ for tID=starttrial:trialjump:endtrial
                         vblankmu = fread(fileID,[nChn, (1*FS+0.25*FS)],'short')./10; %plots one second from trigger and 250ms brefore
                         figure 
                         plot (-0.25*1000:1000/FS:1*1000-1000/FS,vblankmu(chsp,:))
+                        title(['Channel ' num2str(chsp)])
+                        xlabel('Time (ms)')
+                        ylabel('Voltage (uV)')
+                        fclose(fileID);
+                        
+                        fileID=fopen('amplifier.dat','r');
+                        fileID=fopen([name '.mu_sab.dat'],'r');
+                        shortbytes=2;
+                        offset=trig(TrialParamstID(indT))*nChn*shortbytes-0.5*FS*shortbytes*nChn;%offset from beginning of file to trigger
+                        ftell(fileID)
+                        fseek(fileID,offset,'bof');
+                        ftell(fileID)
+                        vblankmu = fread(fileID,[nChn, (0.5*FS+0.01*FS)],'int16') .* 0.195;
+                        figure 
+                        plot (-0.5*1000:1000/FS:0.01*1000-1000/FS,vblankmu(chsp,:))
                         title(['Channel ' num2str(chsp)])
                         xlabel('Time (ms)')
                         ylabel('Voltage (uV)')
@@ -122,6 +141,7 @@ for tID=starttrial:trialjump:endtrial
                         
                     end
                     spike=size(spikedetailstrig,1);
+                    
                     if printspiking>0
                         if (size(varargin,2)==0) || (cell2mat(varargin(1))==0)
                             if ((tID>15) && (tID<37)) && (((indT>=10) && (indT<=13))) %%||( (tID>15) && (tID<19)) %
@@ -147,11 +167,19 @@ for tID=starttrial:trialjump:endtrial
                 else
                     spike=0;
                 end
+                if ~isempty(baslinespiketrig)
+                    spikebaseline=size(baslinespiketrig,1)/avgtimebs;
+                else
+                    spikebaseline=0;
+                end
                 nospI(chsp,indT)=spike;
+                basespI(chsp,indT)=spikebaseline;
                 spike=0;
             end
         end
         IDstruct=StructureIDgeneration(nospI, tID, IDstruct);
+        baslinespikestruct=StructureIDgeneration(basespI, tID, baslinespikestruct);
+        basespI=[];
         nospI=[];
     end
     

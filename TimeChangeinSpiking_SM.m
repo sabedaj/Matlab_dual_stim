@@ -53,8 +53,8 @@ elseif nargin ==7
     z=zeros(Loopnum,ceil((endtrial-starttrial)/trialjump));
 end
     for counter=1:Loopnum
-        [IDstruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,starttrial,trialjump,endtrial);
-        [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
+        [IDstruct,baslinespikestruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,starttrial,trialjump,endtrial);
+        [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct,baslinespikestruct);
         if nargin==3 %averages all trials for all electrodes
             averageallelectrodes=mean(avgnospT(:,starttrial:endtrial),1);
             z(counter,:)=(TimeStep*(counter)+TimeBegin).*ones(1,endtrial);
