@@ -130,19 +130,19 @@ xticklabels({'0', '1', '2', '3', '4', '6', '8', '10'})
 xlabel('Current(uA)')
 ylabel('Percentage increase in efficacy of dual')
 %title('Ratio 25% towards favoured electrode');
-ymax=400;
+ymax=350;
 ymin=-50;
 ytotal=abs(ymin)+ymax;
 ylim([ymin ymax])
-xlim([0.5 9])
-%xlim([1.5 8.5])
-title(['Comparison of current levels in eliciting spike rates at 50% towards Deep']);
+%xlim([0.5 9])
+xlim([1.5 8.5])
+title(['Comparison of current levels in eliciting spike rates at 75% towards Deep']);
 
 %text(8,175,['n=' num2str(resultind(4,1))])
 nsamp=[betweenE(4,:); flankE(4,:);farE(4,:);];
 %nsamp=[farE(4,:); flankE(4,:)];
 %nsamp=resultind(4,:);
-for i=1:size(nsamp,2)
+for i=2:size(nsamp,2)
 xpos=x(:,i);
 ypos=(model_series(i,:)+model_error(i,:)+0.07.*100);
 ypos(ypos<10)=10;
@@ -423,10 +423,14 @@ r7input=currentvariation50_r7;
 r7input(all(r7input == 0,2),:)=-500;
 r8input=currentvariation50_r8;
 r8input(all(r8input == 0,2),:)=-500;
+
+
+
+
 r5_shift=-500.*ones(128*length(Stimchnall_r5),size(r5input,2));
 for i=1:length(Stimchnall_r5)
     if chnpairnumzeros(i)~=-500
-        r5_shift((i-1)*128+1:i*128,1:size(r5input,2))=[zeros(chnpairnumzeros(i,2),size(r5input,2)); r5input((i-1)*32+1:i*32,:); zeros(128-32-chnpairnumzeros(i,2),size(r5input,2))];
+        r5_shift((i-1)*128+1:i*128,1:size(r5input,2))=[-500.*ones(chnpairnumzeros(i,2),size(r5input,2)); r5input((i-1)*32+1:i*32,:); -500.*ones(128-32-chnpairnumzeros(i,2),size(r5input,2))];
     end
 end
 r6_shift=-500.*ones(128*length(Stimchnall_r6),size(r6input,2)*4);
@@ -947,3 +951,24 @@ norm=jbtest(x);
 meanaltogether=  mean(x);
 resultind(:,i)=[meanaltogether; stder; p1; alllength];
 end
+
+
+%% distance matrix
+Stimchnall=Stimchnall_r6;
+for chnpair=1:length(Stimchnall)
+    if Stimchnall(chnpair,1)<17&&Stimchnall(chnpair,2)<17
+        Stimchnall(chnpair,:)=[0,0];
+    elseif Stimchnall(chnpair,1)<33&&Stimchnall(chnpair,2)<33 && Stimchnall(chnpair,1)>16&&Stimchnall(chnpair,2)>16
+        Stimchnall(chnpair,:)=[0,0];
+        
+    elseif Stimchnall(chnpair,1)<49&&Stimchnall(chnpair,2)<49 && Stimchnall(chnpair,1)>32&&Stimchnall(chnpair,2)>32
+        Stimchnall(chnpair,:)=[0,0];
+    elseif Stimchnall(chnpair,1)<65&&Stimchnall(chnpair,2)<65 && Stimchnall(chnpair,1)>48&&Stimchnall(chnpair,2)>48
+        Stimchnall(chnpair,:)=[0,0];
+    else
+        %across
+        
+    end
+end
+StimchnNoac
+deepchannel=shallowchannel-6;
