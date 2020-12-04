@@ -2,14 +2,14 @@ function [stimshankcentroid,truedatastruct,stackedacross]=TrueData_heatmapLinecu
 %Creates Heatmaps of dual electrode stimulation and a linecut at the
 %amplitude of interest input into the function
 plottingnorm=1;
-plotheat=1;
+plotheat=0;
 plotdata=1;
 trialinfo=loadTrialInfo(0);
 lastwarn('', '');
 loadNORECORDELECT;
 [warnMsg, warnId] = lastwarn();
 if(~isempty(warnId))
-    NORECORDELECT=[];
+    NORECORDELECT=[];d
 end
 
 
@@ -205,7 +205,38 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
          electmean(elect)=mean(electall);
          electvar(elect)=var(electall);
      end
-     
+     SMOOTHING=1;
+     window = normpdf(-3*SMOOTHING:3*SMOOTHING,0,SMOOTHING);
+     stackedacross=[];
+     acrossshankplot=zeros(5,4);
+     for shankplot=1:4
+         
+         for p=1:size(singleLineplotval,2)
+             maxplot=max(singleLineplotval,[],2);
+             normspk=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p)./maxplot(1+((shankplot-1)*16):(shankplot*16));%varnostim(1+((shankplot-1)*16):(shankplot*16))';
+             normspk(isnan(normspk))=0;
+             normspk(isinf(normspk))=0;
+             rate = conv(normspk,window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
+             rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
+             acrossshankplot(p,shankplot)=mean(rate);
+             stackedacross(1+((p-1)*16):(p*16),shankplot)=rate;%singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p);
+             if p==5
+                 
+                 itamount=0.5;
+             end
+             rate1=rate;
+             rate1(rate1<0)=0;
+             A = trapz(1:16, rate1);
+             B(1)=0;
+             
+             for lims = 2:16
+                 B(lims) =  trapz(1:lims, rate1(1:lims));
+             end
+             
+             [~,electrodecentroid]=min(abs(B-(A/2)));
+             stimshankcentroid(p+(shankplot-1)*5)=electrodecentroid;
+         end
+     end
      if plotdata==1
 
          figure %plotting real data line plot
@@ -275,12 +306,14 @@ for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through
 %                                           end
                      if plottingnorm==1
                          maxplot=max(singleLineplotval,[],2);
+                         maxplot(maxplot<0)=0;
                          normspk=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p)./maxplot(1+((shankplot-1)*16):(shankplot*16));%varnostim(1+((shankplot-1)*16):(shankplot*16))';
                          normspk(isnan(normspk))=0;
+                         normspk(isinf(normspk))=0;
                          rate = conv(normspk,window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
                          rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
                          acrossshankplot(p,shankplot)=mean(rate);
-                         if p==5
+                         if p==4
                              stackedacross(:,shankplot)=rate;%singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p);
                              itamount=0.5;
                          end
@@ -415,6 +448,6 @@ end
 %     truedatastruct.(check)(:,1)=nsE;
 %%
 
-save('truedatastruct.mat','truedatastruct')
+%save('truedatastruct.mat','truedatastruct')
 end
 

@@ -2,7 +2,7 @@
 %% PLOTTING
 E_Mapnumber=1;
 E_MAP = Depth(E_Mapnumber);
-load('meanlfp.mat','meanlfpstruct')
+load('meanlfp_nofilt.mat','meanlfpstruct')
 %load('meanresp.mat','meanrespstruct')
 avgnospT=meanlfpstruct(E_MAP,:);
 figure
@@ -11,14 +11,14 @@ hold on
 title('Shank 1')
 xlabel('Time (ms)')
 %ylabel('uV')
-sepdist=175;
+sepdist=300;
 for i=16:-1:1
 plot(-250:1500-1,avgnospT(i,:)-i*sepdist,'k')
 end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
 xline(1111.11,'r')
-xlim([-50 150])
+xlim([-50 1500])
 
 subplot(1,4,4)
 hold on
@@ -31,7 +31,7 @@ end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
 xline(1111.11,'r')
-xlim([-50 150])
+xlim([-50 1500])
 
 subplot(1,4,2)
 hold on
@@ -44,7 +44,7 @@ xline(0,'r')
 xlabel('Time (ms)')
 %ylabel('uV')
 xline(1111.11,'r')
-xlim([-50 150])
+xlim([-50 1500])
 
 subplot(1,4,3)
 hold on
@@ -57,7 +57,7 @@ end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
 xline(1111.11,'r')
-xlim([-50 150])
+xlim([-50 1500])
 
 
 

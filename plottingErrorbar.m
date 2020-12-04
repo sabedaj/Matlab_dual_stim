@@ -46,9 +46,9 @@ pval=[resultind(3,:)];%[9.54*10^(-08),	1.93*10^(-06),	0.007309218];
 % pval=[2.84725942482189e-14];
 
 % 
-model_series=([betweenE(1,:)', flankE(1,:)',farE(1,:)', ]).*100;
-model_error = ([ betweenE(2,:)', flankE(2,:)',farE(2,:)',]).*100;%[0.143651201; 	0.122944593; 	0.197613506].*100;
-pval=[ betweenE(3,:); flankE(3,:); farE(3,:);];%[9.54*10^(-08),	1.93*10^(-06),	0.007309218];
+% model_series=([betweenE(1,:)', flankE(1,:)',farE(1,:)', ]).*100;
+% model_error = ([ betweenE(2,:)', flankE(2,:)',farE(2,:)',]).*100;%[0.143651201; 	0.122944593; 	0.197613506].*100;
+% pval=[ betweenE(3,:); flankE(3,:); farE(3,:);];%[9.54*10^(-08),	1.93*10^(-06),	0.007309218];
 %  model_series=([farE(1,:)',  flankE(1,:)']).*100;
 %  model_error = ([farE(2,:)',  flankE(2,:)']).*100;%[0.143651201; 	0.122944593; 	0.197613506].*100;
 %  pval=[farE(3,:); flankE(3,:)];%[9.54*10^(-08),	1.93*10^(-06),	0.007309218];
@@ -662,15 +662,19 @@ for AmpI=1:length(AMP)
     stimshankcentroid_all=[stimshankcentroid_all,stimshankcentroid];
     accrossshank_all=[accrossshank_all;accrossshank];
 end
+close all
 % for i=1:16
 %     accrossshank_alle50(i,:)=mean(accrossshank_all(i:16:end,:));
 % end
 %ac50=accrossshank_all;
 %ac100=accrossshank_all;
+%ac75=accrossshank_all;
+%ac25=accrossshank_all;
+%%
 ac0=accrossshank_all;
 close all;
 ratioacc=(ac50-(ac100+ac0))./abs((ac100+ac0));
-
+%%
 figure
 for j=1:4
     if j==2
@@ -952,23 +956,54 @@ meanaltogether=  mean(x);
 resultind(:,i)=[meanaltogether; stder; p1; alllength];
 end
 
+%%
 
-%% distance matrix
-Stimchnall=Stimchnall_r6;
-for chnpair=1:length(Stimchnall)
-    if Stimchnall(chnpair,1)<17&&Stimchnall(chnpair,2)<17
-        Stimchnall(chnpair,:)=[0,0];
-    elseif Stimchnall(chnpair,1)<33&&Stimchnall(chnpair,2)<33 && Stimchnall(chnpair,1)>16&&Stimchnall(chnpair,2)>16
-        Stimchnall(chnpair,:)=[0,0];
-        
-    elseif Stimchnall(chnpair,1)<49&&Stimchnall(chnpair,2)<49 && Stimchnall(chnpair,1)>32&&Stimchnall(chnpair,2)>32
-        Stimchnall(chnpair,:)=[0,0];
-    elseif Stimchnall(chnpair,1)<65&&Stimchnall(chnpair,2)<65 && Stimchnall(chnpair,1)>48&&Stimchnall(chnpair,2)>48
-        Stimchnall(chnpair,:)=[0,0];
-    else
-        %across
-        
+%% result calc with currents
+ totalac0=[ac0_r8s1e5(17:end,:);ac0_r8s1e6(17:end,:);ac0_r6s1e10(17:end,:);ac0_r6s1e9(17:end,:)];
+  totalac50=[ac50_r8s1e5(17:end,:);ac50_r8s1e6(17:end,:);ac50_r6s1e10(17:end,:);ac50_r6s1e9(17:end,:)];
+   totalac100=[ac100_r8s1e5(17:end,:);ac100_r8s1e6(17:end,:);ac100_r6s1e10(17:end,:);ac100_r6s1e9(17:end,:)];
+     totalac75=[ac75_r8s1e5(17:end,:);ac75_r8s1e6(17:end,:);ac75_r6s1e10(17:end,:);ac75_r6s1e9(17:end,:)];
+          totalac25=[ac25_r8s1e5(17:end,:);ac25_r8s1e6(17:end,:);ac25_r6s1e10(17:end,:);ac25_r6s1e9(17:end,:)];
+resultind=zeros(4,1);
+sttotalac.T0=totalac0;
+sttotalac.T50=totalac50;
+sttotalac.T100=totalac100;
+sttotalac.T75=totalac75;
+sttotalac.T25=totalac25;
+
+for currents=1:4
+
+    if ~isempty(meansig50array)
+        meansig50array=sttotalac.T25;
+        meansig50array=meansig50array(:,currents);
+        meansig50array(meansig50array==-500)=[];
+        meansig50array(isnan(meansig50array))=-500;
+        meansig50array(isinf(meansig50array))=-500;
+        meansig50array(abs(meansig50array)>100)=-500;
+        if ~isempty(meansig50array)&&length(meansig50array)>1
+            meansig50array(all(meansig50array == 0,2),:)=[];
+            stder=std(meansig50array(meansig50array~=-500))/sqrt(length(meansig50array(meansig50array~=-500)));
+            alllength=length(meansig50array(meansig50array~=-500));
+            norm=jbtest(meansig50array(meansig50array~=-500));
+            [h,p1]=ttest(meansig50array(meansig50array~=-500),0);
+            meanaltogether=  mean(meansig50array(meansig50array~=-500));
+            resultind(1:4,currents)=[meanaltogether; stder; p1; alllength];
+        end
     end
 end
-StimchnNoac
-deepchannel=shallowchannel-6;
+temp=resultind;
+resultind=[temp(:,1),temp(:,3),temp(:,4),temp(:,2)];
+%%
+
+figure
+errorbar(1:4,resultind(1,:),resultind(2,:), 'k')
+hold on
+yline(resultind(1,1),'k:')
+yline(resultind(1,2),'k:')
+yline(resultind(1,3),'k:')
+yline(resultind(1,4),'k:')
+ylim([0 1])
+title(['25% shank 1'])
+xlabel('Shank')
+ylabel('Normalised spike rate')
+

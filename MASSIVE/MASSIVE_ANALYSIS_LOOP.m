@@ -69,37 +69,37 @@ save('IDstruct.mat', 'IDstruct')
 save('Averagetrialresponse.mat','avgnospT','stderrspktrial')
 
 %% 6. Work out where the stim electrode was and what layers were activated
-AMPInterestSingleLinePlot=4;
-depthdriven=1500-50;
-cutoffsp=50;
-ActivationDepth(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse,depthdriven,cutoffsp)
-%%
-
- AMP=loadAMP;
- loadStimChn;
- avgnospT_sps=(1000/(secondstoanalyse-startpointseconds)).*avgnospT;
- cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
- avgnostim=mean(avgnospT_sps(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
- numofsigperchn=zeros(nChn,1);
- whichchn=zeros(nChn,1);
- %testifsignificant=[(avgnospT_sps(:,cell2mat(trialinfo(16:2:28,18))==AMP(end))) (avgnospT_sps(:,cell2mat(trialinfo(14:2:28,18))==AMP(end-1))) (avgnospT_sps(:,cell2mat(trialinfo(14:2:28,18))==AMP(end-2)))];
- %testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
- for Chosenstimchn=1:length(stimChn)
-    desiredchanneltrial=find(cell2mat(trialinfo(:,2))==stimChn(Chosenstimchn)); %finds trials with desired initial electrode
-    desiredchannel__singleampmath=desiredchanneltrial((cell2mat(trialinfo(desiredchanneltrial+1,2))==(0)),1);% finds trials with matching recording electrode spacing
-    Desired_trialfirst=cell2mat(trialinfo(desiredchannel__singleampmath,1));%array of mathcning trial number
-     testifsignificant=(avgnospT_sps(:,Desired_trialfirst(end-2:end)));
-     chn_sig=zeros(1,nChn);
-     for i=1:nChn
-         [h,p]=ttest(testifsignificant(i,:)',avgnostim(i)','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
-         chn_sig(i)=h;
-     end
-     chn_sig(isnan(chn_sig))=0;
-     numofsigperchn(stimChn(Chosenstimchn))=sum(chn_sig);
-     chn_sigboth(Chosenstimchn,:)=chn_sig;
-     whichchn(stimChn(Chosenstimchn))=1;
- end
-save('sigchn.mat','numofsigperchn','whichchn','chn_sigboth')
+% AMPInterestSingleLinePlot=4;
+% depthdriven=1500-50;
+% cutoffsp=50;
+% ActivationDepth(AMPInterestSingleLinePlot,avgnospT,startpointseconds, secondstoanalyse,depthdriven,cutoffsp)
+% %%
+% 
+%  AMP=loadAMP;
+%  loadStimChn;
+%  avgnospT_sps=(1000/(secondstoanalyse-startpointseconds)).*avgnospT;
+%  cond= find(diff(cell2mat(trialinfo(:,18))),1,'first')/2; %condition
+%  avgnostim=mean(avgnospT_sps(:,cell2mat(trialinfo(1:2:end,18))==-1),2);
+%  numofsigperchn=zeros(nChn,1);
+%  whichchn=zeros(nChn,1);
+%  %testifsignificant=[(avgnospT_sps(:,cell2mat(trialinfo(16:2:28,18))==AMP(end))) (avgnospT_sps(:,cell2mat(trialinfo(14:2:28,18))==AMP(end-1))) (avgnospT_sps(:,cell2mat(trialinfo(14:2:28,18))==AMP(end-2)))];
+%  %testsig_maxamp=testifsignificant(:,1:size(avgnostim,2));
+%  for Chosenstimchn=1:length(stimChn)
+%     desiredchanneltrial=find(cell2mat(trialinfo(:,2))==stimChn(Chosenstimchn)); %finds trials with desired initial electrode
+%     desiredchannel__singleampmath=desiredchanneltrial((cell2mat(trialinfo(desiredchanneltrial+1,2))==(0)),1);% finds trials with matching recording electrode spacing
+%     Desired_trialfirst=cell2mat(trialinfo(desiredchannel__singleampmath,1));%array of mathcning trial number
+%      testifsignificant=(avgnospT_sps(:,Desired_trialfirst(end-2:end)));
+%      chn_sig=zeros(1,nChn);
+%      for i=1:nChn
+%          [h,p]=ttest(testifsignificant(i,:)',avgnostim(i)','tail','right','Alpha',0.05);%one-tailed ttest determineing if the electrode has a mean significantly larger than the no stimulation trials with a 95% confidence level
+%          chn_sig(i)=h;
+%      end
+%      chn_sig(isnan(chn_sig))=0;
+%      numofsigperchn(stimChn(Chosenstimchn))=sum(chn_sig);
+%      chn_sigboth(Chosenstimchn,:)=chn_sig;
+%      whichchn(stimChn(Chosenstimchn))=1;
+%  end
+% save('sigchn.mat','numofsigperchn','whichchn','chn_sigboth')
 
 depthdriven=1000-50;%in um -50 frm tip
 

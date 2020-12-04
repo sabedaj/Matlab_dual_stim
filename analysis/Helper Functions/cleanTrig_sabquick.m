@@ -115,7 +115,7 @@ if length(trig)<(length(TP)/2)
         OFFSET = cast(nChn*2*(Trigs_to_Check(t)+(BIN(1)*FS/1e3)),'int64');
         fseek(mFID,OFFSET,'bof'); % used to point to specific point in the data indicated by offset from begginning of file
         v = fread(mFID,[nChn, (FS/1e3)*diff(BIN)],'short') ./ 10;
-        if any(v(5,:)>1000) || any(v(15,:)>1000) 
+        if any(v(5,:)>2000) || any(v(15,:)>2000) 
             Start_trig=find(trig==Trigs_to_Check(t-1));
             End_trig=find(trig==Trigs_to_Check(t));
             trig(Start_trig:End_trig)=-500;
