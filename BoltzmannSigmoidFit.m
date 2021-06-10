@@ -107,9 +107,12 @@ for elect=1:nChn
         [X1FIT,X2FIT] = meshgrid(x1fit,x2fit);
         YFIT = beta(1)./(1+exp(beta(2)+beta(3).*X1FIT + beta(4).*X2FIT));
         figure
-        mesh(X1FIT,X2FIT,YFIT);
+        s=mesh(X1FIT,X2FIT,YFIT);
         hold on
-        scatter3(x1,x2,y,'filled')
+        scatter3(x1,x2,y,'filled','k');
+        h = rotate3d;
+        set(h,'ActionPostCallback',@align_axislabel);
+        s.EdgeColor='k';
         %scatter3(x1,x2,log((y./beta(1))./(1-(y./beta(1)))),'filled')
         xlabel(['Channel ' num2str(CHN(chosenstimchn)) ' Current level (uA)'])
         %ylabel(['Channel ' num2str(CHN(chosenstimchn+1)) ' Current level (uA)'])

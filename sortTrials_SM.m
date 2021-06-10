@@ -38,7 +38,7 @@ maxtid=max(cell2mat(TrialParams(:,2)));
 nospI=[];
 baslinespikestruct=[];
 IDstruct=[];
-
+Spike_trialstruct=[];
 
 % C5 = intersect(spikedetailstrig(:,1),spikedetailstrig1(:,1)); %middle electrodes
 % test3= intersect(C5,C3);
@@ -96,7 +96,7 @@ for tID=starttrial:trialjump:endtrial
                         fclose(fileID);
                         
                         fileID=fopen('amplifier.dat','r');
-                        fileID=fopen([name '.mu_sab.dat'],'r');
+                        
                         shortbytes=2;
                         offset=trig(TrialParamstID(indT))*nChn*shortbytes-0.5*FS*shortbytes*nChn;%offset from beginning of file to trigger
                         ftell(fileID)
@@ -147,9 +147,9 @@ for tID=starttrial:trialjump:endtrial
                             if ((tID>15) && (tID<37)) && (((indT>=10) && (indT<=13))) %%||( (tID>15) && (tID<19)) %
                                 figure(find(E_MAP==chsp))
                                 hold on
-                                plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50))
                                 title(['Channel ' num2str(find(E_MAP==chsp))])
                                 ylabel('Spike amplitude (uV)')
+                                plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50),'k')
                                 xlabel('Time (ms)')
                                 
                             end
@@ -157,7 +157,7 @@ for tID=starttrial:trialjump:endtrial
                             if ((tID>0) && (tID<=maxtid)) && (indT<=1)% prints all spikes after trigger
                                 figure(find(E_MAP==chsp))
                                 hold on
-                                plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50))
+                                plot(1*1000/FS:1000/FS:49*1000/FS,spikedetailstrig(:,2:50),'k')
                                 title(['Channel ' num2str(find(E_MAP==chsp))])
                                 ylabel('Spike amplitude (uV)')
                                 xlabel('Time (ms)')
@@ -172,6 +172,18 @@ for tID=starttrial:trialjump:endtrial
                 else
                     spikebaseline=0;
                 end
+                mchsp=E_MAP(chsp);
+                cnum=['Chn_' num2str(mchsp)];
+                IDnum=['ID_' num2str(tID)];
+                tnum=['Trial_' num2str(indT)];
+                if isfield(Spike_trialstruct,cnum)&& isfield(Spike_trialstruct.(cnum),(IDnum)) && isfield(Spike_trialstruct.(cnum).(IDnum),(indT))
+                        Spike_trialstruct.(cnum).(IDnum).(tnum)=[Spike_trialstruct.cnum.IDnum.tnum; spikedetailstrig];
+                        baslinespike_trialstruct.(cnum).(IDnum).(tnum)=[ baslinespike_trialstruct.cnum.IDnum.tnum;  baslinespiketrig];
+                else
+                    Spike_trialstruct.(cnum).(IDnum).(tnum)=spikedetailstrig;
+                    baslinespike_trialstruct.(cnum).(IDnum).(tnum)=baslinespiketrig;
+                end
+
                 nospI(chsp,indT)=spike;
                 basespI(chsp,indT)=spikebaseline;
                 spike=0;
@@ -182,6 +194,8 @@ for tID=starttrial:trialjump:endtrial
         basespI=[];
         nospI=[];
     end
-    
+end
+
+save('Spikes_trialsorted.mat','Spike_trialstruct','baslinespike_trialstruct')
 end
 

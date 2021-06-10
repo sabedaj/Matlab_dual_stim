@@ -158,6 +158,7 @@ if (justMu)
     fclose(mu_fid);
     clear data mu mu2 tmp flip_data
 end
+
 %% Calculate SP
 if isempty(dir('*.sp.mat'))
     m_fid = fopen([name '.mu_sab.dat'],'r');

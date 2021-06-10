@@ -1,5 +1,7 @@
 function Isocontour_Time(TimeBegin,TimeEnd, TimeStep,starttrial, endtrial, depthdriven)
 %for plotting distance and time of electrodes
+tic
+Overall_time_to_analyse=0;
 trig = loadTrig(0);
 theseTrig = trig;
 trialinfo=loadTrialInfo;
@@ -42,15 +44,14 @@ figure
 for Ampchange=starttrial:trialjump:endtrial
     overallcounter=overallcounter+1;
 for counter=1:Loopnum
-        [IDstruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,1,1,endtrial);
-        [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct);
-        avgnostim=avgnospT(:,cell2mat(trialinfo(1:2:end,18))==-1);%average reponse without stimulation
-        avgnostim(:,avgnostim(1,:)==-500)=[];
-        avgnostim=mean(avgnostim,2);
+        [IDstruct, baslinespikestruct]=sortTrials_SM(TimeBegin+1+TimeStep*(counter-1),TimeStep*(counter)+TimeBegin,trig,0,1,1,endtrial,Overall_time_to_analyse);
+        [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct, baslinespikestruct);
+        toc
         z(counter,:)=(TimeStep*(counter)+TimeBegin).*ones(1,length(avgnospT(:,Ampchange)));
         x(counter,:)=depthdriven:-50:depthdriven-(nChn-1)*50;%1:length(avgnospT(:,Ampchange));
-        y(counter,:)=(1000/(TimeStep-TimeBegin)).*(avgnospT(:,Ampchange)-avgnostim)+adjustplot*(counter-1);
+        y(counter,:)=(1000/(TimeStep-TimeBegin)).*(avgnospT(:,Ampchange))+adjustplot*(counter-1);
 end
+toc
         subplot(ceil((length(AMP)-1)/2),2,overallcounter)
         hold on
         plot(y',x','k')

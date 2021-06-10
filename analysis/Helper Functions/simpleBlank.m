@@ -1,6 +1,6 @@
 function data = simpleBlank(data,N,T,trig,mode)
 TrialParams = loadTrialParams;
-%%
+
 TrialParams = cell2mat(TrialParams(:,2))';
 nChn = size(data,1); FS = 30000;
 if mode == 1 % for HPF

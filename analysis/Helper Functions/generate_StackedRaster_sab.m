@@ -3,8 +3,8 @@ dbstop if error
 %% Load in data from current directory
 loadVarAmp;
 SavetoPPT=0;
-plotHist=1;
-plot_individualhist=1;
+plotHist=0;
+plot_individualhist=0;
 plot_hist_rasterstack=1;
 plot_raster=1;
 loadNREP;
@@ -148,11 +148,11 @@ for count=1:length(CHN)
                 ydata = [];
                 % Grab Data for the Inset Figure
                 FS = 30000; file = pwd;
-                mDIR = dir([file filesep '*mu_sab.dat']);
-                mNAME = mDIR.name;
-                mFID = fopen([file filesep mNAME],'r');
-                X = BIN(1):1/30:BIN(2) - 1/30;
-                mu = zeros(nT,(FS/1e3)*diff(BIN));
+%                 mDIR = dir([file filesep '*mu_sab.dat']);
+%                 mNAME = mDIR.name;
+%                 mFID = fopen([file filesep mNAME],'r');
+%                 X = BIN(1):1/30:BIN(2) - 1/30;
+%                 mu = zeros(nT,(FS/1e3)*diff(BIN));
                 for tr = 1:length(trig)
                     theseSp = (sp(sp > theseTrig(tr)+BIN(1) & sp < theseTrig(tr)+BIN(2)) - theseTrig(tr));
                     for i = 1:length(theseSp)
@@ -415,9 +415,9 @@ for count=1:length(CHN)
                             sum_xhist=Z+sum_xhist;
                         end
                     end
-                    maxval=max(rate(150:250));
-                    txt = strcat('Max: ', string(round(maxval)), ' Sp/s');
-                    text(161,MAX*(counter_trials_row-1)+size(relatedtrials_all,1)*MAX*(counter_trials-1)+150,txt,'FontSize',10,'Color','k')
+                    %maxval=max(rate(150:250));
+                    %txt = strcat('Max: ', string(round(maxval)), ' Sp/s');
+                    %text(161,MAX*(counter_trials_row-1)+size(relatedtrials_all,1)*MAX*(counter_trials-1)+150,txt,'FontSize',10,'Color','k')
                 end
                 
                 

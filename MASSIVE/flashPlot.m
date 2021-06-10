@@ -88,7 +88,7 @@ xlabel('Time (ms)')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%PLOTTING
 E_Mapnumber=1;
 E_MAP = Depth(E_Mapnumber);
-%load('meanlfp.mat','meanlfpstruct')
+load('meanlfp.mat','meanlfpstruct')
 %load('meanresp.mat','meanrespstruct')
 avgnospT=meanlfpstruct(E_MAP,:);
 figure

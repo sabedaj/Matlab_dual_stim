@@ -1,6 +1,6 @@
-function [normspk_all]=PoolNormalisedActivity(avgnospT,startpointseconds, secondstoanalyse)
+function [normspk_all, centroidpershank]=PoolNormalisedActivity(avgnospT,startpointseconds, secondstoanalyse)
 %to calculate the peak of activity across all animals
-
+Normaliseactivity=0;
 
 trialinfo=loadTrialInfo(0);
 lastwarn('', '');
@@ -13,6 +13,7 @@ loadAMP_all;
 AMP=AMP_all;
 AMP_original=loadAMP;
 normspk_all=[];
+centroidpershank=[];
 filepath = pwd;
 fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
 fileinfo = dir([filepath filesep 'info.rhs']);
@@ -31,18 +32,21 @@ else
     end
 end
 
-trialjump=find(diff(cell2mat(trialinfo(:,18))),1,'first')/2;%trials to jump over
+trialjump=find(cell2mat(trialinfo(:,2))==0)/2;%trials to jump over
+trialjump=trialjump(2);%identify second zero corresponding with second channel single sitm
 endtrialelect=(find(cell2mat(trialinfo((trialjump*2+1):end,18))==-1,1)+trialjump*2-1)/2; %trials for one set of conditions
 if isempty(endtrialelect)
     endtrialelect=size(trialinfo,1)/2; %if there is only one set of conditions in the dataset
 end
 maxid=(originalEND-1)/(n_REP_true*2);
-for AMPit=2:length(AMP_original)
+
+for AMPit=1:length(AMP_original)
     stimshankcentroid=zeros(20,1);
 loopcounter=0;
 checkconsecutive=1;
 singleLineplotval=zeros(nChn,trialjump);
-    AMPInterestSingleLinePlot=AMP_original(AMPit);
+AMPInterestSingleLinePlot=AMP_original(AMPit);
+    
     for group_related=1:endtrialelect*2:maxid*2 %group_related is used to go through groups of related trials
         for TJ_related=1:2:trialjump*2 %goes through trials related by trial jump
             desiredchanneltrial_one=(find((cell2mat(trialinfo(:,2))==cell2mat(trialinfo(TJ_related+(group_related-1),2))))+1)/2; %finds trials with desired initial electrode
@@ -56,21 +60,30 @@ singleLineplotval=zeros(nChn,trialjump);
                     Desired_trialequal(Amploop)=0;
                 end
             end
-            
+%             if AMPit==1
+%                 Desired_trialequal=find(cell2mat(trialinfo(2:2:end,18))==AMP(1));
+%                 chosen_trials=find(cell2mat(trialinfo(2:2:end,18))==AMP(1));
+%             end
             if all(chosen_trials<=maxid)&&(VarAmp==1)&&(~isempty(chosen_trials(diff(chosen_trials(chosen_trials<maxid))==1))) %deals with varying amplitude having the same two electrodes for all middle trials
                 chosen_trials=chosen_trials(checkconsecutive:3:length(chosen_trials));
                 checkconsecutive=checkconsecutive+1; %flag for middle trials
+                if AMPit==1
+                    chosen_trials=chosen_trials(1);
+                end
                 %find closest AMP level to your chosen amp level to analyse (in case you
                 %pick a level not tested)
-                [~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP_original(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
-                AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
+                [~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP_original(1:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+                %AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
             else
                 chosen_trials=Desired_trialequal;
+                if AMPit==1 && AMP_original(1)==-1
+                    chosen_trials=chosen_trials(1);
+                end
                 checkconsecutive=1;
                 %find closest AMP level to your chosen amp level to analyse (in case you
                 %pick a level not tested)
-                [~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(2:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
-                AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
+                [~, AMPInterestSingleLinePlotINDEXDUAL]=min(abs(AMP(1:end)-AMPInterestSingleLinePlot)); %x is a throw away variable but it will tell you how close the value is to your chosen val
+                %AMPInterestSingleLinePlotINDEXDUAL=AMPInterestSingleLinePlotINDEXDUAL+1; %since you did not check -1 condition add one to the index AMP(2:end)
             end
             chosen_trials(chosen_trials>endtrialelect*(group_related))=[]; % removes any trials that are greater than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
             chosen_trials(chosen_trials<group_related/2)=[]; % removes any trials that are smaller than the matching trial segment (e.g. stim chan 17 used as initial electrode in one set of trials and used as second electrode in second set trials)
@@ -87,12 +100,18 @@ singleLineplotval=zeros(nChn,trialjump);
             for p=1:size(singleLineplotval,2)
                 maxplot=max(singleLineplotval,[],2);
                 maxplot(maxplot<0)=0;
-                normspk=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p)./maxplot(1+((shankplot-1)*16):(shankplot*16));%varnostim(1+((shankplot-1)*16):(shankplot*16))';
+                if Normaliseactivity==0
+                    normspk=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p);%./maxplot(1+((shankplot-1)*16):(shankplot*16));%varnostim(1+((shankplot-1)*16):(shankplot*16))';
+                else
+                    normspk=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p)./maxplot(1+((shankplot-1)*16):(shankplot*16));%varnostim(1+((shankplot-1)*16):(shankplot*16))';
+                end
+
                 normspk(isnan(normspk))=0;
                 normspk(isinf(normspk))=0;
-                normspk(normspk<-1)=-1;
-                rate = conv(normspk,window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
-                rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
+                normspk(normspk<0)=0;
+                rate=normspk;
+                %rate = conv(normspk,window);%Used to smooth the line plots and remove volatility due to a single electrode not responding
+                %rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
                 acrossshankplot(p,shankplot)=mean(rate);
                 stackedacross(1+((p-1)*16):(p*16),shankplot)=rate;%singleLineplotval(1+((shankplot-1)*16):(shankplot*16),p);
                 rate1=rate;
@@ -105,19 +124,36 @@ singleLineplotval=zeros(nChn,trialjump);
                 end
                 
                 [~,electrodecentroid]=min(abs(B-(A/2)));
-                stimshankcentroid(p+(shankplot-1)*5)=electrodecentroid;
-                check=['S' num2str(shankplot) '_T' num2str(p)];%not sorted
+               % stimshankcentroid(p+(shankplot-1)*5)=electrodecentroid;
+                if shankplot==2
+                    check=['S' num2str(4) '_T' num2str(p)];% sorted
+                    stimshankcentroid(p+(4-1)*5)=electrodecentroid;
+                elseif shankplot==3
+                    check=['S' num2str(2) '_T' num2str(p)];% sorted
+                    stimshankcentroid(p+(2-1)*5)=electrodecentroid;
+                elseif shankplot==4
+                    check=['S' num2str(3) '_T' num2str(p)];%sorted
+                    stimshankcentroid(p+(3-1)*5)=electrodecentroid;
+                else
+                    check=['S' num2str(shankplot) '_T' num2str(p)];%sorted
+                    stimshankcentroid(p+(shankplot-1)*5)=electrodecentroid;
+                end
                 if ~isempty(normspk_all)&&isfield(normspk_all,(check))
                     normspk_all.(check)=[normspk_all.(check),normspk];
                 else
                     normspk_all.(check)=normspk;
                 end
-                
+
             end
         end
         
     end
-    
+    if ~isempty(centroidpershank)
+        centroidpershank=[centroidpershank,stimshankcentroid];
+    else
+        centroidpershank=stimshankcentroid;
+    end
+    %centroidpershank=[centroidpershank,stimshankcentroid];
 end
 
 

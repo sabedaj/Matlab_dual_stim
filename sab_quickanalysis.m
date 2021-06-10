@@ -7,7 +7,7 @@ artefact=-500; %removes spikes below this threshold
 artefact_high=500; %removes spikes above this threshold
 startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)? 
 secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)? 
-printspiking=0;
+printspiking=1;
 par=0;
 
 %% 1. Blank stimulus
@@ -62,13 +62,47 @@ fclose('all');
 
 %% 4. Calculate Structure of sorted trials according to IDs
 SavetoPPT=0;
+trig = loadTrig(0);
+Overall_time_to_analyse=0;%time from beginning of Startpoint_analyse (remembering there is 20s of no stim at beginning) %set to zero fo no input
+startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)? 
+secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)? 
+theseTrig = trig;
 starttrial=1;
 trialjump=1;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 endtrial=maxid;
 [IDstruct, baslinespikestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
-save('IDstruct.mat','IDstruct','baslinespikestruct')
+%save('IDstruct.mat','IDstruct','baslinespikestruct')
+
+%%
+count=0;
+m=zeros(40,1);
+m_all=zeros(100,1);
+chn=['Chn_31'];
+for i=6:5:40
+    t=['ID_' num2str(i)];
+    
+    for j=1:size(struct2table(Spike_trialstruct.(chn).(t),'AsArray',true),2)
+        t2=['Trial_' num2str(j)];
+        count=count+1;
+          m(j)=size(Spike_trialstruct.(chn).(t).(t2),1)-(size(baslinespike_trialstruct.(chn).(t).(t2),1)/10);
+    end
+    m_all(i)=mean(m(1:size(struct2table(Spike_trialstruct.(chn).(t),'AsArray',true),2)));
+    count=0;
+end
+AMP=[1 2 3 4 6 8 10];
+figure;scatter(AMP,m_all(6:5:40));
+
+
+%%
+    figure 
+for i=1:64
+    subplot(8,8,i)
+    hold on
+    plot(AMP,avgnospT(i,1:5:11).*1000/6)
+    plot(AMP,avgnospT(i,6:5:11).*1000/6)
+end
 %%
 if printspiking==1 && SavetoPPT==1
     import mlreportgen.ppt.* %need this to import ppt save format
