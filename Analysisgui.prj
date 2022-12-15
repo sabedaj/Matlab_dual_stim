@@ -1,0 +1,95 @@
+<deployment-project plugin="plugin.apptool" plugin-version="1.0">
+  <configuration build-checksum="2269638273" file="C:\Users\smei0006\Documents\Experimental_Design\Analysisgui.prj" location="C:\Users\smei0006\Documents\Experimental_Design" name="Analysisgui" target="target.mlapps" target-name="Package App">
+    <param.appname>Analysisgui</param.appname>
+    <param.authnamewatermark />
+    <param.email />
+    <param.company />
+    <param.icon />
+    <param.icons />
+    <param.summary />
+    <param.description />
+    <param.screenshot>C:\Users\smei0006\AppData\Local\Temp\tp798487ac_34ef_4ef6_8506_35580586acd4.png</param.screenshot>
+    <param.version>1.0</param.version>
+    <param.products.name />
+    <param.products.id />
+    <param.products.version />
+    <param.platforms />
+    <param.output>C:\Users\smei0006\Documents</param.output>
+    <param.guid>efa73f4b-1c53-4268-bfd6-0d25f95791e6</param.guid>
+    <unset>
+      <param.authnamewatermark />
+      <param.email />
+      <param.company />
+      <param.icon />
+      <param.icons />
+      <param.summary />
+      <param.description />
+      <param.version />
+      <param.products.name />
+      <param.products.id />
+      <param.products.version />
+      <param.platforms />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\Analysisgui.mlapp</file>
+    </fileset.main>
+    <fileset.depfun>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\beautifyPlot.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\cleanTrig.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\Depth.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\dispstat.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\dp_proj.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\dpsschk.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\generate_Filters.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\interpolate.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\loadAMP_all.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\loadDelay.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\loadRAW.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\loadStimChn.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\loadStimParams.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\loadTrialParams.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\loadTrig.m</file>
+      <file>${PROJECT_ROOT}\analysis\Helper Functions\mtfilt.m</file>
+      <file>${PROJECT_ROOT}\FiltFiltM.m</file>
+      <file>${PROJECT_ROOT}\Helper Functions\ProbeMAP.m</file>
+      <file>${PROJECT_ROOT}\loadTrialInfo.m</file>
+      <file>${PROJECT_ROOT}\MASSIVE\analysis\Helper Functions\cleanTrig_flash.m</file>
+      <file>${PROJECT_ROOT}\Online_flashraster.m</file>
+      <file>${PROJECT_ROOT}\Online_raster.m</file>
+      <file>${PROJECT_ROOT}\OnlineFlashFRresponse.m</file>
+      <file>${PROJECT_ROOT}\OnlineFRresponse.m</file>
+      <file>${PROJECT_ROOT}\OnlineHeatmap.m</file>
+      <file>${PROJECT_ROOT}\OnlineSigmoidGenerator.m</file>
+      <file>${PROJECT_ROOT}\OnlinesortTrials.m</file>
+      <file>${PROJECT_ROOT}\OnlineSpkExtract.m</file>
+      <file>${PROJECT_ROOT}\OnlineVisualStimHeatmap.m</file>
+      <file>${PROJECT_ROOT}\read_Intan_RHS2000_file.m</file>
+      <file>E:\DATA\Rat_012\flash_002_001_201127_093958\digitalin.dat</file>
+    </fileset.depfun>
+    <fileset.resources />
+    <fileset.package />
+    <build-deliverables>
+      <file location="C:\Users\smei0006" name="Documents" optional="false">C:\Users\smei0006\Documents</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2021b</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

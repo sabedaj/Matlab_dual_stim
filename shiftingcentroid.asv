@@ -1,0 +1,203 @@
+load('Averagetrialresponse.mat')
+load('IDstruct.mat')
+stimshankcentroid_all=[];
+accrossshank_all=[];
+AMP=loadAMP;
+for AmpI=2:length(AMP)
+    AMPInterestSingleLinePlot=AMP(AmpI);
+    [stimshankcentroid,truedatastruct,accrossshank]=TrueData_heatmapLinecutFOURSHANK(AMPInterestSingleLinePlot,avgnospT,stderrspktrial,IDstruct,startpointseconds, secondstoanalyse,depthdriven);
+    stimshankcentroid_all=[stimshankcentroid_all,stimshankcentroid];
+    if AMPI==2
+        accrossshank_all.T0=accrossshank(1:16,:); %5cond*16elect,4shanks*AMP
+        accrossshank_all.T25=accrossshank(1:16,:); %5cond*16elect,4shanks*AMP
+    else
+        
+    end
+end
+%stimshankcentroid_all_r945=stimshankcentroid_all;
+ac_r9s1e11=accrossshank_all;
+close all
+%%
+clear resultind
+AMP=loadAMP;
+AMP=[AMP(2:end)];
+stimshank=[stimshankcentroid_all_r6(16:20,1:5), stimshankcentroid_all_r749(6:10,1:5), stimshankcentroid_all_r74999(6:10,1:5),stimshankcentroid_all_r719(1:5,1:5),stimshankcentroid_all_r7410(6:10,1:5),stimshankcentroid_all_r745(6:10,1:5),...
+    stimshankcentroid_all_r812(1:5,1:5),stimshankcentroid_all_r814(1:5,1:5),stimshankcentroid_all_r842(6:10,1:5),stimshankcentroid_all_r843(6:10,1:5),stimshankcentroid_all_r844(6:10,1:5),stimshankcentroid_all_r845(6:10,1:5),stimshankcentroid_all_r846(6:10,1:5)...
+    stimshankcentroid_all_r915(1:5,1:5),stimshankcentroid_all_r917(1:5,1:5),stimshankcentroid_all_r945(6:10,1:5)];
+nonstimshank=[stimshankcentroid_all_r6(1:5,1:5),stimshankcentroid_all_r6(11:15,1:5),stimshankcentroid_all_r6(6:10,1:5),...
+            stimshankcentroid_all_r749(1:5,1:5),stimshankcentroid_all_r749(11:15,1:5),stimshankcentroid_all_r749(16:20,1:5), ...
+            stimshankcentroid_all_r74999(1:5,1:5),stimshankcentroid_all_r74999(11:15,1:5),stimshankcentroid_all_r74999(16:20,1:5),...
+            stimshankcentroid_all_r719(6:10,1:5),stimshankcentroid_all_r719(11:15,1:5),stimshankcentroid_all_r719(16:20,1:5),...
+            stimshankcentroid_all_r7410(1:5,1:5),stimshankcentroid_all_r7410(11:15,1:5),stimshankcentroid_all_r7410(16:20,1:5),...
+            stimshankcentroid_all_r745(1:5,1:5),stimshankcentroid_all_r745(11:15,1:5),stimshankcentroid_all_r745(16:20,1:5),...
+            stimshankcentroid_all_r812(6:10,1:5),stimshankcentroid_all_r812(11:15,1:5),stimshankcentroid_all_r812(16:20,1:5),...
+            stimshankcentroid_all_r814(6:10,1:5),stimshankcentroid_all_r814(11:15,1:5),stimshankcentroid_all_r814(16:20,1:5),...
+            stimshankcentroid_all_r842(1:5,1:5),stimshankcentroid_all_r842(11:15,1:5),stimshankcentroid_all_r842(16:20,1:5),...
+            stimshankcentroid_all_r843(1:5,1:5),stimshankcentroid_all_r843(11:15,1:5),stimshankcentroid_all_r843(16:20,1:5),...
+            stimshankcentroid_all_r844(1:5,1:5),stimshankcentroid_all_r844(11:15,1:5),stimshankcentroid_all_r844(16:20,1:5),...
+            stimshankcentroid_all_r845(1:5,1:5),stimshankcentroid_all_r845(11:15,1:5),stimshankcentroid_all_r845(16:20,1:5)...
+            stimshankcentroid_all_r846(1:5,1:5),stimshankcentroid_all_r846(11:15,1:5),stimshankcentroid_all_r846(16:20,1:5)...
+            stimshankcentroid_all_r915(6:10,1:5),stimshankcentroid_all_r915(11:15,1:5),stimshankcentroid_all_r915(16:20,1:5),...
+            stimshankcentroid_all_r917(6:10,1:5),stimshankcentroid_all_r917(11:15,1:5),stimshankcentroid_all_r917(16:20,1:5),...
+            stimshankcentroid_all_r945(1:5,1:5),stimshankcentroid_all_r945(11:15,1:5),stimshankcentroid_all_r945(16:20,1:5)];
+AMP=loadAMP;
+AMP=[AMP(2:end)];
+for ampI=1:length(AMP)
+
+
+stimshank=[stimshankcentroid_all_r6(16:20,ampI), stimshankcentroid_all_r749(6:10,ampI), stimshankcentroid_all_r74999(6:10,ampI),stimshankcentroid_all_r719(1:5,ampI),stimshankcentroid_all_r7410(6:10,ampI),stimshankcentroid_all_r745(6:10,ampI),...
+    stimshankcentroid_all_r812(1:5,ampI),stimshankcentroid_all_r814(1:5,ampI),stimshankcentroid_all_r842(6:10,ampI),stimshankcentroid_all_r843(6:10,ampI),stimshankcentroid_all_r844(6:10,ampI),stimshankcentroid_all_r845(6:10,ampI),stimshankcentroid_all_r846(6:10,ampI)...
+    stimshankcentroid_all_r915(1:5,ampI),stimshankcentroid_all_r917(1:5,ampI),stimshankcentroid_all_r945(6:10,ampI)];
+nonstimshank=[stimshankcentroid_all_r6(1:5,ampI),stimshankcentroid_all_r6(11:15,ampI),stimshankcentroid_all_r6(6:10,ampI),...
+            stimshankcentroid_all_r749(1:5,ampI),stimshankcentroid_all_r749(11:15,ampI),stimshankcentroid_all_r749(16:20,ampI), ...
+            stimshankcentroid_all_r74999(1:5,ampI),stimshankcentroid_all_r74999(11:15,ampI),stimshankcentroid_all_r74999(16:20,ampI),...
+            stimshankcentroid_all_r719(6:10,ampI),stimshankcentroid_all_r719(11:15,ampI),stimshankcentroid_all_r719(16:20,ampI),...
+            stimshankcentroid_all_r7410(1:5,ampI),stimshankcentroid_all_r7410(11:15,ampI),stimshankcentroid_all_r7410(16:20,ampI),...
+            stimshankcentroid_all_r745(1:5,ampI),stimshankcentroid_all_r745(11:15,ampI),stimshankcentroid_all_r745(16:20,ampI),...
+            stimshankcentroid_all_r812(6:10,ampI),stimshankcentroid_all_r812(11:15,ampI),stimshankcentroid_all_r812(16:20,ampI),...
+            stimshankcentroid_all_r814(6:10,ampI),stimshankcentroid_all_r814(11:15,ampI),stimshankcentroid_all_r814(16:20,ampI),...
+            stimshankcentroid_all_r842(1:5,ampI),stimshankcentroid_all_r842(11:15,ampI),stimshankcentroid_all_r842(16:20,ampI),...
+            stimshankcentroid_all_r843(1:5,ampI),stimshankcentroid_all_r843(11:15,ampI),stimshankcentroid_all_r843(16:20,ampI),...
+            stimshankcentroid_all_r844(1:5,ampI),stimshankcentroid_all_r844(11:15,ampI),stimshankcentroid_all_r844(16:20,ampI),...
+            stimshankcentroid_all_r845(1:5,ampI),stimshankcentroid_all_r845(11:15,ampI),stimshankcentroid_all_r845(16:20,ampI)...
+            stimshankcentroid_all_r846(1:5,ampI),stimshankcentroid_all_r846(11:15,ampI),stimshankcentroid_all_r846(16:20,ampI)...
+            stimshankcentroid_all_r915(6:10,ampI),stimshankcentroid_all_r915(11:15,ampI),stimshankcentroid_all_r915(16:20,ampI),...
+            stimshankcentroid_all_r917(6:10,ampI),stimshankcentroid_all_r917(11:15,ampI),stimshankcentroid_all_r917(16:20,ampI),...
+            stimshankcentroid_all_r945(1:5,ampI),stimshankcentroid_all_r945(11:15,ampI),stimshankcentroid_all_r945(16:20,ampI)];
+        nonstimshank=[stimshankcentroid_all_r6(1:5,1:7),stimshankcentroid_all_r6(11:15,1:7),stimshankcentroid_all_r6(6:10,1:7),...
+            stimshankcentroid_all_r749(1:5,1:7),stimshankcentroid_all_r749(11:15,1:7),stimshankcentroid_all_r749(16:20,1:7), ...
+            stimshankcentroid_all_r74999(1:5,1:7),stimshankcentroid_all_r74999(11:15,1:7),stimshankcentroid_all_r74999(16:20,1:7),...
+            stimshankcentroid_all_r719(6:10,1:7),stimshankcentroid_all_r719(11:15,1:7),stimshankcentroid_all_r719(16:20,1:7),...
+            stimshankcentroid_all_r7410(1:5,1:7),stimshankcentroid_all_r7410(11:15,1:7),stimshankcentroid_all_r7410(16:20,1:7),...
+            stimshankcentroid_all_r745(1:5,1:7),stimshankcentroid_all_r745(11:15,1:7),stimshankcentroid_all_r745(16:20,1:7),...
+            stimshankcentroid_all_r812(6:10,1:7),stimshankcentroid_all_r812(11:15,1:7),stimshankcentroid_all_r812(16:20,1:7),...
+            stimshankcentroid_all_r814(6:10,1:7),stimshankcentroid_all_r814(11:15,1:7),stimshankcentroid_all_r814(16:20,1:7),...
+            stimshankcentroid_all_r842(1:5,1:7),stimshankcentroid_all_r842(11:15,1:7),stimshankcentroid_all_r842(16:20,1:7),...
+            stimshankcentroid_all_r843(1:5,1:7),stimshankcentroid_all_r843(11:15,1:7),stimshankcentroid_all_r843(16:20,1:7),...
+            stimshankcentroid_all_r844(1:5,1:7),stimshankcentroid_all_r844(11:15,1:7),stimshankcentroid_all_r844(16:20,1:7),...
+            stimshankcentroid_all_r845(1:5,1:7),stimshankcentroid_all_r845(11:15,1:7),stimshankcentroid_all_r845(16:20,1:7)...
+            stimshankcentroid_all_r846(1:5,1:7),stimshankcentroid_all_r846(11:15,1:7),stimshankcentroid_all_r846(16:20,1:7)...
+            stimshankcentroid_all_r915(6:10,1:7),stimshankcentroid_all_r915(11:15,1:7),stimshankcentroid_all_r915(16:20,1:7),...
+            stimshankcentroid_all_r917(6:10,1:7),stimshankcentroid_all_r917(11:15,1:7),stimshankcentroid_all_r917(16:20,1:7),...
+            stimshankcentroid_all_r945(1:5,1:7),stimshankcentroid_all_r945(11:15,1:7),stimshankcentroid_all_r945(16:20,1:7)];
+
+testnon=diff(nonstimshank);
+teststim=diff(stimshank);
+clear subtractnonstimshank
+for i=1:5
+subtractnonstimshank(i,:)=nonstimshank(i,:)-min(nonstimshank);
+end
+
+stdernonstim=std(subtractnonstimshank.*50,0,2)./sqrt(length(subtractnonstimshank));
+meannonstim=mean(subtractnonstimshank,2).*50;
+clear subtractstimshank
+for i=1:5
+subtractstimshank(i,:)=stimshank(i,:)-min(stimshank);
+end
+stderstim=std(subtractstimshank.*50,0,2)./sqrt(length(subtractstimshank));
+meanstim=mean(subtractstimshank,2).*50;
+
+x=testnon(testnon~=-500);
+stder=std(x.*50)/sqrt(length(x));
+alllength=length(x);
+norm=jbtest(x);
+[h,p1]=ttest(x,0);
+meanaltogether=-1*mean(x)*50;
+resultind(:,1)=[meanaltogether; stder; p1; alllength];
+
+x=teststim(teststim~=-500);
+stder=std(x.*50)/sqrt(length(x));
+alllength=length(x);
+norm=jbtest(x);
+[h,p1]=ttest(x,0);
+meanaltogether=-1*mean(x)*50;
+resultind(:,2)=[meanaltogether; stder; p1; alllength];
+
+figure(1)
+subplot(1,7,ampI)
+errorbar(0:25:100,meannonstim,stdernonstim, 'k')
+hold on
+yline(meannonstim(1),'k:')
+yline(meannonstim(2),'k:')
+yline(meannonstim(3),'k:')
+yline(meannonstim(4),'k:')
+yline(meannonstim(5),'k:')
+%title(['Non-stimulating shank current: ' num2str(AMP(ampI)) 'uA' ])
+if ampI==4
+xlabel('Percentage current supplied to bottom electrode %')
+end
+ylabel('Relative position of peak(um)')
+title([num2str(AMP(ampI)) 'uA' ])
+ylim([10 200])
+
+figure(2)
+subplot(1,7,ampI)
+errorbar(0:25:100,meanstim,stderstim, 'k')
+hold on
+yline(meanstim(1),'k:')
+yline(meanstim(2),'k:')
+yline(meanstim(3),'k:')
+yline(meanstim(4),'k:')
+yline(meanstim(5),'k:')
+%title(['Stimulating shank current: ' num2str(AMP(ampI)) 'uA' ])
+title([num2str(AMP(ampI)) 'uA' ])
+if ampI==4
+xlabel('Percentage current supplied to bottom electrode %')
+end
+ylabel('Relative position of peak(um)')
+ylim([10 200])
+end
+%% across
+
+%% result calc with currents
+
+ totalac0=[ac0_r9s1e7(17:end,:);ac0_r9s1e9(17:end,:);ac0_r9s1e11(17:end,:);ac0_r8s1e5(17:end,:);ac0_r8s1e6(17:end,:);ac0_r6s1e10(17:end,:);ac0_r6s1e9(17:end,:)];
+  totalac50=[ac50_r9s1e7(17:end,:);ac50_r9s1e9(17:end,:);ac50_r9s1e11(17:end,:);ac50_r8s1e5(17:end,:);ac50_r8s1e6(17:end,:);ac50_r6s1e10(17:end,:);ac50_r6s1e9(17:end,:)];
+   totalac100=[ac100_r9s1e7(17:end,:);ac100_r9s1e9(17:end,:);ac100_r9s1e11(17:end,:);ac100_r8s1e5(17:end,:);ac100_r8s1e6(17:end,:);ac100_r6s1e10(17:end,:);ac100_r6s1e9(17:end,:)];
+     totalac75=[ac25_r9s1e7(17:end,:);ac25_r9s1e9(17:end,:);ac25_r9s1e11(17:end,:);ac75_r8s1e5(17:end,:);ac75_r8s1e6(17:end,:);ac75_r6s1e10(17:end,:);ac75_r6s1e9(17:end,:)];
+          totalac25=[ac75_r9s1e7(17:end,:);ac75_r9s1e9(17:end,:);ac75_r9s1e11(17:end,:);ac25_r8s1e5(17:end,:);ac25_r8s1e6(17:end,:);ac25_r6s1e10(17:end,:);ac25_r6s1e9(17:end,:)];
+resultind=zeros(4,1);
+sttotalac.T0=totalac0;
+sttotalac.T50=totalac50;
+sttotalac.T100=totalac100;
+sttotalac.T75=totalac75;
+sttotalac.T25=totalac25;
+
+for currents=1:4
+
+    if ~isempty(meansig50array)
+        meansig50array=sttotalac.T25;
+        meansig50array=meansig50array(:,currents);
+        meansig50array(meansig50array==-500)=[];
+        meansig50array(isnan(meansig50array))=-500;
+        meansig50array(isinf(meansig50array))=-500;
+        meansig50array(abs(meansig50array)>100)=-500;
+        if ~isempty(meansig50array)&&length(meansig50array)>1
+            meansig50array(all(meansig50array == 0,2),:)=[];
+            stder=std(meansig50array(meansig50array~=-500))/sqrt(length(meansig50array(meansig50array~=-500)));
+            alllength=length(meansig50array(meansig50array~=-500));
+            norm=jbtest(meansig50array(meansig50array~=-500));
+            [h,p1]=ttest(meansig50array(meansig50array~=-500),0);
+            meanaltogether=  mean(meansig50array(meansig50array~=-500));
+            resultind(1:4,currents)=[meanaltogether; stder; p1; alllength];
+        end
+    end
+end
+temp=resultind;
+resultind=[temp(:,1),temp(:,3),temp(:,4),temp(:,2)];
+%%
+
+figure
+errorbar(1:4,resultind(1,:),resultind(2,:), 'k')
+hold on
+yline(resultind(1,1),'k:')
+yline(resultind(1,2),'k:')
+yline(resultind(1,3),'k:')
+yline(resultind(1,4),'k:')
+ylim([0 1])
+title(['25% shank 1'])
+xlabel('Shank')
+ylabel('Normalised spike rate')
+
+
+
