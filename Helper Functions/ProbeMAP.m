@@ -23,6 +23,9 @@ NN_flexible=[8,7,9,6,10,5,12,3,13,2,14,1,23,24,22,25,21,26,19,28,18,29,17,30,16,
 
 NN_flexible_4SHANKA=[31,7,0,24,30,6,1,25,29,5,2,26,28,4,3,27,  8,16,23,15,9,17,22,14,10,18,21,13,11,19,20,12]; %S1 and S4
 NN_flexible_4SHANKB=[8,11,9,15,10,19,12,23,13,22,14,21,16,20,17,18,   4,7,0,6,28,5,24,3,25,2,26,1,27,31,29,30]; %S2 and S3
+NN_flexible_4SHANKC=[31,7,0,24,30,6,1,25,29,5,2,26,28,4,3,27,  8,16,23,15,9,17,22,14,10,18,21,13,11,19,20,12]; %S1 and S4
+NN_flexible_4SHANKD=[8,11,9,15,10,19,12,23,13,22,14,21,16,20,17,18,   4,7,0,6,28,5,24,3,25,2,26,1,27,31,29,30]; %S2 and S3
+
 for n = 1:32
     if (ATLAS(n) < 10)
         temp = strcat('A-00',num2str(ATLAS(n)));
@@ -59,7 +62,7 @@ for n = 1:32
     E_MAP(n+1,5) = {temp};
     
 end
-for n = 1:64
+for n = 1:128
     if n<33
         T=NN_flexible_4SHANKA(n);
         if (T < 10)
@@ -67,12 +70,26 @@ for n = 1:64
         else
             temp = strcat('A-0',num2str(T));
         end
-    else
+    elseif n<65
         T=NN_flexible_4SHANKB(n-32);
         if (T < (10))
             temp = strcat('B-00',num2str(T));
         else
             temp = strcat('B-0',num2str(T));
+        end
+    elseif n<97
+        T=NN_flexible_4SHANKC(n-64);
+        if (T < (10))
+            temp = strcat('C-00',num2str(T));
+        else
+            temp = strcat('C-0',num2str(T));
+        end
+    else
+        T=NN_flexible_4SHANKD(n-96);
+        if (T < (10))
+            temp = strcat('D-00',num2str(T));
+        else
+            temp = strcat('D-0',num2str(T));
         end
     end
     E_MAP(n+1,6) = {temp};

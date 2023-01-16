@@ -1,6 +1,6 @@
 function Online_raster(ID,Spike_array)
 
-%sp = Spike_array;
+sp = Spike_array;
 trig = loadTrig(0);
 TP = loadTrialParams;
 tID = cell2mat(TP(cell2mat(TP(:,2)) == ID,1));
