@@ -1,4 +1,4 @@
-function [Spike_trialstruct,baslinespike_trialstruct] = OnlinesortTrials(trig,sp,chn)
+function [Spike_trialstruct,baslinespike_trialstruct] = OnlinesortTrials(trig,sp,chn,startpointms,mstoanalyse)
 %Sort into trial IDs and plot example spikes
 %OUTPUT - the structure containing spiking information for each trial/repeat where
 %each cell relates to one trial ID. The array in this cell is in the format
@@ -14,15 +14,15 @@ TrialParams=cell2mat(TrialParams);
 maxtid=max(TrialParams(:,2));
 nospI=[];
 Spike_trialstruct=[];
-startpointms=2;
-mstoanalyse=8;
+% startpointms=2;
+% mstoanalyse=8;
 
 
-dispstat('','init');
-dispstat(sprintf('Working through trial: '),'keepthis','n');
+% dispstat('','init');
+% dispstat(sprintf('Working through trial: '),'keepthis','n');
 % Sort into trial IDs
 for tID=1:maxtid
-    dispstat(sprintf('%d',tID));
+    %dispstat(sprintf('%d',tID));
     if isempty(TrialParams(TrialParams(1:end,2) == tID))
         fprintf('No trial ID: %d\n',tID)
     else
@@ -37,7 +37,7 @@ for tID=1:maxtid
         nTrig = length(trigtID);
         for indT=1:nTrig
             for chsp=1:1:length(chn)
-                v = sp{chsp};
+                v = sp{chn(chsp)};
                 if ~isempty(v)
                     spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms))&(v(:,1)<(trigtID(indT)+mstoanalyse))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                     timems=mstoanalyse-startpointms;
@@ -57,7 +57,7 @@ for tID=1:maxtid
                     spikedetailstrig=[];
                     baslinespiketrig=[];
                 end
-                mchsp=chn(chsp)-1;
+                mchsp=chn(chsp);
                 cnum=['Chn_' num2str(mchsp)];
                 IDnum=['ID_' num2str(tID)];
                 tnum=['Trial_' num2str(indT)];
