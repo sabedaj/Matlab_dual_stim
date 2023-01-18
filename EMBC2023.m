@@ -18,12 +18,13 @@ latency_peak_rate=cell(length(D_data),1);
 latency_peak_rate(cellfun(@isempty,latency_peak_rate)) = {zeros(128,182)};
 count4heatmap=cell(length(D_data),1);
 count4heatmap(cellfun(@isempty,count4heatmap)) = {zeros(31,7)};
-for k = 3:length(D_data) % loop through the stimulation pairs. Avoid using the first ones
+parfor k = 3:length(D_data) % loop through the stimulation pairs. Avoid using the first ones
     currD = D_data(k).name; % Get the current subdirectory name
     try
         cd([D_data(k).folder filesep currD])
         filepath=pwd;
         [filepathm,name,ext] = fileparts(filepath);
+        %amp(k,1:5)=loadAMP;
         sp=load([name(1:end-14) '.sp.mat'],'sp');
         sp=sp.sp;
     catch
@@ -41,8 +42,8 @@ for k = 3:length(D_data) % loop through the stimulation pairs. Avoid using the f
         stimchnarray=[1:16;33:48;49:64;17:32]';
     else
         VA=1;
-        chn_range=65:128;
-        columns=[5,7,8,6];
+        chn_range=1:128;
+        columns=[1,3,4,2,5,7,8,6];
         stimchnarray=[1:16;33:48;49:64;17:32]'+64;
     end
     timestart=2;%time after trig to start looking for spikes in ms
@@ -73,6 +74,10 @@ for k = 3:length(D_data) % loop through the stimulation pairs. Avoid using the f
 %         end
 %     end
     chanel_all=chn_range(1):chn_range(end);
+    if str2double(name(end-12:end-7))<220812
+        error('port D bad')
+        chanel_all(chanel_all>96)=[];
+    end
     spk_all=SigmoidGenerator(chanel_all,sp,timestart,timeend);
     sigmoidAll{k}=spk_all;
 end
@@ -97,7 +102,8 @@ stimchnarray=[1:16;33:48;49:64;17:32]'+64;
  %heatmap_array_sigmoiddata(cellfun(@isempty,heatmap_array_sigmoiddata)) = {nan(31,7)};
 count=0;
 count2=0;
-chnnrange=65:127;
+chnnrange=65:128;
+heatmap_array=[];
 for folder=1:length(sigmoidAll)
     if isempty(sigmoidAll{folder})
         continue;
@@ -117,7 +123,14 @@ for recchn=chnnrange(1):chnnrange(end)
                 [r,c]=find(schn==stimchnarray);
         rplus=16-r;
         cplus=4-c;
-        heatmap_array_sigmoiddata{count}.(fns{stimchn})(rrecchn+rplus,crecchn+cplus)=sigmoidAll{folder}.(chnname).(fns{stimchn})(5);
+        try
+        heatmap_array_sigmoiddata{count}.(fns{stimchn})(rrecchn+rplus,crecchn+cplus)=sigmoidAll{folder}.(chnname).(fns{stimchn})(end-4);
+%         if sigmoidAll{folder}.(chnname).(fns{stimchn})(end-4)>100
+%             stop=0;
+%         end
+        catch
+            continue;
+        end
         if recchn==chnnrange(end)
             count2=count2+1;
             heatmap_array(:,:,count2)=heatmap_array_sigmoiddata{count}.(fns{stimchn});
@@ -126,4 +139,54 @@ for recchn=chnnrange(1):chnnrange(end)
     end
 end
 end
- x=nanmean(heatmap_array,3); figure; heatmap(x)
+%%
+ avgFrmap=nanmean(heatmap_array,3); figure; hHM=heatmap(avgFrmap);
+ xlabel('relative shank pos')
+ ylabel('relative electrode pos')
+ title('Firing rate relative to stimulating electrode position (16,4)')
+hHM.NodeChildren(3).YDir='normal'; 
+
+lightBLUE = [0 1 0];
+darkBLUE = [0 0 1];
+
+blueGRADIENTflexible = @(i,N) lightBLUE + (darkBLUE-lightBLUE)*((i-1)/(N-1));
+std_heatmap=nanstd(heatmap_array,0,3);%./nansum(~isnan(heatmap_array),3);
+figure;
+hold on
+N=7;
+for i=1:7
+%plot(avgFrmap(:,i),'color',blueGRADIENTflexible(i,N))
+errorbar(1:31,avgFrmap(:,i),std_heatmap(:,i),'color',blueGRADIENTflexible(i,N))
+end
+ xlabel('relative electrode')
+ ylabel('Firing rate (sp/s)')
+ legend
+ 
+ g=heatmap_array;
+ g(~isnan(g))=1;
+ figure; heatmap(nansum(g, 3))
+  xlabel('relative shank pos')
+ ylabel('relative electrode pos')
+ 
+title('#samples in average')
+ 
+ %%
+ distanceArray=repmat(sqrt(([15:-1:0 1:15]'*50).^2+([3:-1:0 1:3]*200).^2),[1 1 size(heatmap_array,3)]);
+ splitdist=nan(1000/50,1);
+stdsplitdist=nan(1000/50,1);
+countsplidist=nan(1000/50,1);
+ for i=50:50:1000
+     
+    splitdist(i/50)=nanmean(heatmap_array(distanceArray>=i-50 & distanceArray<i));
+     stdsplitdist(i/50)=nanstd(heatmap_array(distanceArray>=i-50 & distanceArray<i))/sum(~isnan(heatmap_array(distanceArray>=i-50 & distanceArray<i)));
+     countsplidist(i/50)=nansum(~isnan(heatmap_array(distanceArray>=i-50 & distanceArray<i)));
+ end
+ figure(18);hold on; errorbar(0:50:950,splitdist,stdsplitdist)
+ xlabel('Approx. distance from the stim electrode(um)')
+ ylabel('Firing rate (Sp/s)')
+%legend('2','5','6','8','10')
+legend('10','8','6','5','2')
+%figure; plot(0:50:950,countsplidist); ylabel('# in average'); xlabel('Approx. distance from the stim electrode(um)')
+
+
+%% find v2 centroid
