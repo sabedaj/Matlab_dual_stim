@@ -36,7 +36,7 @@ for recordchn=1:length(chnnum)
             spkcount=zeros(40,1);
             for j=1:size(struct2table(Spike_trialstruct.(['Chn_' num2str(chnnum(recordchn))]).(t),'AsArray',true),2)
                 t2=['Trial_' num2str(j)];
-                spkcount(j)=size(Spike_trialstruct.(['Chn_' num2str(chnnum(recordchn))]).(t).(t2),1)-size(baslinespike_trialstruct.(['Chn_' num2str(chnnum(recordchn))]).(t).(t2),1)/10;
+                spkcount(j)=size(Spike_trialstruct.(['Chn_' num2str(chnnum(recordchn))]).(t).(t2),1);%-size(baslinespike_trialstruct.(['Chn_' num2str(chnnum(recordchn))]).(t).(t2),1)/10;
             end
             spk_all.(['Chn_' num2str(chnnum(recordchn))]).(['stimchn_' num2str(chn(stimchn))])(ID)=mean(spkcount(1:size(struct2table(Spike_trialstruct.(['Chn_' num2str(chnnum(recordchn))]).(t),'AsArray',true),2)))/(timeend-timestart)*1000;
         end

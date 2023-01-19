@@ -240,7 +240,7 @@ N=size(distcurrent,1);
  legend(legendCell)
  %% find v2 centroid
 
-VA=2;%visual area record
+VA=1;%visual area record
 VAstim=1;%visual are stim
 amp=loadAMP;
 
@@ -330,8 +330,6 @@ figure; hHM=heatmap(nanmean(heatmap_centroid_centralised{1},3));
  xlabel('relative shank pos')
  ylabel('relative electrode pos')
  title('method 2:  centroid method')
- 
- 
 %max area method
 heatmap_centroid_centralised=cell(length(amp)+1,1);
  heatmap_centroid_centralised(cellfun(@isempty,heatmap_centroid_centralised)) = {nan(31,7)};
@@ -354,42 +352,3 @@ figure; hHM=heatmap(nanmean(heatmap_centroid_centralised{1},3));
  xlabel('relative shank pos')
  ylabel('relative electrode pos')
  title('method 1:  max area method')
- 
- %peak method
-heatmap_centroid_centralised=cell(length(amp)+1,1);
- heatmap_centroid_centralised(cellfun(@isempty,heatmap_centroid_centralised)) = {nan(31,7)};
-for current=1
-    for penstim=1:size(heatmap_array{current},3)
-        heatmap_it=heatmap_array{current}(:,:,penstim);
-        heatmap_it(heatmap_it<0)=0;%make volume postive
-       
-        [r,c]=find(heatmap_it==max(heatmap_it,[],'all'));
-        rplus=16-r;
-        cplus=4-c;
-        heatmap_centroid_centralised{current}(1+rplus:16+rplus,1+cplus:4+cplus,penstim)=heatmap_array{current}(:,:,penstim);
-    end    
-end
-figure; hHM=heatmap(nanmean(heatmap_centroid_centralised{1},3));
- xlabel('relative shank pos')
- ylabel('relative electrode pos')
- title('method 1: peak method')
- 
- 
- 
- 
- %% linecut
- lightBLUE = [0 1 0];
-darkBLUE = [0 0 1];
-blueGRADIENTflexible = @(i,N) lightBLUE + (darkBLUE-lightBLUE)*((i-1)/(N-1));
-avgFrmap=nanmean(heatmap_centroid_centralised{current},3);
-std_heatmap=nanstd(heatmap_centroid_centralised{current},0,3)./nansum(~isnan(heatmap_centroid_centralised{current}),3);
-figure;
-hold on
-N=7;
-for i=1:7
-%plot(avgFrmap(:,i),'color',blueGRADIENTflexible(i,N))
-errorbar(1:31,avgFrmap(:,i),std_heatmap(:,i),'color',blueGRADIENTflexible(i,N))
-end
- xlabel('relative electrode')
- ylabel('Firing rate (sp/s)')
- legend
