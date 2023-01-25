@@ -1,4 +1,4 @@
-function [Spike_trialstruct,baslinespike_trialstruct] = OnlinesortTrials(trig,sp,chn,startpointms,mstoanalyse)
+function [Spike_trialstruct,baslinespike_trialstruct] = OnlinesortTrials(trig,sp,chn,startpointms,mstoanalyse,varargin)
 %Sort into trial IDs and plot example spikes
 %OUTPUT - the structure containing spiking information for each trial/repeat where
 %each cell relates to one trial ID. The array in this cell is in the format
@@ -16,6 +16,11 @@ nospI=[];
 Spike_trialstruct=[];
 % startpointms=2;
 % mstoanalyse=8;
+if nargin>5
+    avgtimebs=varargin{1};
+else
+   avgtimebs=10;
+end
 
 
 % dispstat('','init');
@@ -41,7 +46,7 @@ for tID=1:maxtid
                 if ~isempty(v)
                     spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms))&(v(:,1)<(trigtID(indT)+mstoanalyse))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                     timems=mstoanalyse-startpointms;
-                    avgtimebs=10;
+
                     baslinespiketrig=v(((v(:,1)>(trigtID(indT)-5-avgtimebs*timems))&(v(:,1)<(trigtID(indT)-5))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                     if ~isempty(spikedetailstrig)
                         spike=size(spikedetailstrig,1);
