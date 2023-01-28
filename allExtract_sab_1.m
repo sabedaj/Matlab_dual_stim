@@ -2,26 +2,14 @@ function allExtract_sab_1(dName,filepath,T,par,artefact,artefact_high)
 %% This function takes a blanked Intan datafile (amplifier_dn)
 % and constructs mu
 %% Variables
-FS = 30000;
-% if strcmp(dName,'analogin')
-%     nChn = 1;
-% elseif strcmp(dName,'amplifier')
-%     fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
-%     fileinfo = dir([filepath filesep 'info.rhs']);
-%     if (datetime(fileinfo.date) < fourShank_cutoff)
-%         nChn=32;
-%         E_Mapnumber=0;
-%     else
-%         E_Mapnumber=loadMapNum;
-%         if E_Mapnumber>0
-%             nChn=64;
-%         else
-%             nChn=32;
-%         end
-%     end
-% end
-nChn=64;
-E_Mapnumber=1;
+[amplifier_channels,frequency_parameters]=read_Intan_RHS2000_file;
+FS=frequency_parameters.amplifier_sample_rate;
+if strcmp(dName,'analogin')
+    nChn = 1;
+elseif strcmp(dName,'amplifier')
+    nChn=size(amplifier_channels,2);  
+end
+FS=frequency_parameters.amplifier_sample_rate;
 threshfac = -4.5;
 sp = cell(1, nChn);
 thresh = cell(1, nChn);
@@ -61,7 +49,7 @@ ntimes = ceil(fileinfo.bytes / 2 / nChn / FS / T);
 LfpNf = length(Lfpfilt);
 MuNf = length(Mufilt);
 %% Calculate thresholds
-if isempty(dir('*.sp.mat'))
+%if isempty(dir('*.sp.mat'))
     dispstat('','init');
     dispstat(sprintf('Processing thresholds . . .'),'keepthis','n');
     for iChn = 1:nChn
@@ -110,14 +98,14 @@ if isempty(dir('*.sp.mat'))
     disp(['Total recording time: ' num2str(nSam / FS) ' seconds.']);
     disp(['Time analysed per loop: ' num2str(T) ' seconds.']);
     fseek(v_fid,0,'bof'); % Returns the data pointer to the beginning of the file
-end
+%end
 %% Loop through the data
 if (justMu)
     mu_fid = fopen([name '.mu_sab.dat'],'W');
     dispstat('','init');
     dispstat(sprintf('Processing MU . . .'),'keepthis','n');
     while (chk && N < Ninput)
-        N = N + 1;        
+        N = N + 1;
         dispstat(sprintf('Progress %03.2f%%',100*((N-1)/ntimes)),'timestamp');
         if strcmp(dName,'analogin')
             data = fread(v_fid, [nChn, FS*T], 'uint16');
@@ -158,7 +146,6 @@ if (justMu)
     fclose(mu_fid);
     clear data mu mu2 tmp flip_data
 end
-
 %% Calculate SP
 if isempty(dir('*.sp.mat'))
     m_fid = fopen([name '.mu_sab.dat'],'r');
@@ -205,14 +192,19 @@ if isempty(dir('*.sp.mat'))
     end
     
     %% Calculate a zero-condition spike template and r2t
-    if ~isempty(dir('*_exp_datafile_*'))
+    expfile=dir('*_exp_datafile_*');
+    if ~isempty(expfile)
         trig = loadTrig(0); loadNREP; loadNTrials; loadDUALSTIM;
+        if ~exist('DUALSTIM','var')
+            simstim=load(expfile.name,'simultaneous_stim');
+            DUALSTIM=simstim.simultaneous_stim;
+        end
         TrialParams = loadTrialParams;
         TrialParams = cell2mat(TrialParams(cell2mat(TrialParams(:,2)) == 1));
-        if DUALSTIM
-            TrialParams(2:2:length(TrialParams),:) = [];
-        end
-        TrialParams = TrialParams(1:n_REP);
+%         if DUALSTIM
+%             TrialParams(DUALSTIM:DUALSTIM:length(TrialParams),:) = [];
+%         end
+        TrialParams = TrialParams(DUALSTIM:DUALSTIM:length(TrialParams));
         trig = trig(TrialParams);
         nTrig = length(trig);
         spWN = [-300 300]; template = cell(1,nChn); r2t = cell(1,nChn); spt = cell(1,nChn);
@@ -236,4 +228,5 @@ if isempty(dir('*.sp.mat'))
         end
         save([name '.sp.mat'],'sp','thresh','threshfac','-v7.3');
     end
+end
 end

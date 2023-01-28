@@ -31,8 +31,10 @@ end
 rate_all=[];
 Peak_latency_all=[];
 for recordchn=1:length(chnnum)
+    chnname=['Chn_' int2str(chnnum(recordchn))];
     sp=spikeArray{chnnum(recordchn)};
     for stimchn=1:length(chn)
+        stimcchnname=['stimchn_' int2str(chn(stimchn))];
         if nargin==2
             IDs{stimchn}=sortrows(IDs{stimchn});
             IDs{stimchn}=IDs{stimchn}(any(IDs{stimchn},2),:);
@@ -55,10 +57,10 @@ for recordchn=1:length(chnnum)
             end
             Z = hist(xdata,0:length(BIN(1):BIN(2)-1)); %#ok<HIST>
             rate = (1000/nT)*Z;
-            rate_all.(['Chn_' num2str(chnnum(recordchn))]).(['stimchn_' num2str(chn(stimchn))])(ID,1:abs(BIN(1))+BIN(2)+1)=rate-mean(rate(1:80));
+            rate_all.(chnname).(stimcchnname)(ID,1:abs(BIN(1))+BIN(2)+1)=rate-mean(rate(1:80));
             [~,Peak_latency]=max(rate(abs(BIN(1))+1:end));
             Peak_latency=Peak_latency+abs(BIN(1));
-            Peak_latency_all.(['Chn_' num2str(chnnum(recordchn))]).(['stimchn_' num2str(chn(stimchn))])(ID)=Peak_latency;
+            Peak_latency_all.(chnname).(stimcchnname)(ID)=Peak_latency;
         end
     end
 end

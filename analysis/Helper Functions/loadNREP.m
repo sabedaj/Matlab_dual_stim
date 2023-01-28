@@ -4,5 +4,6 @@ if isempty(data)
     return
 end
 data = data.name;
-load(data,'n_REP_true');
-n_REP=n_REP_true;
+load(data,'n_REP');
+%load(data,'n_REP_true');
+%n_REP=n_REP_true;

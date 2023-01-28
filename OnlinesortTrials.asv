@@ -59,19 +59,26 @@ for tID=1:maxtid
                     spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms))&(v(:,1)<(trigtID(indT)+mstoanalyse))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                     
                     %filter out noise
-%                     indexdelete=false(size(spikedetailstrig,1),1);
-%                     for i=1:size(spikedetailstrig,1)
-%                         [~,indexspikemin]=min(spikedetailstrig(i,2:end));
-%                         [val,indexspikemax]=max(spikedetailstrig(i,2:end));
-%                         if indexspikemin~=13 || (indexspikemax>25 && val>150) || (spikedetailstrig(i,2)>75)
-%                             indexdelete(i)=true;
-%                         end
+                    for i=1:size(spikedetailstrig,1)
+                        [~,indexspikemin]=min(spikedetailstrig(i,2:end));
+                        if indexspikemin~=13
+                            spikedetailstrig(i,:)=[];
+                        end
+                        [val,indexspikemax]=max(spikedetailstrig(i,2:end));
+                        if indexspikemax>25
+                    end
+                    [r,~]=find(min(spikedetailstrig(:,2:end),2),2);
+                    spikedetailstrig(r,:)=[];
+                    [r,~]=find(spikedetailstrig(:,2:end)<-500,2);
+                    spikedetailstrig(r,:)=[];
+                    
+%                     if any((spikedetailstrig(:,2:end)<-500),'all')||any((spikedetailstrig(:,2:end)>300),'all')
+%                         pwd
+%                         %error('spike too big')
 %                     end
-%                     spikedetailstrig(indexdelete,:)=[];
-%                     if any(spikedetailstrig(:,2:end)<-100,'all')
-%                       figure(1);hold on; plot(1/30:1/30:49/30,spikedetailstrig(:,2:end))
-%                     end
-
+                    if any((spikedetailstrig(:,2:end)<-100),'all')
+                        figure(1);hold on; plot(1/30:1/30:49/30,spikedetailstrig(:,2:end))
+                    end
                     timems=mstoanalyse-startpointms;
                     baslinespiketrig=v(((v(:,1)>(trigtID(indT)-5-avgtimebs*timems))&(v(:,1)<(trigtID(indT)-5))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                     latencymeasure=v(((v(:,1)>(trigtID(indT)-90))&(v(:,1)<(trigtID(indT)+90))),:) - trigtID(indT); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
