@@ -14,7 +14,7 @@ if (nargin <= 3)
 end
 if (nargin <= 1)
     MUA_len = 0.002;%0.002
-    MUA_BW = 2900;%2900 3700
+    MUA_BW = 3700;%2900 3700
 end
 if (nargin == 0)
     FS = 30000;
@@ -29,7 +29,7 @@ tapers = [n,p,k];
 tapers(1) = tapers(1).*FS;
 % These are the Slepian tapers
 tapers = dpsschk(tapers);
-MUAfilt = 2*real(mtfilt(tapers, FS, 3400)); %3400 4000
+MUAfilt = 2*real(mtfilt(tapers, FS, 4000)); %3400 4000
 
 %% LFPFILTER
 tapers = [LFP_len,LFP_BW];
