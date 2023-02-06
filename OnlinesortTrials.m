@@ -75,7 +75,7 @@ for tID=1:maxtid
                     timems=mstoanalyse-startpointms;
                     baslinespiketrig=v(((v(:,1)>(trigtID(indT)-5-avgtimebs*timems))&(v(:,1)<(trigtID(indT)-5))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                     latencymeasure=v(((v(:,1)>(trigtID(indT)-90))&(v(:,1)<(trigtID(indT)+90))),:) - trigtID(indT); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
-
+                    
                 else
                     spikedetailstrig=[];
                     baslinespiketrig=[];

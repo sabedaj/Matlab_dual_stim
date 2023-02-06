@@ -81,33 +81,37 @@ for tID=starttrial:trialjump:endtrial
                 if ~isempty(spikedetailstrig)
                     if any(spikedetailstrig(:,2:end)>(500))%used to check if any are above the specified threshold
                         %Use this to plot the .mu data for any trial
+                        
                         fileID=fopen([name '.mu_sab.dat'],'r');
                         shortbytes=2;
+                        for indT=1:40
                         offset=trig(TrialParamstID(indT))*nChn*shortbytes-0.065*FS*shortbytes*nChn;%offset from beginning of file to trigger-250ms
                         ftell(fileID)
                         fseek(fileID,offset,'bof');
                         ftell(fileID)
-                        vblankmu = fread(fileID,[nChn, (0.008*FS+0.065*FS)],'short')./10; %plots one second from trigger and 250ms brefore
+                        vblankmu = fread(fileID,[nChn, (0.050*FS+0.065*FS)],'short')./10; %plots one second from trigger and 250ms brefore
                         figure 
-                        plot (-0.065*1000:1000/FS:0.008*1000-1000/FS,vblankmu(chsp,:))
+                        plot (-0.065*1000:1000/FS:0.05*1000-1000/FS,vblankmu(chsp,:))
                         title(['Channel ' num2str(chsp)])
                         xlabel('Time (ms)')
                         ylabel('Voltage (uV)')
+                        end
                         fclose(fileID);
                         
                         fileID=fopen('amplifier.dat','r');
-                        
+                         for indT=1:40
                         shortbytes=2;
-                        offset=trig(TrialParamstID(indT))*nChn*shortbytes-0.5*FS*shortbytes*nChn;%offset from beginning of file to trigger
+                        offset=trig(TrialParamstID(indT))*nChn*shortbytes-0.065*FS*shortbytes*nChn;%offset from beginning of file to trigger
                         ftell(fileID)
                         fseek(fileID,offset,'bof');
                         ftell(fileID)
-                        vblankmu = fread(fileID,[nChn, (0.5*FS+0.01*FS)],'int16') .* 0.195;
+                        vblankmu = fread(fileID,[nChn, (0.05*FS+0.065*FS)],'int16') .* 0.195;
                         figure 
-                        plot (-0.5*1000:1000/FS:0.01*1000-1000/FS,vblankmu(chsp,:))
+                        plot (-0.065*1000:1000/FS:0.05*1000-1000/FS,vblankmu(chsp,:))
                         title(['Channel ' num2str(chsp)])
                         xlabel('Time (ms)')
                         ylabel('Voltage (uV)')
+                         end
                         fclose(fileID);
                         
                        

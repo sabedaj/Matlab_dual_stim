@@ -72,7 +72,7 @@ parfor k = 3:length(D_data) % loop through the stimulation pairs. Avoid using th
 %     Peak_latencyALL{k}=Peak_latency;
 end
 %% sigmoid
-VA=1;%visual area recording
+VA=2;%visual area recording
 stimVA=1; %visual area being stimulated
 cd([D_data(3).folder filesep D_data(3).name])
 if VA==1
@@ -111,34 +111,134 @@ for folder=1:length(sigmoidAll)
         fns = fieldnames(sigmoidAll{folder}.(chnname));
         for stimchn=1:length(fns)
             schn = str2double(regexp(fns{stimchn},'\d*','Match'));
-            if schn>max(chnnrange) || schn<min(chnnrange) 
+            if schn>max(stimchnarray,[],'all') || schn<min(stimchnarray,[],'all') 
                 continue
             end
              [r,c]=find(schn==stimchnarray);
-            if r==rrecchn && c== crecchn
+%              if sigmoidAll{folder}.(chnname).(fns{stimchn})(end)>20
+%                  load([currD(1:end-14) '.sp.mat'])
+%                  ti=loadTrialInfo;
+%                  ids=cell2mat(ti([false; cell2mat(ti(2:end,2))==sscanf(fns{stimchn},'stimchn_%d')],1));
+%                  Online_raster(ids(end),sp{recchn})
+%                  title([chnname ' ' fns{stimchn} ' ID_' num2str(ids(end))])
+%              end
+            %if r==rrecchn && c== crecchn
+            %if sigmoidAll{folder}.(chnname).(fns{stimchn})(end)>0
                 count=count+1;
                 if size(sigmoidAll{folder}.(chnname).(fns{stimchn}),2)==length(amp)
                     sigmoidplot(count,amp)=sigmoidAll{folder}.(chnname).(fns{stimchn});
                 else
                     sigmoidplot(count,[100; amp])=sigmoidAll{folder}.(chnname).(fns{stimchn});
                 end
-            end
+            %end
+            %end
         end
     end
 end
 figure(3); hold on
 if size(sigmoidplot,2)==100
-errorbar([0; amp],nanmean(sigmoidplot(:,[100; amp])),nanstd(sigmoidplot(:,[100; amp]))./sqrt(nansum(sigmoidplot(:,[100; amp]))))
+errorbar([0; amp],nanmean(sigmoidplot(:,[100; amp])),nanstd(sigmoidplot(:,[100; amp]))./sqrt(sum(~isnan(sigmoidplot(:,end)))))
 else
-    errorbar([amp],nanmean(sigmoidplot(:,[amp])),nanstd(sigmoidplot(:,[amp]))./sqrt(nansum(sigmoidplot(:,[amp]))))
+    errorbar([amp],nanmean(sigmoidplot(:,[amp])),nanstd(sigmoidplot(:,[amp]))./sqrt(sum(~isnan(sigmoidplot(:,end)))))
 end
 nanmean(sigmoidplot(:,[100; amp]))-max(nanmean(sigmoidplot(:,[100; amp])))/2;
 xlabel('current (uA)')
 ylabel('Firing rate (sp/s)')
 set(gca,'TickDir','out');
 axis square
+%% rate
+VA=2;%visual area recording
+stimVA=1; %visual area being stimulated
+cd([D_data(3).folder filesep D_data(3).name])
+if VA==1
+    columns=[5,7,8,6];
+    chnnrange=65:128;
+elseif VA==2
+    columns=[1,3,4,2];
+    chnnrange=1:64;
+end
+count=0;
+rate_plot=nan(10,6);
+order=Depth(1);
+ordershapearray=reshape(order,16,8);
+ordershapearray=ordershapearray(:,columns);
+if stimVA==2
+stimchnarray=[1:16;33:48;49:64;17:32]';%+64;
+elseif stimVA==1
+    stimchnarray=[1:16;33:48;49:64;17:32]'+64;
+end
+
+for folder=1:length(rate_ALL)
+    currD = D_data(folder).name; % Get the current subdirectory name
+    try
+        cd([D_data(folder).folder filesep currD])
+        if isempty(rate_ALL{folder})
+            continue;
+        end
+    catch
+        continue
+    end
+
+    amp=loadAMP;
+    for recchn=chnnrange(1):chnnrange(end)
+        chnname=['Chn_' num2str(recchn)];
+        [rrecchn,crecchn]=find(ordershapearray==recchn);
+        fns = fieldnames(rate_ALL{folder}.(chnname));
+        for stimchn=1:length(fns)
+            schn = str2double(regexp(fns{stimchn},'\d*','Match'));
+            if schn>max(stimchnarray,[],'all') || schn<min(stimchnarray,[],'all')
+                continue
+            end
+            [r,c]=find(schn==stimchnarray);
+            thresh=5;
+            if any(rate_ALL{folder}.(chnname).(fns{stimchn})(end,2:8)>100)
+                stop=0;
+            end
+            if all(diff(sigmoidAll{folder}.(chnname).(fns{stimchn}))>=0) && recchn==41
+                ti=loadTrialInfo;
+                tID=cell2mat(ti([false; cell2mat(ti(2:end,2))==schn],1));
+                for i=1:length(tID)
+                plotRawdata(recchn,tID(i))
+                end
+            end
+            if mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,31+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,12+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,52+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,70+90))>thresh
+                continue%figure(50);hold on;plot(-90:90,mean(rate_ALL{folder}.(chnname).(fns{stimchn})))
+            end
+
+            count=count+1;
+                if size(rate_ALL{folder}.(chnname).(fns{stimchn}),1)==length(amp)
+                    rate_plot(amp,1:181,count)=rate_ALL{folder}.(chnname).(fns{stimchn});
+                else
+                    rate_plot([100; amp],1:181,count)=rate_ALL{folder}.(chnname).(fns{stimchn});
+                end
+
+        end
+    end
+end
+
+tempamp=[100; amp];
+if VA==1
+color1 = linspace(0,1,length(tempamp)-1);
+newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
+else
+    color1 = linspace(0,1,length(tempamp)-1);
+newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
+end
+figure; colororder(newcolors);
+ax=axes;
+hold on
+F=-90:90;
+for current=1:length(tempamp)
+temp=squeeze(rate_plot(tempamp(current),:,:));
+plottemp=nanmean(temp');
+stdtemp=nanstd(temp')./sqrt(sum(~isnan(temp(1,:))));
+fillOut = fill(ax,[F fliplr(F)],[plottemp+stdtemp fliplr(plottemp-stdtemp)],newcolors(i,:), 'FaceAlpha', 0.2,'linestyle','none');
+plot(-90:90,[plottemp(1:89) nan nan nan  nan plottemp(94:181)])
+end
+legend('0','2','5','6','8','10')
+set(gca,'TickDir','out');
 %% sorting heatmap from sigmoiddata
-VA=1;%visual area
+VA=2;%visual area
 stimVA=1; %visual area being stimulated
 if VA==1
     columns=[5,7,8,6];
@@ -158,6 +258,39 @@ elseif stimVA==1
 end
 heatmap_array_sigmoiddata=cell(100,1);
 rate_distarray=cell(100,1);
+%%%%%if the visual area is downstream or upstream
+if VA~=stimVA
+    sorted_array_sigmoiddata=cell(length(sigmoidAll),1);
+    for folder=1:length(sigmoidAll)
+        currD = D_data(folder).name; % Get the current subdirectory name
+        try
+            cd([D_data(folder).folder filesep currD])
+            if isempty(sigmoidAll{folder})
+                continue;
+            end
+        catch
+            continue
+        end
+        for recchn=chnnrange(1):chnnrange(end)
+            [rrecchn,crecchn]=find(ordershapearray==recchn);
+            chnname=['Chn_' num2str(recchn)];
+            fns = fieldnames(sigmoidAll{folder}.(chnname));
+            for stimchn=1:length(fns)
+                if size(sigmoidAll{folder}.(chnname).(fns{stimchn}),2)==length(amp)
+                    for current=1:length(amp)
+                        sorted_array_sigmoiddata{folder}{amp(current)}.(fns{stimchn})(rrecchn,crecchn)=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
+                    end
+                else
+                    ampmod=[100;amp];
+                    for current=1:length(ampmod)
+                        sorted_array_sigmoiddata{folder}{ampmod(current)}.(fns{stimchn})(rrecchn,crecchn)=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
+                    end
+                end
+            end
+        end
+    end
+    
+end
 count=0;
 count2=0;
 heatmap_array=[];
@@ -187,24 +320,46 @@ for recchn=chnnrange(1):chnnrange(end)
         end
         schn=regexp(fns(stimchn),'\d*','Match');
         schn=str2double(schn{1});
-        [r,c]=find(schn==stimchnarray);
-        if isempty(r)
-            continue
-        end
+
         %if c~=crecchn %stim shank only
+        if VA==stimVA
+            [r,c]=find(schn==stimchnarray);
+            if isempty(r)
+                continue
+            end
             rplus=16-r;
             cplus=4-c;
+        end
+            
             amp=loadAMP;
             if size(sigmoidAll{folder}.(chnname).(fns{stimchn}),2)==length(amp)
                 for current=1:length(amp)
-                    heatmap_array_sigmoiddata{amp(current)}{count}.(fns{stimchn})(rrecchn+rplus,crecchn+cplus)=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
-                    rate_distarray{amp(current)}{count}.(fns{stimchn}){rrecchn+rplus,crecchn+cplus}=rate_ALL{folder}.(chnname).(fns{stimchn})(current,:);
+                    if VA~=stimVA
+                        [r,c]=find(sorted_array_sigmoiddata{folder}{amp(current)}.(fns{stimchn})==max(sorted_array_sigmoiddata{folder}{amp(current)}.(fns{stimchn}),[],'all'));
+                        rplus=16-r;
+                        cplus=4-c;
+                        if isempty(rplus)
+                            rplus=1;
+                            cplus=1;
+                        end
+                    end
+                    heatmap_array_sigmoiddata{amp(current)}{count}.(fns{stimchn})(rrecchn+rplus(1),crecchn+cplus(1))=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
+                    rate_distarray{amp(current)}{count}.(fns{stimchn}){rrecchn+rplus(1),crecchn+cplus(1)}=rate_ALL{folder}.(chnname).(fns{stimchn})(current,:);
                 end
             else
                 tempamp=[100;amp];
                 for current=1:length(tempamp)
-                    heatmap_array_sigmoiddata{tempamp(current)}{count}.(fns{stimchn})(rrecchn+rplus,crecchn+cplus)=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
-                    rate_distarray{tempamp(current)}{count}.(fns{stimchn}){rrecchn+rplus,crecchn+cplus}=rate_ALL{folder}.(chnname).(fns{stimchn})(current,:);
+                    if VA~=stimVA
+                        [r,c]=find(sorted_array_sigmoiddata{folder}{tempamp(current)}.(fns{stimchn})==max(sorted_array_sigmoiddata{folder}{tempamp(current)}.(fns{stimchn}),[],'all'));
+                        rplus=16-r;
+                        cplus=4-c;
+                        if isempty(rplus)
+                            rplus=1;
+                            cplus=1;
+                        end
+                    end
+                    heatmap_array_sigmoiddata{tempamp(current)}{count}.(fns{stimchn})(rrecchn+rplus(1),crecchn+cplus(1))=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
+                    rate_distarray{tempamp(current)}{count}.(fns{stimchn}){rrecchn+rplus(1),crecchn+cplus(1)}=rate_ALL{folder}.(chnname).(fns{stimchn})(current,:);
                 end
             end
 
@@ -230,6 +385,7 @@ end
 
 %% DIstance, stimulation current effect
 % current vs distance vs firing rate && distance vs firing rate
+
 maxnum=1000;
 step=100;
 splitdist=cell(length(amp)+1,1);
@@ -255,11 +411,9 @@ sigtestRATE=zeros(91,1);
             splitdist{current}(i/step)=nanmean(heatmap_array{tempamp(current)}(distanceArray>=i-step & distanceArray<i));
             stdsplitdist{current}(i/step)=nanstd(heatmap_array{tempamp(current)}(distanceArray>=i-step & distanceArray<i))/sqrt(sum(~isnan(heatmap_array{tempamp(current)}(distanceArray>=i-50 & distanceArray<i))));
             countsplidist{current}(i/step)=nansum(~isnan(heatmap_array{tempamp(current)}(distanceArray>=i-step & distanceArray<i)));
-            %         distcurrent((i/50),current)=nanmean(heatmap_array{tempamp(current)}(distanceArray>=i-50 & distanceArray<i));
-            %         stddistcurrent((i/50),current)=nanstd(heatmap_array{tempamp(current)}(distanceArray>=i-50 & distanceArray<i))/sqrt(sum(~isnan(heatmap_array{tempamp(current)}(distanceArray>=i-50 & distanceArray<i))));
-            if current==1 %DISTANCE test significance between 0 and threshold value - 5uA for V2
-                sigtest(i/step)=ranksum(heatmap_array{tempamp(1)}(distanceArray>=i-step & distanceArray<i),heatmap_array{tempamp(2)}(distanceArray>=i-step & distanceArray<i));
-            end
+            %             if current==1 %DISTANCE test significance between 0 and threshold value - 5uA for V2
+            %                 sigtest(i/step)=ranksum(heatmap_array{tempamp(1)}(distanceArray>=i-step & distanceArray<i),heatmap_array{tempamp(2)}(distanceArray>=i-step & distanceArray<i));
+            %             end
             splitratedist{current}(i/step,:)=mean(cell2mat(rate_array{tempamp(current)}(distanceArray>=i-step & distanceArray<i)));
             stdratedist{current}(i/step,:)=std(cell2mat(rate_array{tempamp(current)}(distanceArray>=i-step & distanceArray<i)))./sqrt(size(cell2mat(rate_array{tempamp(current)}(distanceArray>=i-step & distanceArray<i)),1));
             if current==1 %RATE test significance between 0 and threshold value - 5uA for V2
@@ -331,6 +485,23 @@ xline(0,'k')
 xlim([-25,50])
 set(gca,'TickDir','out');
 axis square
+
+%% average rate
+for current=1:length(tempamp)
+arrayratecat=nan(size(rate_array{tempamp(current)},1)*size(rate_array{tempamp(current)},2)*size(rate_array{tempamp(current)},3),181);
+for i=1:size(rate_array{tempamp(current)},1)*size(rate_array{tempamp(current)},2)*size(rate_array{tempamp(current)},3)
+    if ~isempty(rate_array{tempamp(current)}{i})
+arrayratecat(i,:)=rate_array{tempamp(current)}{i};
+    end
+
+end
+arrayratecat(isnan(arrayratecat(:,1)),:)=[];
+figure(100); hold on; plot(-90:90,nanmean(arrayratecat,1))
+end
+   legend('0','2','5','6','8','10')
+   xlabel('Time (ms)')
+ylabel('Firing rate (sp/s)')
+set(gca,'TickDir','out');
 %% heatmap plots
 current=10;%ua
 amp=loadAMP;
@@ -456,13 +627,17 @@ for recchn=chnnrange(1):chnnrange(end)
             end
         end
 
-            for current=0:length(amp)
-                if current==5 && length(sigmoidAll{folder}.(chnname).(fns{stimchn}))==5
-                    continue
-                end
-                heatmap_array_sigmoiddata{current+1}{count}.(fns{stimchn})(rrecchn,crecchn)=sigmoidAll{folder}.(chnname).(fns{stimchn})(end-current);%iterates forwards
+        
+        if size(sigmoidAll{folder}.(chnname).(fns{stimchn}),2)==length(amp)
+            for current=1:length(amp)
+                heatmap_array_sigmoiddata{amp(current)}{count}.(fns{stimchn})(rrecchn,crecchn)=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
             end
-
+        else
+            ampmod=[100;amp];
+            for current=1:length(ampmod)
+                heatmap_array_sigmoiddata{ampmod(current)}{count}.(fns{stimchn})(rrecchn,crecchn)=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
+            end
+        end
         if recchn==chnnrange(end)
             count2=count2+1;
             for current=1:length(amp)+1

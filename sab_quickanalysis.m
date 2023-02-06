@@ -12,27 +12,23 @@ par=0;
 
 %% 1. Blank stimulus
 
-FS=30000;
+
 filepath = pwd;
-fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
-fileinfo = dir([filepath filesep 'info.rhs']);
-if (datetime(fileinfo.date) < fourShank_cutoff)
-    nChn=32;
-    E_Mapnumber=0;
+[amplifier_channels,frequency_parameters]=read_Intan_RHS2000_file;
+nChn=size(amplifier_channels,2);
+FS=frequency_parameters.amplifier_sample_rate;
+if nChn>32
+    E_Mapnumber=1;
 else
-    E_Mapnumber=loadMapNum;
-    if E_Mapnumber>0
-        nChn=64;
-    else
-        nChn=32;
-    end
+    E_Mapnumber=0;
 end
+
 dName='amplifier';
 vFID = fopen([filepath filesep dName '.dat'],'r');
 mem_check=dir('amplifier.dat');
-T = mem_check.bytes ./ (2 * nChn * 30000);
+T = mem_check.bytes ./ (2 * nChn * FS);
 fileinfo = dir([filepath filesep dName '.dat']);
-t_len = fileinfo.bytes/(nChn * 2 * 30000);
+t_len = fileinfo.bytes/(nChn * 2 * FS);
 if t_len < (Overall_time_to_analyse+Startpoint_analyse)
     error('Time to analyse exceeds the data recording period')
 end

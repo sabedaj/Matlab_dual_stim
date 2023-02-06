@@ -34,7 +34,10 @@ for recordchn=1:length(chnnum)
         stimchnname=['stimchn_' int2str(chn(stimchn))];
         IDs{stimchn}=sortrows(IDs{stimchn});
         IDs{stimchn}=IDs{stimchn}(any(IDs{stimchn},2),:);
-        
+        maxID=IDs{stimchn}(IDs{stimchn}(:,1)==10,2);
+        p=0;
+        checkbasesp=nan(40,length(IDs{stimchn}));
+        checkspkcount=nan(40,length(IDs{stimchn}));
         for ID=1:size(IDs{stimchn},1)
             t=['ID_' int2str((IDs{stimchn}(ID,2)))];
             spkcount=zeros(40,1);
@@ -47,21 +50,27 @@ for recordchn=1:length(chnnum)
                 basespikecount(j)=size(baslinespike_trialstruct.(chnname).(t).(t2),1)/avgtimebs;
                 timespikes=[timespikes; latency_trialstruct.(chnname).(t).(t2)];
             end
-            % p=ranksum(basespikecount,spkcount,'tail','left');
+            
+            checkbasesp(1:40,ID)=basespikecount;
+            checkspkcount(1:40,ID)=spkcount;
+            if IDs{stimchn}(ID,2)==maxID
+            p=ranksum(checkbasesp(:),checkspkcount(:),'tail','left');
+            end
             basesubtractspike=spkcount-basespikecount;
-            %if p<0.05
+            if p>0.05
+                spk_all.(chnname).(stimchnname)(1:size(IDs{stimchn},1))=nan(size(IDs{stimchn},1),1);
+                rate_all.(chnname).(stimchnname)(1:size(IDs{stimchn},1),:)=nan(size(IDs{stimchn},1),181);
+                Peak_latency_all.(chnname).(stimchnname)(1,1:size(IDs{stimchn},1))=nan(size(IDs{stimchn},1),1);
+                continue
+            end
+                
             spk_all.(chnname).(stimchnname)(ID)=mean(basesubtractspike(1:size(struct2table(Spike_trialstruct.(chnname).(t),'AsArray',true),2)))/(timeend-timestart)*1000;
             rate=hist(timespikes,-90:90);
             rateh=rate.*1000/nT;%rate.Values.*1000/nT;
             rate_all.(chnname).(stimchnname)(ID,:)=rateh;
             [~,peak]=max(rateh(90:end));
             Peak_latency_all.(chnname).(stimchnname)(1,ID)=peak;
-            
-            %             else
-            %                 spk_all.(['Chn_' num2str(chnnum(recordchn))]).(['stimchn_' num2str(chn(stimchn))])(ID)=nan(1,1);
-            %                 rate_all.(['Chn_' num2str(chnnum(recordchn))]).(['stimchn_' num2str(chn(stimchn))])(ID,:)=nan(1,181);
-            %                 Peak_latency_all.(['Chn_' num2str(chnnum(recordchn))]).(['stimchn_' num2str(chn(stimchn))])(1,ID)=nan(1,1);
-            %             end
+
             %             if ID==size(IDs{stimchn},1)
             %                 p=ranksum(basespikecount,spkcount,'tail','left');
             %                 if p>0.05

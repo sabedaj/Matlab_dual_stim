@@ -9,26 +9,16 @@ else
     Startpoint_analyse=cell2mat(varargin(1));
     Overall_time_to_analyse=cell2mat(varargin(2));
 end
-if strcmp(dName,'analogin')
-    nChn = 1;
-elseif strcmp(dName,'amplifier')
-    fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
-    fileinfo = dir([filepath, filesep, 'info.rhs']);
-    if (datetime(fileinfo.date) < fourShank_cutoff)
-        nChn=32;
-        E_Mapnumber=0;
-    else
-        E_Mapnumber=loadMapNum;
-        if E_Mapnumber>0
-            nChn=64;
-        else
-            nChn=32;
-        end
-    end
-    E_MAP = Depth;
+[amplifier_channels,frequency_parameters]=read_Intan_RHS2000_file;
+nChn=size(amplifier_channels,2);
+FS=frequency_parameters.amplifier_sample_rate;
+if nChn>32
+    E_Mapnumber=1;
+else
+    E_Mapnumber=0;
 end
 shortbytes=2;
-FS = 30000;
+
 %% Deal with the digital lines
 if isempty(dir('*.trig.dat'))
 cleanTrig_sabquick;
