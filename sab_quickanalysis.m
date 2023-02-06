@@ -8,7 +8,7 @@ artefact_high=500; %removes spikes above this threshold
 startpointseconds=2; %How long after the trigger do you want skip spike analysis(ms)? 
 secondstoanalyse=8; %How long after the trigger do you want to analyse spikes for(ms)? 
 printspiking=1;
-par=0;
+par=1;
 
 %% 1. Blank stimulus
 

@@ -35,7 +35,7 @@ if mode == 1 % for HPF
         for c = 1:nChn
             % Find the appropriate range
             ra = [1 46];
-            range_max = 100;%150
+            range_max = 150;%150
             while range(data(c,thisTrig+ra(1):thisTrig+ra(2))) > range_max
                 ra = ra + 1;
                 if ra(1) > 180
