@@ -865,7 +865,7 @@ else
     numshanksToAvg=6;
     downsampleYN=1; %do you want to downsample 1=yes
 end
-downsampleYN=0;
+downsampleYN=1;
 if singleCurrent==0
     AMP=[0 1 2 3 4 6 8 10];
 else
@@ -1021,7 +1021,7 @@ for sepdist=5:2:9
             dat2plot((sum(~isnan(dat2plot),2)<size(dat2plot,2)/2),:)=nan;
             if downsampleYN==1%%%%%%%%%%%%%%%%%%%
                 if trial==1
-                    lengthneeded=40;%60;
+                    lengthneeded=60;%60;
                     [samples_rand1]=DownSample(dat2plot,lengthneeded,s,seedpoint);
                     samples_rand.(sepcheck)=samples_rand1;
                 end
@@ -1045,6 +1045,42 @@ for sepdist=5:2:9
 
     end
 end
+
+
+%% single electrode stim - separation based on layer
+distarray1=[(15:-1:1) 0 1:15]*50;
+individuallayers=['s';'g';'i'];
+Current='C6';
+layer_types=['ss';'gg';'ii';'si';'sg';'gi';'WM'];
+trials=[1 5];
+singleElect=cell(3,1);
+for layerIT=1:length(layer_types)
+    layercheck=layer_types(layerIT,:);
+    for sepdist=5:2:9
+        sepcheck=['sep' num2str(sepdist)];
+        for trialIT=1:length(trials)
+            trialcheck=['T' num2str(trials(trialIT))];
+            for shanksep=0:3
+                shanksepcheck=['D' num2str(shanksep)];
+                layer=find(layercheck(1)==individuallayers);
+                if trials(trialIT)==1
+                    singleElect{layer}=[singleElect{layer} saveCplit_raw.(layercheck).(sepcheck).(currcheck).(trialcheck).(shanksepcheck)];
+                else
+                    singleElect{layer}=[singleElect{layer} saveCplit_raw.(layercheck).(sepcheck).(currcheck).(trialcheck).(shanksepcheck)];
+                end
+
+            end
+        end
+    end
+end
+
+
+
+
+
+
+
+
 %% accross vs laminar peak plots
 load('Peakpos_acc.mat','Peakpos_acc')
 load('Peakpos_lam.mat','Peakpos_lam')
@@ -1212,6 +1248,8 @@ figure
 %         txt = ['y=' num2str(P(1)) 'x+' num2str(P(2))];
 % text(10,150,txt)
 % legend([l.G1 l.G2 l.G3],'300','400','500')
+
+
 
 
 %% plot layer separation
