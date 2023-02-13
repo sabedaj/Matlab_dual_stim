@@ -27,7 +27,7 @@ for indT=1:40
     ftell(fileID)
     vblankmu = fread(fileID,[nChn, (0.020*FS+0.02*FS)],'short')./10; %plots one second from trigger and 250ms brefore
     %vblankmu2 = fread(fileID2,[nChn, (0.020*FS+0.02*FS)],'int16') .* 0.195;
-    %if any(vblankmu(chsp,:)<-50)
+    if any(vblankmu(chsp,:)<-50)
 %         figure
 %         plot (-0.02*1000:1000/FS:0.02*1000-1000/FS,vblankmu2(chsp,:))
 %         title(['Channel ' num2str(chsp)])

@@ -194,16 +194,16 @@ for folder=1:length(rate_ALL)
             if any(rate_ALL{folder}.(chnname).(fns{stimchn})(end,2:8)>100)
                 stop=0;
             end
-            if all(diff(sigmoidAll{folder}.(chnname).(fns{stimchn}))>=0) && recchn==41
-                ti=loadTrialInfo;
-                tID=cell2mat(ti([false; cell2mat(ti(2:end,2))==schn],1));
-                for i=1:length(tID)
-                plotRawdata(recchn,tID(i))
-                end
-            end
-            if mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,31+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,12+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,52+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,70+90))>thresh
-                continue%figure(50);hold on;plot(-90:90,mean(rate_ALL{folder}.(chnname).(fns{stimchn})))
-            end
+%             if all(diff(sigmoidAll{folder}.(chnname).(fns{stimchn}))>=-10)
+%                 ti=loadTrialInfo;
+%                 tID=cell2mat(ti([false; cell2mat(ti(2:end,2))==schn],1));
+%                 for i=1:length(tID)
+%                 plotRawdata(recchn,tID(i))
+%                 end
+%             end
+            %if mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,31+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,12+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,52+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,70+90))>thresh
+               % continue%figure(50);hold on;plot(-90:90,mean(rate_ALL{folder}.(chnname).(fns{stimchn})))
+           % end
 
             count=count+1;
                 if size(rate_ALL{folder}.(chnname).(fns{stimchn}),1)==length(amp)
@@ -218,10 +218,10 @@ end
 
 tempamp=[100; amp];
 if VA==1
-color1 = linspace(0,1,length(tempamp)-1);
+color1 = linspace(0,1,length(tempamp));
 newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
 else
-    color1 = linspace(0,1,length(tempamp)-1);
+    color1 = linspace(0,1,length(tempamp));
 newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
 end
 figure; colororder(newcolors);
@@ -232,7 +232,7 @@ for current=1:length(tempamp)
 temp=squeeze(rate_plot(tempamp(current),:,:));
 plottemp=nanmean(temp');
 stdtemp=nanstd(temp')./sqrt(sum(~isnan(temp(1,:))));
-fillOut = fill(ax,[F fliplr(F)],[plottemp+stdtemp fliplr(plottemp-stdtemp)],newcolors(i,:), 'FaceAlpha', 0.2,'linestyle','none');
+fillOut = fill(ax,[F fliplr(F)],[plottemp+stdtemp fliplr(plottemp-stdtemp)],newcolors(current,:), 'FaceAlpha', 0.2,'linestyle','none');
 plot(-90:90,[plottemp(1:89) nan nan nan  nan plottemp(94:181)])
 end
 legend('0','2','5','6','8','10')
