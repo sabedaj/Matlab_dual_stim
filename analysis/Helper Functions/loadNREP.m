@@ -5,5 +5,9 @@ if isempty(data)
 end
 data = data.name;
 load(data,'n_REP');
-%load(data,'n_REP_true');
-%n_REP=n_REP_true;
+try
+load(data,'n_REP_true');
+n_REP=n_REP_true;
+catch
+    return
+end

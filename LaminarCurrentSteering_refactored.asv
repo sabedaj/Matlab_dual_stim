@@ -1006,9 +1006,8 @@ for sepdist=5:2:9
                 peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).(trialcheck)=peak;
                 if trial==5 && exist('peak_all') && ~isempty(peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T1)
                     [p,tbl,stats]=friedman([peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T1(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T2(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T3(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T4(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T5(:)],1,'off');
-                    text(ax2.([layer_types(layername),layer_types(layername+length(layer_types))]),16,1,['p=' num2str(p)])
+                    text(ax2.([layer_types(layername),layer_types(layername+length(layer_types))]),1,16,['p=' num2str(p)])
                     N=size(peak,1)
-                    text(ax2.([layer_types(layername),layer_types(layername+length(layer_types))]),16,2,['N=' num2str(N)])
                     p
                 end
                 dat2plot=[];

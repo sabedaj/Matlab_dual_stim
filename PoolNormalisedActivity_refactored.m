@@ -107,6 +107,7 @@ for AMPit=1:length(AMP_original)
         end
         for shankplot=1:4
             for trial=1:size(singleLineplotval,2)
+                tcheck=['T' num2str(trial)];
                 if shankplot==2
                     realshank=4;% sorted
                 elseif shankplot==3
@@ -120,11 +121,13 @@ for AMPit=1:length(AMP_original)
                 if AMPInterestSingleLinePlot==-1
                     AMP_noneg=0;
                 end
+                Ccheck=['C' num2str(AMP_noneg)];
                 normspk=singleLineplotval(1+((shankplot-1)*16):(shankplot*16),trial);
                 shanklayclass=ElectLayerClass(1+((shankplot-1)*16):(shankplot*16));
-                Csplit.(['C' num2str(AMP_noneg)]).(['T' num2str(trial)])=[Csplit.(['C' num2str(AMP_noneg)]).(['T' num2str(trial)]) [NaN(16-stimChn(1),1); normspk; NaN(32-(16-stimChn(1))-16,1)]];
+                Csplit.(Ccheck).(tcheck)=[Csplit.(Ccheck).(tcheck) [NaN(16-stimChn(1),1); normspk; NaN(32-(16-stimChn(1))-16,1)]];
                 Shanksep=realshank-shank;
-                Csplit_shankdist.(['C' num2str(AMP_noneg)]).(['T' num2str(trial)]).(['D' num2str(abs(Shanksep))])=[Csplit_shankdist.(['C' num2str(AMP_noneg)]).(['T' num2str(trial)]).(['D' num2str(abs(Shanksep))]) [NaN(16-stimChn(1),1); normspk; NaN(32-(16-stimChn(1))-16,1)]];
+                Dcheck=['D' num2str(abs(Shanksep))];
+                Csplit_shankdist.(Ccheck).(tcheck).(Dcheck)=[Csplit_shankdist.(Ccheck).(tcheck).(Dcheck) [NaN(16-stimChn(1),1); normspk; NaN(32-(16-stimChn(1))-16,1)]];
                 WMborder=find(shanklayclass==4,1,'last');
                 if isempty(WMborder)
                     GIborder=find(shanklayclass==3,1,'last');
