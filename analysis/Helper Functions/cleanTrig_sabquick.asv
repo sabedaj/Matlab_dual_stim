@@ -110,11 +110,16 @@ if length(trig)<(length(TP)/num_elect)
     Trigs_to_Check = trig(NoStimTrials);
     BIN = [-50 50];
     v = fread(mFID,[nChn, (19*FS)],'int16') .* 0.195;
-    threshold=max(v(5,:))+1000;
+    threshold=std(v(5,:));
+    if threshold<300
+        threshold=3000;
+    else
+        threshold=std(v(5,1:FS*19))*2;
+    end
     for t=1:length(Trigs_to_Check)
         OFFSET = cast(nChn*2*(Trigs_to_Check(t)+(BIN(1)*FS/1e3)),'int64');
         fseek(mFID,OFFSET,'bof'); % used to point to specific point in the data indicated by offset from begginning of file
-        v = fread(mFID,[nChn, (FS/1e3)*diff(BIN)],'int16') .* 0.195;
+        v = fread(mFID,[nChn, (FS/1e3)*diff(BIN)],'int16') ./ 0.195;
         if any(v(5,1500:1650)>threshold) || any(v(15,1500:1650)>threshold) 
             try
                 Start_trig=find(trig==Trigs_to_Check(t-1));

@@ -865,7 +865,7 @@ else
     numshanksToAvg=6;
     downsampleYN=1; %do you want to downsample 1=yes
 end
-downsampleYN=0;
+downsampleYN=1;
 if singleCurrent==0
     AMP=[0 1 2 3 4 6 8 10];
 else
@@ -1035,6 +1035,9 @@ for sepdist=5:2:9
                 maxsepdist(sepdist)=max(curve);
                 FWHMsepdist(sepdist)=sum((curve>=max(curve)/2))./sum(~isnan(curve));
             end
+            if trial==1
+                senv=smoothedenvelope;
+            end
             peak_all.(currcheck).(trialcheck)=peak;
             Peakpos_lam.(sepcheck).(currcheck).(trialcheck)=peak;%Peakpos_lam
             if trial==5 && exist('peak_all') && ~isempty(peak_all.(currcheck).(trialcheck))
@@ -1046,6 +1049,8 @@ for sepdist=5:2:9
                 text(ax2,DATApos1+9.5,1,['p=' num2str(p)])
                 N=size(peaks,1)
                 p
+                %test whether single electrode conditions are sig diff
+                psingle=ranksum(nanmean(senv,2),nanmean(smoothedenvelope,2));
             end
             dat2plot=[];
         end

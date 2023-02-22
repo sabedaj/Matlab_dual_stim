@@ -57,12 +57,12 @@ for recordchn=1:length(chnnum)
             p=ranksum(checkbasesp(:),checkspkcount(:),'tail','left');
             end
             basesubtractspike=spkcount-basespikecount;
-            if p>0.05
-                spk_all.(chnname).(stimchnname)(1:size(IDs{stimchn},1))=nan(size(IDs{stimchn},1),1);
-                rate_all.(chnname).(stimchnname)(1:size(IDs{stimchn},1),:)=nan(size(IDs{stimchn},1),181);
-                Peak_latency_all.(chnname).(stimchnname)(1,1:size(IDs{stimchn},1))=nan(size(IDs{stimchn},1),1);
-                continue
-            end
+%             if p>0.05
+%                 spk_all.(chnname).(stimchnname)(1:size(IDs{stimchn},1))=nan(size(IDs{stimchn},1),1);
+%                 rate_all.(chnname).(stimchnname)(1:size(IDs{stimchn},1),:)=nan(size(IDs{stimchn},1),181);
+%                 Peak_latency_all.(chnname).(stimchnname)(1,1:size(IDs{stimchn},1))=nan(size(IDs{stimchn},1),1);
+%                 continue
+%             end
                 
             spk_all.(chnname).(stimchnname)(ID)=mean(basesubtractspike(1:size(struct2table(Spike_trialstruct.(chnname).(t),'AsArray',true),2)))/(timeend-timestart)*1000;
             rate=hist(timespikes,-90:90);
