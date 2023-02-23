@@ -1,5 +1,5 @@
-function plotRawdata(chsp,tID)
-
+function plotRawdata(chsp,tID,DataType)
+%DataType dn mu or amplifier
 nChn=128;
 FS=30000;
 trig=loadTrig;
@@ -13,10 +13,14 @@ trigtID(trigtID==-500)=[];
 filepath = pwd;
 [filepathm,name,ext] = fileparts(filepath);
 name = name(1:end-14);
+if strcmp(DataType,'amplifier')
+    fileID=fopen('amplifier.dat','r');
+elseif strcmp(DataType,'dn')
+    fileID=fopen('amplifier_dn_sab.dat','r');
+elseif strcmp(DataType,'mu')
+    fileID=fopen([name '.mu_sab.dat'],'r');
+end
 
-%fileID=fopen([name '.mu_sab.dat'],'r');
-fileID=fopen(['amplifier_dn_sab.dat'],'r');
-%fileID=fopen(['amplifier.dat'],'r');
 try
     ftell(fileID)
 catch
@@ -24,12 +28,16 @@ catch
 end
 shortbytes=2;
 for indT=1:length(trigtID)
-    offset=trigtID(indT)*nChn*shortbytes-0.020*FS*shortbytes*nChn;%offset from beginning of file to trigger-250ms
+    offset=trigtID(indT)*nChn*shortbytes-0.10*FS*shortbytes*nChn;%offset from beginning of file to trigger-250ms
     fseek(fileID,offset,'bof');
      %fseek(fileID2,offset,'bof');
     ftell(fileID)
-    %vblankmu = fread(fileID,[nChn, (0.020*FS+0.1*FS)],'short')./10; %plots one second from trigger and 250ms brefore
-    vblankmu = fread(fileID,[nChn, (0.020*FS+0.1*FS)],'int16') .* 0.195;
+    if strcmp(DataType,'amplifier') || strcmp(DataType,'dn')
+        vblankmu = fread(fileID,[nChn, (0.10*FS+0.1*FS)],'int16') .* 0.195;
+    elseif strcmp(DataType,'mu')
+    vblankmu = fread(fileID,[nChn, (0.10*FS+0.1*FS)],'short')./10; %plots one second from trigger and 250ms brefore
+    end
+    %
     %if any(vblankmu(chsp,:)<-50)
 %         figure
 %         plot (-0.02*1000:1000/FS:0.02*1000-1000/FS,vblankmu2(chsp,:))
@@ -38,7 +46,7 @@ for indT=1:length(trigtID)
 %         ylabel('Voltage (uV)')
         
             figure
-        plot (-0.02*1000:1000/FS:0.1*1000-1000/FS,vblankmu(chsp,:))
+        plot (-0.1*1000:1000/FS:0.1*1000-1000/FS,vblankmu(chsp,:))
         title(['Channel ' num2str(chsp)])
         xlabel('Time (ms)')
         ylabel('Voltage (uV)')

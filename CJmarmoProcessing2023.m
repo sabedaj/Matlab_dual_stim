@@ -176,7 +176,7 @@ for folder=1:length(rate_ALL)
     catch
         continue
     end
-
+%%
     amp=loadAMP;
     for recchn=chnnrange(1):chnnrange(end)
         chnname=['Chn_' num2str(recchn)];
@@ -231,7 +231,7 @@ temp=squeeze(rate_plot(tempamp(current),:,:));
 plottemp=nanmean(temp');
 stdtemp=nanstd(temp')./sqrt(sum(~isnan(temp(1,:))));
 fillOut = fill(ax,[F fliplr(F)],[plottemp+stdtemp fliplr(plottemp-stdtemp)],newcolors(current,:), 'FaceAlpha', 0.2,'linestyle','none');
-plot(-90:90,[plottemp(1:89) nan nan nan  nan plottemp(94:181)])
+plot(-90:90,[plottemp(1:89) nan nan nan  nan plottemp(94:181)],'color',newcolors(current,:))
 end
 legend('0','2','5','6','8','10')
 set(gca,'TickDir','out');
