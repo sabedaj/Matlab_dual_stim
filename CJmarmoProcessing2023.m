@@ -31,7 +31,7 @@ parfor k = 3:length(D_data) % loop through the stimulation pairs. Avoid using th
     end
     k
     [stimChn,~]=loadstimulationchannels;
-    chn_range=1:64;
+    chn_range=1:128;
 
     if str2double(name(end-12:end-7))<220812
         warning('port D bad')
@@ -70,8 +70,8 @@ parfor k = 3:length(D_data) % loop through the stimulation pairs. Avoid using th
 %     Peak_latencyALL{k}=Peak_latency;
 end
 %% sigmoid
-VA=2;%visual area recording
-stimVA=1; %visual area being stimulated
+VA=1;%visual area recording
+stimVA=2; %visual area being stimulated
 cd([D_data(3).folder filesep D_data(3).name])
 if VA==1
     columns=[5,7,8,6];
@@ -101,11 +101,13 @@ for folder=1:length(sigmoidAll)
     catch
         continue
     end
-
     amp=loadAMP;
     for recchn=chnnrange(1):chnnrange(end)
         chnname=['Chn_' num2str(recchn)];
          [rrecchn,crecchn]=find(ordershapearray==recchn);
+         if str2double(currD(end-12:end-7))<220812 && recchn>96
+             continue
+         end
         fns = fieldnames(sigmoidAll{folder}.(chnname));
         for stimchn=1:length(fns)
             schn = str2double(regexp(fns{stimchn},'\d*','Match'));
@@ -126,7 +128,7 @@ for folder=1:length(sigmoidAll)
                 if size(sigmoidAll{folder}.(chnname).(fns{stimchn}),2)==length(amp)
                     sigmoidplot(count,amp)=sigmoidAll{folder}.(chnname).(fns{stimchn});
                 else
-                    sigmoidplot(count,[100; amp])=sigmoidAll{folder}.(chnname).(fns{stimchn});
+                    sigmoidplot(count,[amp; 100])=sigmoidAll{folder}.(chnname).(fns{stimchn});
                 end
             %end
             %end
@@ -156,7 +158,7 @@ elseif VA==2
     chnnrange=1:64;
 end
 count=0;
-rate_plot=nan(10,6);
+rate_plot=nan(100,181,25000);
 order=Depth(1);
 ordershapearray=reshape(order,16,8);
 ordershapearray=ordershapearray(:,columns);
@@ -166,7 +168,7 @@ elseif stimVA==1
     stimchnarray=[1:16;33:48;49:64;17:32]'+64;
 end
 
-for folder=1:length(rate_ALL)
+for folder=1:length(D_data)
     currD = D_data(folder).name; % Get the current subdirectory name
     try
         cd([D_data(folder).folder filesep currD])
@@ -179,6 +181,9 @@ for folder=1:length(rate_ALL)
 %%
     amp=loadAMP;
     for recchn=chnnrange(1):chnnrange(end)
+        if str2double(currD(end-12:end-7))<220812 && recchn>96
+            continue
+        end
         chnname=['Chn_' num2str(recchn)];
         [rrecchn,crecchn]=find(ordershapearray==recchn);
         fns = fieldnames(rate_ALL{folder}.(chnname));
@@ -202,13 +207,14 @@ for folder=1:length(rate_ALL)
             %if mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,31+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,12+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,52+90))>thresh || mean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,70+90))>thresh
                % continue%figure(50);hold on;plot(-90:90,mean(rate_ALL{folder}.(chnname).(fns{stimchn})))
            % end
-
+            %if ~any(rate_ALL{folder}.(chnname).(fns{stimchn})(:,92:92+85)-nanmean(rate_ALL{folder}.(chnname).(fns{stimchn})(:,1:85),2)>50,'all')
             count=count+1;
                 if size(rate_ALL{folder}.(chnname).(fns{stimchn}),1)==length(amp)
                     rate_plot(amp,1:181,count)=rate_ALL{folder}.(chnname).(fns{stimchn});
                 else
-                    rate_plot([100; amp],1:181,count)=rate_ALL{folder}.(chnname).(fns{stimchn});
+                    rate_plot([amp; 100],1:181,count)=rate_ALL{folder}.(chnname).(fns{stimchn});
                 end
+            %end
 
         end
     end

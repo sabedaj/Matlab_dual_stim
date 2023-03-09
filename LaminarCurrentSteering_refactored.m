@@ -1004,12 +1004,16 @@ for sepdist=5:2:9
                 smoothedenvelope=smoothData(dat2plot,FilterLength);
                 [peak,DATApos1]=plotActivityAndPeak(smoothedenvelope,sepdist,trial,cmap,ax1.(layernameFULL),ax2.(layernameFULL),Lam_Acc);
                 peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).(trialcheck)=peak;
+                if trial==1
+                    senv.([layer_types(layername),layer_types(layername+length(layer_types))])=smoothedenvelope;
+                end
                 if trial==5 && exist('peak_all') && ~isempty(peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T1)
                     [p,tbl,stats]=friedman([peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T1(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T2(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T3(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T4(:),peak_all.([layer_types(layername),layer_types(layername+length(layer_types))]).(currcheck).T5(:)],1,'off');
                     text(ax2.([layer_types(layername),layer_types(layername+length(layer_types))]),16,1,['p=' num2str(p)])
                     N=size(peak,1)
                     text(ax2.([layer_types(layername),layer_types(layername+length(layer_types))]),16,2,['N=' num2str(N)])
                     p
+                     psingle=ranksum(nanmean(senv.([layer_types(layername),layer_types(layername+length(layer_types))]),2),nanmean(smoothedenvelope,2),'tail','left');
                 end
                 dat2plot=[];
             end

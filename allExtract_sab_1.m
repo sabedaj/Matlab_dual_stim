@@ -45,9 +45,10 @@ end
 lv_fid = fopen([dName '.dat'],'r');
 ntimes = ceil(fileinfo.bytes / 2 / nChn / FS / T);
 %% Generate filters
-[Mufilt,Lfpfilt] = generate_Filters;
+[Mufilt,Lfpfilt,NOTCHfilt] = generate_Filters;
 LfpNf = length(Lfpfilt);
 MuNf = length(Mufilt);
+NotchNf = length(NOTCHfilt);
 %% Calculate thresholds
 %if isempty(dir('*.sp.mat'))
     dispstat('','init');
@@ -126,8 +127,17 @@ if (justMu)
             else
                 for iChn = 1:nChn
                     flip_data = fliplr(data(iChn,:));
-                    tmp = conv(flip_data,Mufilt);
-                    mu = fliplr(tmp(1,MuNf/2:Ndata+MuNf/2-1));
+                    
+
+                    tmpmu = conv(flip_data,Mufilt);
+%                     tmpnotch = conv(flip_data,NOTCHfilt);
+%                     dat=tmpmu(1,MuNf/2:Ndata+MuNf/2-1) - (tmpnotch(1,NotchNf/2:Ndata+NotchNf/2-1));
+%                     Wo = 50/(30000/2);  BW = Wo/35;
+% [b,a] = iirnotch(Wo,BW); 
+% Y=filter(b,a,flip_data);
+%  tmpmu = conv(Y,Mufilt);
+                    mu = fliplr(tmpmu(1,MuNf/2:Ndata+MuNf/2-1));% - fliplr(tmpnotch(1,NotchNf/2:Ndata+NotchNf/2-1));
+                
                     MuOut{iChn} = mu;
                 end
             end
@@ -220,6 +230,7 @@ if isempty(dir('*.sp.mat'))
         for iChn = 1:nChn
             sp{iChn} = sp{iChn}(1:NSp(iChn),:);
         end
+        sp=intersect_tolerance(sp);%remove spikes that are common
         save([name '.sp.mat'],'sp','thresh','threshfac','template','r2t','-v7.3');
     else
         disp('Saving spikes');
