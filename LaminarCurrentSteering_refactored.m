@@ -836,7 +836,7 @@ normalise_dat=1;
 
 %YOU CAN ONLY PICK ONE OF THESE
 splitshanks=0; %Split into stim, 1 shank away and 2 shanks away etc
-splitlayers=1; %split into layers
+splitlayers=0; %split into layers
 %AND IF YOU PICK ONE^^^, YOU CAN'T PICK ALL CURRENTS
 singleCurrent=6; %plot 6uA results
 FilterLength=1;%smoothing parameters %%should be 1 if you have normalised the data above.
@@ -1013,7 +1013,7 @@ for sepdist=5:2:9
                     N=size(peak,1)
                     text(ax2.([layer_types(layername),layer_types(layername+length(layer_types))]),16,2,['N=' num2str(N)])
                     p
-                     psingle=ranksum(nanmean(senv.([layer_types(layername),layer_types(layername+length(layer_types))]),2),nanmean(smoothedenvelope,2),'tail','left');
+                     psingle=signrank(nanmean(senv.([layer_types(layername),layer_types(layername+length(layer_types))]),2),nanmean(smoothedenvelope,2));
                 end
                 dat2plot=[];
             end
@@ -1042,6 +1042,9 @@ for sepdist=5:2:9
             if trial==1
                 senv=smoothedenvelope;
             end
+            if trial==3
+                senv_mid=smoothedenvelope;
+            end
             peak_all.(currcheck).(trialcheck)=peak;
             Peakpos_lam.(sepcheck).(currcheck).(trialcheck)=peak;%Peakpos_lam
             if trial==5 && exist('peak_all') && ~isempty(peak_all.(currcheck).(trialcheck))
@@ -1054,7 +1057,7 @@ for sepdist=5:2:9
                 N=size(peaks,1)
                 p
                 %test whether single electrode conditions are sig diff
-                psingle=ranksum(nanmean(senv,2),nanmean(smoothedenvelope,2));
+                psingle=signrank(nanmean(senv,2),nanmean(smoothedenvelope,2));
             end
             dat2plot=[];
         end

@@ -11,19 +11,13 @@ function [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct,
 %number of spikes in this trial for the given electrode
 
 %Elecrode properties
-filepath = pwd;
-fourShank_cutoff = datetime('03-Aug-2020 00:00:00');
-fileinfo = dir([filepath filesep 'info.rhs']);
-if (datetime(fileinfo.date) < fourShank_cutoff)
-    nChn=32;
+
+[amplifier_channels,~]=read_Intan_RHS2000_file;
+nChn=length(amplifier_channels);
+if nChn>32
+    E_Mapnumber=1;
+else 
     E_Mapnumber=0;
-else
-    E_Mapnumber=loadMapNum;
-    if E_Mapnumber>0
-        nChn=64;
-    else
-        nChn=32;
-    end
 end
 E_MAP = Depth(E_Mapnumber);
 avgnospT=[];

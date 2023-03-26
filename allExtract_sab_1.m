@@ -230,7 +230,7 @@ if isempty(dir('*.sp.mat'))
         for iChn = 1:nChn
             sp{iChn} = sp{iChn}(1:NSp(iChn),:);
         end
-        sp=intersect_tolerance(sp);%remove spikes that are common
+        sp=intersect_hist_tolerance(sp);%remove spikes that are common
         save([name '.sp.mat'],'sp','thresh','threshfac','template','r2t','-v7.3');
     else
         disp('Saving spikes');
