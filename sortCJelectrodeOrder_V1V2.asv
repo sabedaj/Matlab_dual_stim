@@ -5,7 +5,7 @@ ordershapearray=reshape(order,16,8);
 ordershapearrayV1=ordershapearray(:,5:8);
 ordershapearrayV2=ordershapearray(:,1:4);
 
-%sorting dataitself
+%sorting data
 % x=fieldnames(Spike_trialstruct);
 % startchn = str2double(regexp(x{1},'\d*','Match'));
 % endchn = str2double(regexp(x{end},'\d*','Match'));

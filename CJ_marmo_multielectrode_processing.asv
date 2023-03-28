@@ -54,50 +54,48 @@ loop=0;
      storefilechn=zeros(length(IDstructsave),8);
     storefileamp=zeros(length(IDstructsave),2040);
     uniqueamp=0;
-for loop=1:length(IDstructsave)% loop through the stimulation pairs. Avoid using the first ones
+while ~all(checkoff) % loop through the stimulation pairs. Avoid using the first ones
 %    currD = folders(loop).name; % Get the current subdirectory name
 %     cd([folders(loop).folder filesep currD])
     
     
+    loop=loop+1;
     
+   
+    if any(all(storefilechn==savefilename{loop}{2}.CHN,2) & all(storefileamp==savefilename{loop}{2}.AMP,2))
+        
+        
+    else
+             storefilechn=[storefilechn; savefilename{loop}{2}.CHN];
+    storefileamp{loop}=savefilename{loop}{2}.AMP;
+    end
+    
+    
+
     %k=find(checkoff==false,1);
-    filessame=all(storefilechn==savefilename{loop}{2}.CHN,2) & all(storefileamp==savefilename{loop}{2}.AMP(:)',2);
+    filessame=any(all(storefilechn==savefilename{loop}{2}.CHN,2) & all(storefileamp==savefilename{loop}{2}.AMP(:)',2));
     if ~any(filessame)
         uniqueamp=uniqueamp+1;
         storefileamp(uniqueamp,:)=savefilename{loop}{2}.AMP(:)';
-        storefilechn(uniqueamp,:)=savefilename{loop}{2}.CHN;
+        storefilechn=savefilename{loop}{2}.CHN;
+    end
+    filessame=any(savefilename==filenameunique(loop),2);
+    checkoff=checkoff | filessame;
+    %[avgnospT,stderrspktrial,~] = AverageTrialResponse_SM(IDstruct, baslinespikestruct);
+    index=find(filessame==true);
+    trialend=length(fieldnames(IDstructsave{index(1)}{1}));
+    for loopfiles=1:length(index)
         for trial=1:trialend
             tnum=['T', num2str(trial)];
-            
-            IDstructcompiled{uniqueamp}.(tnum)=IDstructsave{loop}{1}.(tnum);
-            BaselineIDstructcompiled{uniqueamp}.(tnum)=IDstructsave{loop}{2}.(tnum);
-            
-        end
-    else
-        index=find(filessame);
-        for trial=1:trialend
-            tnum=['T', num2str(trial)];
-        IDstructcompiled{index}.(tnum)=[IDstructcompiled{index}.(tnum) IDstructsave{loop}{1}.(tnum)];
-        BaselineIDstructcompiled{index}.(tnum)=[BaselineIDstructcompiled{index}.(tnum) IDstructsave{loop}{2}.(tnum)];
+            if loopfiles==1
+                IDstructcompiled{loop}.(tnum)=IDstructsave{index(loopfiles)}{1}.(tnum);
+                BaselineIDstructcompiled{loop}.(tnum)=IDstructsave{index(loopfiles)}{2}.(tnum);
+            else
+                IDstructcompiled{loop}.(tnum)=[IDstructcompiled{loop}.(tnum) IDstructsave{index(loopfiles)}{1}.(tnum)];
+                BaselineIDstructcompiled{loop}.(tnum)=[BaselineIDstructcompiled{loop}.(tnum) IDstructsave{index(loopfiles)}{2}.(tnum)];
+            end
         end
     end
-%     filessame=any(savefilename==filenameunique(loop),2);
-%     checkoff=checkoff | filessame;
-%     %[avgnospT,stderrspktrial,~] = AverageTrialResponse_SM(IDstruct, baslinespikestruct);
-%     index=find(filessame==true);
-%     trialend=length(fieldnames(IDstructsave{index(1)}{1}));
-%     for loopfiles=1:length(index)
-%         for trial=1:trialend
-%             tnum=['T', num2str(trial)];
-%             if loopfiles==1
-%                 IDstructcompiled{loop}.(tnum)=IDstructsave{index(loopfiles)}{1}.(tnum);
-%                 BaselineIDstructcompiled{loop}.(tnum)=IDstructsave{index(loopfiles)}{2}.(tnum);
-%             else
-%                 IDstructcompiled{loop}.(tnum)=[IDstructcompiled{loop}.(tnum) IDstructsave{index(loopfiles)}{1}.(tnum)];
-%                 BaselineIDstructcompiled{loop}.(tnum)=[BaselineIDstructcompiled{loop}.(tnum) IDstructsave{index(loopfiles)}{2}.(tnum)];
-%             end
-%         end
-%     end
 end
 
 

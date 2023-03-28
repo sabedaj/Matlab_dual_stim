@@ -41,18 +41,18 @@ Spike_trialstruct=[];
 % test3= intersect(C5,C3);
 portnunelect=32;
 % remove values of common spike times on each port
-for i=1:nChn/portnunelect
-    C1 = intersect(sp{1+(portnunelect*(i-1))}(:,1),sp{2+(portnunelect*(i-1))}(:,1));%checks later electrodes
-    C2 = intersect(sp{24+(portnunelect*(i-1))}(:,1),sp{6+(portnunelect*(i-1))}(:,1)); %early electrodes
-    C3 = intersect(sp{21+(portnunelect*(i-1))}(:,1),sp{5+(portnunelect*(i-1))}(:,1)); %middle electrodes
-    test1= intersect(C1,C2);
-    test2= intersect(C2,C3);
-    check=intersect(test1,test2);
-    for chncount=1+(portnunelect*(i-1)):portnunelect*i
-        [C,r,c]=(intersect(sp{chncount}(:,1),check));
-        sp{chncount}(r,:)=[];
-    end
-end
+% for i=1:nChn/portnunelect
+%     C1 = intersect(sp{1+(portnunelect*(i-1))}(:,1),sp{2+(portnunelect*(i-1))}(:,1));%checks later electrodes
+%     C2 = intersect(sp{24+(portnunelect*(i-1))}(:,1),sp{6+(portnunelect*(i-1))}(:,1)); %early electrodes
+%     C3 = intersect(sp{21+(portnunelect*(i-1))}(:,1),sp{5+(portnunelect*(i-1))}(:,1)); %middle electrodes
+%     test1= intersect(C1,C2);
+%     test2= intersect(C2,C3);
+%     check=intersect(test1,test2);
+%     for chncount=1+(portnunelect*(i-1)):portnunelect*i
+%         [C,r,c]=(intersect(sp{chncount}(:,1),check));
+%         sp{chncount}(r,:)=[];
+%     end
+% end
 dispstat('','init');
 dispstat(sprintf('Working through trial: '),'keepthis','n');
 % Sort into trial IDs and plot spikes for trial 1
