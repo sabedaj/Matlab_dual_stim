@@ -75,7 +75,7 @@ NotchNf = length(NOTCHfilt);
             for iChn = 1:nChn
                 if isempty(thresh{iChn})
                     munoise{iChn} = [];
-                    mu = conv(v(iChn,:),Mufilt); %why conv not flipped data
+                    mu = conv(v(iChn,:),Mufilt); 
                     if max(abs(mu(MuNf+1:end-MuNf))) < ARTMAX
                         artchk(iChn) = 1;
                         sd = median(abs(mu(MuNf+1:end-MuNf)))./0.6745;
@@ -156,9 +156,13 @@ if (justMu)
     fclose(mu_fid);
     clear data mu mu2 tmp flip_data
 end
+%% Detrend local around stimulation
+if ~isempty(dir('*_DT.mu.dat'))
+detrendStimImpulse(filepath,dName,T,par)
+end
 %% Calculate SP
 if isempty(dir('*.sp.mat'))
-    m_fid = fopen([name '.mu_sab.dat'],'r');
+    m_fid = fopen([name '_DT.mu.dat'],'r');
     dispstat('','init');
     dispstat(sprintf('Processing SP . . .'),'keepthis','n');
     chk = 1; N = 0; time = 0;

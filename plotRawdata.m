@@ -1,9 +1,9 @@
 function plotRawdata(chsp,tID,DataType,plotspktime)
-%DataType dn mu or amplifier
+%DataType DT dn mu or amplifier
 nChn=128;
 FS=30000;
-timebefore=0.09;%in seconds
-timeafter=0.09;%in seconds
+timebefore=0.09;%in seconds 0.09
+timeafter=0.09;%in seconds0.09
 trig=loadTrig;
 TrialParams=loadTrialParams;
 numelect=find(diff(cell2mat(TrialParams(:,1)))~=0,1,'first');
@@ -27,6 +27,8 @@ elseif strcmp(DataType,'dn')
     fileID=fopen('amplifier_dn_sab.dat','r');
 elseif strcmp(DataType,'mu')
     fileID=fopen([name '.mu_sab.dat'],'r');
+elseif strcmp(DataType,'DT')
+    fileID=fopen([name '_DT.mu.dat'],'r');
 end
 
 try
@@ -42,7 +44,7 @@ for indT=1:length(trigtID)
     ftell(fileID)
     if strcmp(DataType,'amplifier') || strcmp(DataType,'dn')
         vblankmu = fread(fileID,[nChn, (timebefore*FS+timeafter*FS)],'int16') .* 0.195;
-    elseif strcmp(DataType,'mu')
+    else 
         vblankmu = fread(fileID,[nChn, (timebefore*FS+timeafter*FS)],'short')./10; %plots one second from trigger and 250ms brefore
     end
     

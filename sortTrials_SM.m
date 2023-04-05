@@ -1,4 +1,4 @@
-function [IDstruct, baslinespikestruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,varargin)
+function [IDstruct, baslinespikestruct,ratestruct] = sortTrials_SM(startpointms,mstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,varargin)
 %Sort into trial IDs and plot example spikes 
 %OUTPUT - the structure containing spiking information for each trial/repeat where
 %each cell relates to one trial ID. The array in this cell is in the format
@@ -53,6 +53,11 @@ portnunelect=32;
 %         sp{chncount}(r,:)=[];
 %     end
 % end
+if nargin==8
+    chnrange=varargin{1};
+else
+    chnrange=1:nChn;
+end
 dispstat('','init');
 dispstat(sprintf('Working through trial: '),'keepthis','n');
 % Sort into trial IDs and plot spikes for trial 1
@@ -69,14 +74,16 @@ for tID=starttrial:trialjump:endtrial
         trigtID(trigtID==-500/(FS/1000))=[];
         nTrig = length(trigtID);
         for indT=1:nTrig
-            for chsp=1:1:nChn
+            for chsp=chnrange
                 v = sp{chsp};
                 spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms))&(v(:,1)<(trigtID(indT)+mstoanalyse))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                 %spikedetailstrig=v(((v(:,1)>0)&(v(:,1)<20000)),:);
                 timems=mstoanalyse-startpointms;
                 avgtimebs=2;
                 baslinespiketrig=v(((v(:,1)>(trigtID(indT)-5-avgtimebs*timems))&(v(:,1)<(trigtID(indT)-5))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
-%                 flag=checkTrials(trig(TrialParamstID(indT)),avgtimebs*timems+5,0.098,nChn,FS,chsp,spikedetailstrig,baslinespiketrig);
+                rate=v(((v(:,1)>(trigtID(indT)-90))&(v(:,1)<(trigtID(indT)+90))),1)-trigtID(indT);
+                
+                %                 flag=checkTrials(trig(TrialParamstID(indT)),avgtimebs*timems+5,0.098,nChn,FS,chsp,spikedetailstrig,baslinespiketrig);
 %                 if flag==1
 %                     continue
 %                 end
@@ -256,11 +263,18 @@ for tID=starttrial:trialjump:endtrial
 
                 nospI(chsp,indT)=spike;
                 basespI(chsp,indT)=spikebaseline;
+                if ~isempty(rate)
+                rateall(chsp,1:181,indT)=hist(rate,-90:90);
+                else
+                    rateall(chsp,1:181,indT)=zeros(181,1);
+                end
                 spike=0;
             end
         end
         IDstruct=StructureIDgeneration(nospI, tID, IDstruct);
         baslinespikestruct=StructureIDgeneration(basespI, tID, baslinespikestruct);
+        ratestruct{tID}=rateall;
+        rateall=[];
         basespI=[];
         nospI=[];
     end
