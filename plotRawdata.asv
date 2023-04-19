@@ -70,17 +70,13 @@ for indT=1:length(trigtID)
         for numspk=1:size(spktimes,1)
         scatter(spktimes(numspk,1)-offsetspk,min(spktimes(numspk,2:end)),'r');
         end
-        if ~isempty(spktimes)
-            savespktimes=[savespktimes; (spktimes(:,1)-offsetspk)];
-            figure(100)
-            hold on
-            plot(1*1000/FS:1000/FS:49*1000/FS,spktimes(:,2:end)')
-            xlabel('Time (ms)')
-            ylabel('Spike amplitude (uV)')
-        else
+        if isempty(spktimes)
             close
         end
-        
+        savespktimes=[savespktimes; (spktimes(:,1)-offsetspk)];
+        figure(100)
+        hold on
+        plot(spktimes(numspk,)
     end
 
     %end

@@ -71,7 +71,7 @@ switch flag
                 end
             end
         end
-        %tmu(find(Mu < thresh(1)))=1;
+        tmu(find(Mu < thresh(1)))=1;
         tmu(find(Mu > -1.*thresh(1)))=1;
         flag=0;
 end

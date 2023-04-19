@@ -72,7 +72,7 @@ end
 %% sigmoid
 VA=2;%visual area recording
 stimVA=1; %visual area being stimulated
-cd([D_data(3).folder filesep D_data(3).name])
+cd([D_data(6).folder filesep D_data(6).name])
 if VA==1
     columns=[5,7,8,6];
     chnnrange=65:128;
@@ -149,7 +149,7 @@ axis square
 %% rate
 VA=2;%visual area recording
 stimVA=1; %visual area being stimulated
-cd([D_data(3).folder filesep D_data(3).name])
+cd([D_data(6).folder filesep D_data(6).name])
 if VA==1
     columns=[5,7,8,6];
     chnnrange=65:128;
@@ -168,7 +168,7 @@ elseif stimVA==1
     stimchnarray=[1:16;33:48;49:64;17:32]'+64;
 end
 
-for folder=50%1:length(D_data)
+for folder=1:length(D_data)
     currD = D_data(folder).name; % Get the current subdirectory name
     try
         cd([D_data(folder).folder filesep currD])

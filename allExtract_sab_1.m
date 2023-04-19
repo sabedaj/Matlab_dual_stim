@@ -157,7 +157,7 @@ if (justMu)
     clear data mu mu2 tmp flip_data
 end
 %% Detrend local around stimulation
-if ~isempty(dir('*_DT.mu.dat'))
+if isempty(dir('*_DT.mu.dat'))
 detrendStimImpulse(filepath,dName,T,par)
 end
 %% Calculate SP
