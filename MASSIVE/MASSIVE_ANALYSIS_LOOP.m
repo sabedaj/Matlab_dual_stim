@@ -61,8 +61,8 @@ trialjump=1;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 endtrial=maxid;
-[IDstruct, baslinespikestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
-save('IDstruct.mat', 'IDstruct','baslinespikestruct')
+[IDstruct, baslinespikestruct, ratestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
+save('IDstruct.mat', 'IDstruct','baslinespikestruct','ratestruct')
 
 %% 5. Calculates template of trials and spiking responses (Output in true electrode order)
 [avgnospT,stderrspktrial,trialinfo] = AverageTrialResponse_SM(IDstruct, baslinespikestruct);

@@ -68,7 +68,7 @@ trialjump=1;
 TrialParams=loadTrialParams;
 maxid=max(cell2mat(TrialParams(:,2)));
 endtrial=maxid;
-[IDstruct, baslinespikestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial,Overall_time_to_analyse);
+[IDstruct, baslinespikestruct,ratestruct]=sortTrials_SM(startpointseconds,secondstoanalyse,trig,printspiking,starttrial,trialjump,endtrial);
 %save('IDstruct.mat','IDstruct','baslinespikestruct')
 
 %%

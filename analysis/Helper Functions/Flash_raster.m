@@ -23,27 +23,30 @@ else
     end
 end
 d = Depth(E_Mapnumber); 
+try
+    trig=loadTrig(0);
+catch
+cleanTrig_flash;%cleanTrig_flash;
+end
 
-cleanTrig;%cleanTrig_flash;
-
-        
+       %% 
         %%%%%%%%%%%%%raster input
                 chndat=zeros(nChn,401);
                 trig=loadTrig(0);
                 trig(trig==-500)=[];
                 theseTrig = trig./30;
                 nT=length(trig);
-                %% Set up the raster data structure
+                % Set up the raster data structure
                 BIN = [-200 200];
                 SPACING = 200; SMOOTHING = 2; MAX = 400;
                 % Grab Data for the Inset Figure
                 FS = 30000; file = pwd;
                 X = BIN(1):1/30:BIN(2) - 1/30;
                 mu = zeros(nT,(FS/1e3)*diff(BIN));
-                for chn=4:4
+                for chnit=1:length(chn)
                     xdata = [];
                     ydata = [];
-                    chn1 = d(chn);
+                    chn1 = d(chn(chnit));
                     sp = loadSpikes(chn1);
                 for tr = 1:nT
                     theseSp = (sp(sp > theseTrig(tr)+BIN(1) & sp < theseTrig(tr)+BIN(2)) - theseTrig(tr));

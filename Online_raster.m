@@ -23,7 +23,7 @@ for tr = 1:nT
     end
 end
 
-    figure(11); hold on; axM = gca;
+    figure; hold on; axM = gca;
     yScale = MAX./nT;
     for i = 1:size(xdata,2)
         line([xdata(i) xdata(i)],[ydata(i)-yScale/2.3 ydata(i)+yScale/2.3],'Color','k','LineWidth',2);

@@ -104,30 +104,51 @@ for numerfolders=1:size(storefileamp,1)
     end
 end
 %% trial avg single elect
-
+cd([D_data(6).folder filesep D_data(6).name;])
+order=Depth(1);
+ordershapearray=reshape(order,16,8);
+ordershapearray=ordershapearray(:,[1,3,4,2]);
 
 ampinterest=10;
-cd([D_data(6).folder filesep D_data(6).name;])
-ratespiking=cell(size(storefileamp,1),1);
+
+for iterate_time=10:10:80
+ratespiking=cell(size(IDstructsave,1),1);
 sigrate=[];
-for numerfolders=1:size(storefileamp,1)
+for numerfolders=1:size(IDstructsave,1) 
+    trialend=length(fieldnames(IDstructsave{numerfolders}{1}));
      for trial=1:trialend
         ratespiking{numerfolders}(:,:,trial)=nanmean(IDstructsave{numerfolders}{3}{trial},3);
      end
+    
     rateAMPua=ratespiking{numerfolders}(:,:,find(savefilename{numerfolders}{2}.AMP==ampinterest):length(savefilename{numerfolders}{2}.AMP):end);
     for trial=1:size(rateAMPua,3)
+        chnsignificant=zeros(16,4);
         for chn=1:64
-            if any(std(rateAMPua(chn,1:85,trial))*15<(rateAMPua(chn,92+10:92+30,trial)))&&any(movmean(rateAMPua(chn,:,trial),5).*1000>20)%),"Tail","left")==1%
+            if ttest(rateAMPua(chn,randperm(85,10),trial),rateAMPua(chn,92+(iterate_time-10):92+(iterate_time-1),trial),'Tail','left')==1%mean(rateAMPua(chn,1:85,trial))+std(rateAMPua(chn,1:85,trial))*2<mean(rateAMPua(chn,92+(iterate_time-10):92+iterate_time+1,trial))%&&any(movmean(rateAMPua(chn,:,trial),5).*1000>20)%),"Tail","left")==1%
                 sigrate=cat(1,sigrate,rateAMPua(chn,:,trial));
-                figure (1)
-                hold on
-                plot(-90:90,movmean(rateAMPua(chn,:,trial),5).*1000)
-                x=0;
+                chnsignificant(ordershapearray==chn)=1;
+%                 figure (1)
+%                 hold on
+%                 plot(-90:90,movmean(rateAMPua(chn,:,trial),5).*1000)
+%                 x=0;
             end
+        end
+        if sum(chnsignificant,'all')>16
+        figure
+        heatmap(chnsignificant);
         end
     end
 end
-
+size(sigrate,1)
+figure(5000); plot(-90:90,mean(sigrate).*1000)
+hold on
+xlabel('Time (ms)')
+ylabel('sp/s')
+xlim([-85 85])
+end
+color1 = linspace(0,1,length(10:10:80));
+newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
+colororder(newcolors);
 
 %% sort into responding and not responding channels - ttest
 ampinterest=6;

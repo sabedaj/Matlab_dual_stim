@@ -728,8 +728,6 @@ saveCplit=saveCplit_raw;
 AMP=[0 1 2 3 4 6 8 10];
 FilterLength=3;
 totalrespelect=0;
-totalelect=0;
-numstimelect=0;
 for sepdist=5:2:9
     sepcheck=['sep' num2str(sepdist)];
     for current=1:length(AMP)
@@ -748,7 +746,6 @@ for sepdist=5:2:9
                     Data_allcols{trial}=smoothData(Data_allcols{trial},FilterLength);
                     Data_allcols{trial}(Data_allcols{trial}<0)=0;
                     max_all{trial}=max(Data_allcols{trial});
-                    % How many electrodes responded to stimulation (FR>basline)
                     if (trial==1 || trial==5) && ~isempty(saveCplit.([layer_types(layername),layer_types(layername+length(layer_types))]).(sepcheck).(currcheck).(tname).(shanksepcheck)) && strcmp(currcheck,'C6')
                         totalrespelect=totalrespelect+sum((saveCplit.([layer_types(layername),layer_types(layername+length(layer_types))]).(sepcheck).(currcheck).(tname).(shanksepcheck)>0),'all');
                         totalelect=totalelect+(size(saveCplit.([layer_types(layername),layer_types(layername+length(layer_types))]).(sepcheck).(currcheck).(tname).(shanksepcheck),2)*16);

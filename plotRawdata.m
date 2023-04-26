@@ -1,5 +1,8 @@
 function plotRawdata(chsp,tID,DataType,plotspktime)
-%DataType DT dn mu or amplifier
+%DataType= DT dn mu or amplifier
+%plotspktime= 1 to plot spikes
+%chsp is unsorted channel
+%tID= trial ID
 nChn=128;
 FS=30000;
 timebefore=0.09;%in seconds 0.09
@@ -71,7 +74,7 @@ for indT=1:length(trigtID)
         scatter(spktimes(numspk,1)-offsetspk,min(spktimes(numspk,2:end)),'r');
         end
         if ~isempty(spktimes)
-            savespktimes=[savespktimes; (spktimes(:,1)-offsetspk)];
+            %savespktimes=[savespktimes; (spktimes(:,1)-offsetspk)];
             figure(100)
             hold on
             plot(1*1000/FS:1000/FS:49*1000/FS,spktimes(:,2:end)')
