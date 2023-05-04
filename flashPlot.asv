@@ -5,8 +5,7 @@ E_Mapnumber=1;
 E_MAP = Depth(E_Mapnumber);
 load('meanlfp.mat','meanlfpstruct')
 %load('meanresp.mat','meanrespstruct')
-avgnospT=meanlfpstruct(E_MAP,:);
-%avgnospT=avgnospT(1:16,30*150:30*550);
+avgnospT=meanlfpstruct(E_MAP,30*150:30*550);
 
 filefold=pwd;
 parentDirectory = fileparts(cd);
@@ -23,16 +22,15 @@ hold on
 title('Shank 1')
 xlabel('Time (ms)')
 %ylabel('uV')
-sepdist=75;
+sepdist=125;
 for i=1:1:16
-plot(-250:1/30:500-1/30,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
+plot(-100:1/30:300,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
 end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
 xline(1111.11,'r')
-xlim([-100 300])
-ylim ([sepdist-sepdist-25 sepdist*16+sepdist])
-set(gca,'TickDir','out');
+xlim([-50 500])
+ylim ([sepdist-sepdist sepdist*16+sepdist])
 x=ones(1,101).*100;
 plot(x, -150:-50, 'k')
 subplot(1,4,4)
@@ -46,9 +44,9 @@ end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
 xline(1111.11,'r')
-xlim([-100 300])
-ylim ([sepdist*17-sepdist-25 sepdist*32+sepdist])
-set(gca,'TickDir','out');
+xlim([-50 500])
+ylim ([sepdist*17-sepdist sepdist*32+sepdist])
+
 subplot(1,4,2)
 hold on
 title('Shank 2')
@@ -60,9 +58,9 @@ xline(0,'r')
 xlabel('Time (ms)')
 %ylabel('uV')
 xline(1111.11,'r')
-xlim([-100 300])
-ylim ([sepdist*33-sepdist-25 sepdist*48+sepdist])
-set(gca,'TickDir','out');
+xlim([-50 500])
+ylim ([sepdist*33-sepdist sepdist*48+sepdist])
+
 subplot(1,4,3)
 hold on
 title('Shank 3')
@@ -74,12 +72,12 @@ end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
 xline(1111.11,'r')
-xlim([-100 300])
-ylim ([sepdist*49-sepdist-25 sepdist*64+sepdist])
-set(gca,'TickDir','out');
+xlim([-50 500])
+ylim ([sepdist*49-sepdist sepdist*64+sepdist])
 
 
-plot(x,1200:1300, 'k')
+
+plot(x,-4950:-4850, 'k')
 
 % figure
 % for chsp=1:1:nChn

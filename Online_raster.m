@@ -9,7 +9,7 @@ theseTrig = trig(cell2mat(TP(1:numelect:end,2)) == ID)./30;
 nT=length(theseTrig);
 %% Set up the raster data structure
 BIN = [-200 200]; 
-SMOOTHING = 1; MAX = 100;
+SMOOTHING = 1; MAX = 400;
 xdata = [];
 ydata = [];
 
@@ -36,7 +36,7 @@ end
     rate = (1000/nT)*conv(Z,window);
     rate = rate(3*SMOOTHING+1:end-3*SMOOTHING);
     plot(axM,rate,'LineWidth',2);
-    ylim(axM,[0 MAX]); xlim(axM,[150 300]);
+    ylim(axM,[0 MAX]); xlim(axM,[150 250]);
     % Tidy Up
     xlabel(axM,'Time (ms)');
     ylabel(axM,'Firing Rate (Sp/s)');

@@ -106,7 +106,7 @@ else
     xlabel(ax1,'Distance from deepest stim elect (\mum)')
     set(ax1,'TickDir','out');
     set (ax1, 'xdir', 'reverse' )%HORIZONTAL
-    ylim(ax1,[0 1])
+    ylim(ax1,[0 200])
     hold(ax1,'off')
     %ax2
     if minax>0

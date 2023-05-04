@@ -840,10 +840,10 @@ end
 %simulation or normalise? pick 1 or none to plot normal data
 plotlayeraligned=0;
 plotsim=0;
-normalise_dat=1;
+normalise_dat=0;
 
 %YOU CAN ONLY PICK ONE OF THESE
-splitshanks=0; %Split into stim, 1 shank away and 2 shanks away etc
+splitshanks=1; %Split into stim, 1 shank away and 2 shanks away etc
 splitlayers=0; %split into layers
 %AND IF YOU PICK ONE^^^, YOU CAN'T PICK ALL CURRENTS
 singleCurrent=6; %plot 6uA results

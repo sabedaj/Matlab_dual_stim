@@ -35,9 +35,8 @@ end
                 trig=loadTrig(0);
                 trig(trig==-500)=[];
                 theseTrig = trig./30;
-                nT=length(trig);%min(40,length(trig));
-                theseTrig = theseTrig(randperm(length(theseTrig),nT));
-                %%
+                nT=length(trig);
+                nT=
                 % Set up the raster data structure
                 BIN = [-200 200];
                 SPACING = 200; SMOOTHING = 2; MAX = 400;

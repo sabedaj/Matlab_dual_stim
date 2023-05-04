@@ -13,8 +13,8 @@ if (nargin <= 5)
     NOTCH_BW = 2;
 end
 if (nargin <= 3)
-    LFP_len = 0.0025;
-    LFP_BW = 500;%500
+    LFP_len = 0.0035;%0.0025
+    LFP_BW = 300;%500
 end
 if (nargin <= 1)
     MUA_len = 0.002;%0.002
