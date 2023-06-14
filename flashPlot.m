@@ -1,6 +1,6 @@
 
 %% PLOTTING
-colorsplotlayer=[1 0 0; 0 1 0; 0 0 1];
+colorsplotlayer=[1 0 0; 0 1 0; 0 0 1; 1 1 0];
 E_Mapnumber=1;
 E_MAP = Depth(E_Mapnumber);
 load('meanlfp.mat','meanlfpstruct')
@@ -24,8 +24,9 @@ title('Shank 1')
 xlabel('Time (ms)')
 %ylabel('uV')
 sepdist=75;
+xvalAX=-250:1500-1;%-250:1/30:500-1/30;
 for i=1:1:16
-plot(-250:1/30:500-1/30,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
+plot(xvalAX,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
 end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
@@ -41,7 +42,7 @@ title('Shank 4')
 xlabel('Time (ms)')
 %ylabel('uV')
 for i=17:1:32
-plot(-250:1/30:500-1/30,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))%plot(-250:1500-1,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
+plot(xvalAX,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))%plot(-250:1500-1,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
 end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
@@ -53,7 +54,7 @@ subplot(1,4,2)
 hold on
 title('Shank 2')
 for i=33:48
-plot(-250:1/30:500-1/30,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
+plot(xvalAX,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
 end
 set(gca,'YTickLabel',[]);
 xline(0,'r')
@@ -69,7 +70,7 @@ title('Shank 3')
 xlabel('Time (ms)')
 %ylabel('uV')
 for i=49:64
-plot(-250:1/30:500-1/30,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
+plot(xvalAX,avgnospT(i,:)+i*sepdist,'color',colorsplotlayer(ElectLayerClass(i),:))
 end
 set(gca,'YTickLabel',[]);
 xline(0,'r')

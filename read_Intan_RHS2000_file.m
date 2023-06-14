@@ -290,7 +290,7 @@ num_board_dac_samples = num_samples_per_data_block * num_data_blocks;
 num_board_dig_in_samples = num_samples_per_data_block * num_data_blocks;
 num_board_dig_out_samples = num_samples_per_data_block * num_data_blocks;
 
-record_time = num_amplifier_samples / sample_rate;
+%record_time = num_amplifier_samples / sample_rate;
 
 % if (data_present)
 %     fprintf(1, 'File contains %0.3f seconds of data.  Amplifiers were sampled at %0.2f kS/s.\n', ...

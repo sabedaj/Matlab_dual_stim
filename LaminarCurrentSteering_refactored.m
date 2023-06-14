@@ -16,7 +16,8 @@ trig=trig(tID);
 theseTrig = trig./30;
 nT=length(trig);
 %run Flash_raster(chn) - stop line 40 and load in these trig
-
+%% single pairs R19 E:\DATA\Rat_019\S3E2_9elect_001_210511_104603 and R23 for reviewer
+SinglePairWErrorBars
 %% save array layer classification
 ratN='Rat_020';
 cd(['E:\DATA\' ratN])
@@ -118,6 +119,7 @@ for sepdist=5:2:9
     sepcheck=['sep' num2str(sepdist)];
     for current=1:length(AMP)
         currcheck=['C' num2str(AMP(current))];
+         psingletrials.(sepcheck).(currcheck)=[];
         for trial=1:5
             trialcheck=['T' num2str(trial)];
             for shanksep=0:3
@@ -137,8 +139,8 @@ for sepdist=5:2:9
     end
      Npairs.(sepcheck)=0;
 end
-
-for ratN=[6 9 12 13 21:23]%14:20%%loop through animals 14:20%[6 9 12 13 21:23] %23%
+savalllayers=[];
+for ratN=[6 9 12 13 21:23]%14:20%[6 9 12 13 21:23]%loop through animals 14:20%[6 9 12 13 21:23] %23%
     %load data
     if ratN<10
         Ratnum=['Rat_00' num2str(ratN)];
@@ -212,6 +214,11 @@ for ratN=[6 9 12 13 21:23]%14:20%%loop through animals 14:20%[6 9 12 13 21:23] %
                 currcheck=['C' num2str(AMP(current))];
                 stimpos_layer=find(~isnan(Csplit_depthsep.(currcheck).T1.D0),stimChn_NS(1),'first');
                 pos=['P' num2str(stimpos_layer(stimChn_NS(1)))];
+                if AMP(current)~=0
+                    psingle=SinglePairWErrorBars(AMP(current),0);
+                    psingletrials.(sepcheck).(currcheck)=[psingletrials.(sepcheck).(currcheck) psingle];
+                end
+                
                 for trial=1:5
                     trialcheck=['T' num2str(trial)];
                     for shanksep=0:3
@@ -220,8 +227,12 @@ for ratN=[6 9 12 13 21:23]%14:20%%loop through animals 14:20%[6 9 12 13 21:23] %
                         savelayeraligned.(layers_stim).(sepcheck).(currcheck).(trialcheck).(shanksepcheck)=[savelayeraligned.(layers_stim).(sepcheck).(currcheck).(trialcheck).(shanksepcheck) Csplit_depthsep.(currcheck).(trialcheck).(shanksepcheck)];
                         
                         saveStimalignedLayeraligned.(pos).(sepcheck).(currcheck).(trialcheck).(shanksepcheck)=[saveStimalignedLayeraligned.(pos).(sepcheck).(currcheck).(trialcheck).(shanksepcheck) Csplit_depthsep.(currcheck).(trialcheck).(shanksepcheck)];
+                        if AMP(current)==6 && sepdist==5
+                            savalllayers=[savalllayers Csplit_depthsep.(currcheck).(trialcheck).(shanksepcheck)];
+                        end
                         
                     end
+                    
                     if skip_stimshank==1
                         tmp=nanmean([Csplit_shankdist.(currcheck).(trialcheck).D1 Csplit_shankdist.(currcheck).(trialcheck).D2 Csplit_shankdist.(currcheck).(trialcheck).D3],2);
                     else
@@ -843,7 +854,7 @@ plotsim=0;
 normalise_dat=0;
 
 %YOU CAN ONLY PICK ONE OF THESE
-splitshanks=1; %Split into stim, 1 shank away and 2 shanks away etc
+splitshanks=0; %Split into stim, 1 shank away and 2 shanks away etc
 splitlayers=0; %split into layers
 %AND IF YOU PICK ONE^^^, YOU CAN'T PICK ALL CURRENTS
 singleCurrent=6; %plot 6uA results
@@ -1066,6 +1077,10 @@ for sepdist=5:2:9
                 p
                 %test whether single electrode conditions are sig diff
                 psingle=signrank(nanmean(senv,2),nanmean(smoothedenvelope,2));
+                %testing sequential
+                sequentialpeaks=diff(peaks');
+                fprintf(['Percentage sequentially shifted: ' num2str(sum(sum(sequentialpeaks,1)<0 & all(sequentialpeaks<1))*100/length(sequentialpeaks)) '\n'])
+                
             end
             dat2plot=[];
         end

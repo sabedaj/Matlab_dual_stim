@@ -1,11 +1,14 @@
 function depth = Depth(varargin)
 filepath = pwd;
-amplifier_channels=read_Intan_RHS2000_file;
+[amplifier_channels,~]=read_Intan_RHS2000_file;
 nChn=length(amplifier_channels);
 NN_cutoff = datetime('06-Nov-2018 00:00:00');
 Flex_cutoff = datetime('14-Jul-2020 00:00:00');
-fileinfo = dir([filepath filesep 'info.rhs']);
 
+fileinfo = dir([filepath filesep 'info.rhs']);
+if (nChn==0) && (datetime(fileinfo.date) > Flex_cutoff)
+    nChn=64;
+end
 if datetime(fileinfo.date) < NN_cutoff
     NN_order = 0;
 else

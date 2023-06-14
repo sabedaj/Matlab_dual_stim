@@ -34,9 +34,9 @@ if mode == 1 % for HPF
         thisTrig = trig(t);
         for c = 1:nChn
             % Find the appropriate range
-            ra = [1 46];
+            ra = [1 60];%46
             range_max = 100;%150
-            while range(data(c,thisTrig+ra(1):thisTrig+ra(2))) > range_max
+            while range(data(c,thisTrig+ra(1):thisTrig+ra(2))) > range_max% || abs(data(c,thisTrig+BIN_b)-data(c,thisTrig+ra(1)))>range_max
                 ra = ra + 1;
                 if ra(1) > 180
                     ra(1) = 180;

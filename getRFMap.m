@@ -1,5 +1,5 @@
 function [RF] = getRFMap(sTrain, onsetInds, sWin, sBin)
-
+%spike counter
 xs = unique(onsetInds(2,:)); nx = length(xs);
 ys = unique(onsetInds(3,:)); ny = length(ys);
  
