@@ -85,19 +85,7 @@ for numerfolders=1:numfolderstotal
    if normalisedat==1
    rateAMPua=rateAMPua./max(squeeze(max(rateAMPua,[],2)),[],2);
    end
-   simchnall=savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),3);
-   stimchnall_notsorted=E_MAP(simchnall);
-   if all(chnrange>64)
-       stimchnarray=[1:16;33:48;49:64;17:32]';
-       V1array=squeeze(mean(rateAMPua(65:128,92:181,:),2));
-       V1arraysorted=reshape(V1array(E_MAP(1:64),:),[16,4,size(V1array,2)]);
-       V1arraysorted=V1arraysorted(:,[1 3 4 2],:);
-       for i=1:length(simchnall)
-       [r,c]=find(stimchnarray==(simchnall(i)-64));
-       centredstimchn{ampit}(17-r:32-r,5-c:8-c,stimchncount+i)=V1arraysorted(:,:,i);
-       end
-   
-   end
+
    goodchns=chnrange(~ismember(chnrange,unique(chnexclude)));
    totalchncount(ampit)=(length(goodchns))*size(rateAMPua,3)+totalchncount(ampit);
    meancatdata=cat(2,mean(rateAMPua(:,92:101,:),2),mean(rateAMPua(:,102:111,:),2),mean(rateAMPua(:,112:121,:),2),mean(rateAMPua(:,122:131,:),2),mean(rateAMPua(:,132:141,:),2),mean(rateAMPua(:,142:151,:),2),mean(rateAMPua(:,152:161,:),2),mean(rateAMPua(:,162:171,:),2),mean(rateAMPua(:,172:181,:),2));
@@ -159,14 +147,37 @@ CatergoriesEBL=cell(size(sig,3),1);
                sig(chn,:,stimchn)=false;
                sig(chn,pmax(chn,stimchn),stimchn)=true;
            end
-          if sigsingle(chn,stimchn)==1
-            alldata{ampit}=[alldata{ampit}; rateAMPua(chn,:,stimchn)];
-            %if  ~any(foldercheck{ampit}{numerfolders}==stimchn)
-                alldata_stim{ampit}=[alldata_stim{ampit}; rateAMPua(65:128,:,stimchn)];
-                significantspread(chn,stimchn+stimchncount)=mean(rateAMPua(chn,92:181,stimchn),2);
-                %stimchnsave{ampit}=[stimchnsave{ampit}; stimchn];
-                %foldercheck{ampit}{numerfolders}=[foldercheck{ampit}{numerfolders};stimchn];
-           % end
+           simchnall=savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),3);
+           stimchnall_notsorted=E_MAP(simchnall);
+           if sigsingle(chn,stimchn)==1
+               alldata{ampit}=[alldata{ampit}; rateAMPua(chn,:,stimchn)];
+               %if  ~any(foldercheck{ampit}{numerfolders}==stimchn)
+               alldata_stim{ampit}=[alldata_stim{ampit}; rateAMPua(65:128,:,stimchn)];
+               significantspread(chn,stimchn+stimchncount)=mean(rateAMPua(chn,92:181,stimchn),2);
+               folderIDsig{ampit}=[folderIDsig{ampit} str2double(savefilename{numerfolders}{3})];%determine how many different monkeys creating significance
+               %stimchnsave{ampit}=[stimchnsave{ampit}; stimchn];
+               %foldercheck{ampit}{numerfolders}=[foldercheck{ampit}{numerfolders};stimchn];
+               % end
+              
+                if all(chnrange>64)
+                    stimchnarray=[1:16;33:48;49:64;17:32]';
+          
+                     sortedmap=reshape(E_MAP(65:128),16,4);
+                     sortedmap=sortedmap(:,[1 3 4 2]);
+                     [rchn,cchn]=find(E_MAP(chn)==sortedmap);
+                    %V1array{ampit}(chn,:)=squeeze(mean(rateAMPua(chn,92:181,:),2));
+                    
+                     [r,c]=find(stimchnarray==(simchnall(stimchn)-64));
+                     centredstimchn{ampit}(17-r+(rchn-1),5-c+(cchn-1),stimchncount+stimchn)=squeeze(mean(rateAMPua(chn,92:102,stimchn),2));
+%                     V1stimelectposRC{ampit}(stimchn,:)=simchnall
+%                     V1arraysorted=reshape(V1array(E_MAP(1:64),:),[16,4,size(V1array,2)]);
+%                     V1arraysorted=V1arraysorted(:,[1 3 4 2],:);
+%                     for i=1:length(simchnall)
+%                         [r,c]=find(stimchnarray==(simchnall(i)-64));
+%                         centredstimchn{ampit}(17-r:32-r,5-c:8-c,stimchncount+i)=V1arraysorted(:,:,i);
+%                     end
+                    
+                end
           end
           group=find(squeeze(sig(chn,:,stimchn)==1));
            if ~isempty(group)
@@ -200,7 +211,7 @@ CatergoriesEBL=cell(size(sig,3),1);
                  
                    significantspread_groupsplit(chn,stimchn+stimchncount,group(gnum))=meancatdata(chn,group(gnum),stimchn);
                    trialsig{group(gnum),ampit,numerfolders}=[trialsig{group(gnum),ampit,numerfolders} stimchn];%determine how many different stim electrodes creating significance
-                   folderIDsig{group(gnum),ampit}=[folderIDsig{group(gnum),ampit} str2double(savefilename{numerfolders}{3})];%determine how many different monkeys creating significance
+                   %folderIDsig{group(gnum),ampit}=[folderIDsig{group(gnum),ampit} str2double(savefilename{numerfolders}{3})];%determine how many different monkeys creating significance
                end
            end
            
@@ -338,6 +349,7 @@ colororder(newcolors);
 [lineOut, fillOut] = stdshade(alldata{ampit}.*multiplyspk,0.1,newcolors(ampit,:),[-90:90],1,ax);
 leg=legend('2','6','10');
 title(leg,'Current(uA)')
+xlim([-50 85])
 %plot(-90:90,mean(alldata{ampit}.*multiplyspk))
 end
 
@@ -436,7 +448,27 @@ end
 %% high and low V2 response vs V1 response
 %need to sort this out. not what was expected at the moment. double
 %dipping=cause? how to get around this?
-avgalldata=mean(alldata{5}(:,92:181),2).*multiplyspk;
+
+HLB_data=cell(5,1);
+avgtime=92:180;
+baselinetime=subselectbaseline;%baseline to subtract
+subselectbaseline=1:89;
+permuted_numbers = subselectbaseline(randperm(length(subselectbaseline)));
+subselectbaseline=permuted_numbers(1:length(avgtime)); %baseline to subtract from
+baslineSV2=nan(5,1);
+baselineSstdV2=baslineSV2;
+avgresp2V2=baslineSV2;
+stdresp2V2=baslineSV2;
+
+baslineLV2=nan(5,1);
+baselineLstdV2=baslineSV2;
+avgrespLV2=baslineSV2;
+stdrespLV2=baslineSV2;
+bigcorall=cell(5,1);
+smallcorall=cell(5,1);
+for ampit=1:5
+HLB_data{ampit}=cell(3,1);
+avgalldata=mean(alldata{ampit}(:,92:181),2).*multiplyspk;
 [sorted_values, sorted_indices] = sort(avgalldata, 'ascend');
 halflength=ceil(length(sorted_indices)/2);
 sorted_indicesstim=[];
@@ -445,68 +477,147 @@ sorted_indicesstim=[sorted_indicesstim sorted_indices(i)*64-63:sorted_indices(i)
 end
 halflengthstim=halflength*64;
 
-data=reshape(mean(alldata_stim{5}(sorted_indicesstim,:),2,'omitnan'),64,length(avgalldata));
+data=reshape(mean(alldata_stim{ampit}(sorted_indicesstim,:),2,'omitnan'),64,length(avgalldata));
 data(isnan(data))=0;
 [~,ia,~]=unique(data','rows');
-HLB_data=cell(3,1);
-alldatastim_sorted=alldata_stim{5}(sorted_indicesstim,:);
+
+alldatastim_sorted=alldata_stim{ampit}(sorted_indicesstim,:);
 for iterateunique=1:length(ia)
     columncompare=data(:,ia(iterateunique));
     columnindex=find(ismember(data',columncompare','rows'));
     if all(columnindex>halflength)%big
 
-        HLB_data{1}=[HLB_data{1}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
-
+        HLB_data{ampit}{1}=[HLB_data{ampit}{1}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
+    
+      
+        for coriterate=1:length(columnindex)
+            stimdat=alldatastim_sorted(columnindex(coriterate)*64-63:columnindex(coriterate)*64,:);
+           
+                for iteratestimarray=1:size(stimdat,1)
+                    [bigcor,~]=xcorr(alldata{ampit}(columnindex(coriterate),:),stimdat(iteratestimarray,:));
+                    bigcorall{ampit}=[bigcorall{ampit}; bigcor];
+                end
+          
+        end
     elseif all(columnindex<halflength)%small
-         HLB_data{2}=[HLB_data{2}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
+        HLB_data{ampit}{2}=[HLB_data{ampit}{2}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
+        for coriterate=1:length(columnindex)
+            stimdat=alldatastim_sorted(columnindex(coriterate)*64-63:columnindex(coriterate)*64,:);
+            
+            for iteratestimarray=1:size(stimdat,1)
+                [smallcor,~]=xcorr(alldata{ampit}(columnindex(coriterate),:),stimdat(iteratestimarray,:));
+                smallcorall{ampit}=[smallcorall{ampit}; smallcor];
+            end
+            
+        end
     else%both
-         HLB_data{3}=[HLB_data{3}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
+         HLB_data{ampit}{3}=[HLB_data{ampit}{3}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
     end
 end
-HLB_data{1}(sum(HLB_data{1},2)==0,:)=[];
-HLB_data{2}(sum(HLB_data{2},2)==0,:)=[];
+HLB_data{ampit}{1}(sum(HLB_data{ampit}{1},2)==0,:)=[];
+HLB_data{ampit}{2}(sum(HLB_data{ampit}{2},2)==0,:)=[];
+
+%sigmoidstuff
+baslineSV2(ampit)=mean(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
+baselineSstdV2(ampit)=std(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)),'all').*multiplyspk;
+avgresp2V2(ampit)=mean(alldata{ampit}(sorted_indices(1:halflength),avgtime)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
+stdresp2V2(ampit)=std(alldata{ampit}(sorted_indices(1:halflength),avgtime)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(1:halflength),avgtime)),'all').*multiplyspk;
+
+baslineLV2(ampit)=mean(alldata{ampit}(sorted_indices(halflength:end),subselectbaseline)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
+baselineLstdV2(ampit)=std(alldata{ampit}(sorted_indices(halflength:end),subselectbaseline)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(halflength:end),subselectbaseline)),'all').*multiplyspk;
+avgrespLV2(ampit)=mean(alldata{ampit}(sorted_indices(halflength:end),avgtime)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
+stdrespLV2(ampit)=std(alldata{ampit}(sorted_indices(halflength:end),avgtime)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(halflength:end),avgtime)),'all').*multiplyspk;
 
 
-figure(100)
+end
+
+%sigmoidfig
+avgtime=92:112;
+figure(200)
+hold on
+baslineS=mean(HLB_data{ampit}{2}(:,subselectbaseline)-mean(HLB_data{ampit}{2}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
+baselineSstd=std(HLB_data{ampit}{2}(:,subselectbaseline)-mean(HLB_data{ampit}{2}(:,baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(HLB_data{ampit}{1}(:,subselectbaseline)),'all').*multiplyspk;
+avgresp2=cellfun(@(x) mean(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk,HLB_data);
+stdresp2=cellfun(@(x) std(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan'),0,'all','omitnan')*multiplyspk./sum(~isnan(x{2}(:,avgtime)),'all'),HLB_data);
+errorbar([0; savefilename{15}{2}.AMP],[baslineS; avgresp2],[baselineSstd;stdresp2],'b')
+baselineL=mean(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),'all','omitnan').*multiplyspk;
+baselineLstd=std(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(HLB_data{ampit}{1}(:,subselectbaseline)),'all').*multiplyspk;
+avgresp=cellfun(@(x) mean(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk,HLB_data);
+stdresp=cellfun(@(x) std(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),0,'all','omitnan')*multiplyspk./sum(~isnan(x{1}(:,avgtime)),'all'),HLB_data);
+errorbar([0; savefilename{15}{2}.AMP],[baselineL; avgresp],[baselineLstd; stdresp],'r')
+set(gca,'TickDir','out');
+xlabel('Current (\muA)');
+ylabel('Average Firing Rate (Sp/s)')
+title('V1')
+legend('Bottom 1/2','Top 1/2')
+
+figure(201)
+hold on
+errorbar([0; savefilename{15}{2}.AMP],[mean(baslineLV2); avgrespLV2],[mean(baselineLstdV2); stdrespLV2],'r')
+errorbar([0; savefilename{15}{2}.AMP],[mean(baslineSV2); avgresp2V2],[mean(baselineSstdV2); stdresp2V2],'b')
+set(gca,'TickDir','out');
+xlabel('Current (\muA)');
+ylabel('Average Firing Rate (Sp/s)')
+title('V2')
+legend('Bottom 1/2','Top 1/2')
+
+% baselineS{ampit}{1}=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
+% baselineFR{ampit}{2}=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
+% errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{1}(:,avgtime)-baselineFR{ampit}{1},'all','omitnan').*multiplyspk,'r')
+% errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{2}(:,avgtime)-baselineFR{ampit}{2},'all','omitnan').*multiplyspk,'b')
+%   
+% correlation
+bigcorall
+smallcorall
+
+%10ua timing figures
+figure(100+ampit)
 ax=axes;
 hold on
-baselineS=mean(alldata{5}(sorted_indices(1:halflength),1:89),2,'omitnan');
-baselineL=mean(alldata{5}(sorted_indices(halflength+1:end),1:89),2,'omitnan');
-stdshade((alldata{5}(sorted_indices(1:halflength),:)-baselineS).*multiplyspk,0.2,'b',[-90:90],1,ax);
+baselineS=mean(alldata{ampit}(sorted_indices(1:halflength),1:89),2,'omitnan');
+baselineL=mean(alldata{ampit}(sorted_indices(halflength+1:end),1:89),2,'omitnan');
+stdshade((alldata{ampit}(sorted_indices(1:halflength),:)-baselineS).*multiplyspk,0.2,'b',[-90:90],1,ax);
 xlabel('Time(ms)')
 ylabel('FR (sp/s)')
 title('V2')
  xlim([-50,89])
 set(gca,'TickDir','out');
-stdshade((alldata{5}(sorted_indices(halflength+1:end),:)-baselineL).*multiplyspk,0.2,'r',[-90:90],1,ax);
+stdshade((alldata{ampit}(sorted_indices(halflength+1:end),:)-baselineL).*multiplyspk,0.2,'r',[-90:90],1,ax);
 text(-40,3.5,['N=',num2str(halflength),'electrodes'],'Color','red')
-text(-40,3.2,['N=',num2str(length(alldata{5}(sorted_indices(halflength+1:end),1))),'electrodes'],'Color','blue')
+text(-40,3.2,['N=',num2str(length(alldata{ampit}(sorted_indices(halflength+1:end),1))),'electrodes'],'Color','blue')
 legend('Bottom 1/2','Top 1/2')
-figure(101)
+figure(105+ampit)
 ax=axes;
 hold on
 
-baselineL=mean(HLB_data{1}(:,1:89),2,'omitnan');
-baselineS=mean(HLB_data{2}(:,1:89),2,'omitnan');
-stdshade((HLB_data{1}-baselineL).*multiplyspk,0.2,'r',[-90:90],1,ax);
-stdshade((HLB_data{2}-baselineS).*multiplyspk,0.2,'b',[-90:90],1,ax);
+baselineL=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
+baselineS=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
+stdshade((HLB_data{ampit}{1}-baselineL).*multiplyspk,0.2,'r',[-90:90],1,ax);
+stdshade((HLB_data{ampit}{2}-baselineS).*multiplyspk,0.2,'b',[-90:90],1,ax);
 %plot(-90:90,mean(HLB_data{3}.*multiplyspk,'omitnan'))
-text(-40,20,['N=',num2str(size(HLB_data{1},1)),'electrodes'],'Color','red')
-text(-40,18,['N=',num2str(size(HLB_data{2},1)),'electrodes'],'Color','blue')
+text(-40,20,['N=',num2str(size(HLB_data{ampit}{1},1)),'electrodes'],'Color','red')
+text(-40,18,['N=',num2str(size(HLB_data{ampit}{2},1)),'electrodes'],'Color','blue')
 xlabel('Time(ms)')
 ylabel('FR (sp/s)')
 title('V1')
  xlim([-50,89])
- ylim([-5 30])
+ ylim([-5 35])
 set(gca,'TickDir','out');
+
+corr(alldata{ampit}(sorted_indices(halflength:end),avgtime),HLB_data{ampit}{1})
+alldata{ampit}(sorted_indices(halflength:end),avgtime)
+HLB_data{ampit}{1}
+
+
+
 %% sigmoid
-%avgalldata=cellfun(@(x) mean(x(:,92:181).*multiplyspk,'all'),alldata);%avg of all time points
-avgalldata=cellfun(@(x) mean(max(x(:,92:181).*multiplyspk,[],2)), alldata);%find peak of the data
-baselinedata=mean(cellfun(@(x) mean(max(x(:,1:85).*multiplyspk,[],2)), alldata));
-%baselinedata=mean(cellfun(@(x) mean((x(:,1:89).*multiplyspk),'all'), alldata));
-%stdalldata=cellfun(@(x) std(x(:,92:181).*multiplyspk,0,'all'), alldata);
-stdalldata=cellfun(@(x) std(max(x(:,92:181).*multiplyspk,[],2),0,'all'), alldata);%./length(max(x(:,92:181).*multiplyspk,[],2))
-stdalldatabaseline=mean(cellfun(@(x) std(max(x(:,1:85).*multiplyspk,[],2),0,'all'), alldata));%./length(max(x(:,1:85).*multiplyspk,[],2))
+baselintimee=2:12;%2:12 for V1, 1:85 for v2
+peaktime=92:102;%92:102 for V1, 92:181 for v2
+avgtimeV1=peaktime;
+avgalldata=cellfun(@(x) mean(x(:,avgtimeV1).*multiplyspk,'all'),alldata);%avg of all time points
+baselinedata=mean(cellfun(@(x) mean((x(:,baselintimee).*multiplyspk),'all'), alldata));
+stdalldata=cellfun(@(x) std(x(:,avgtimeV1).*multiplyspk,0,'all')./length(x(:,avgtimeV1)), alldata);
+stdalldatabaseline=mean(cellfun(@(x) std(x(:,baselintimee).*multiplyspk,0,'all')./length(x(:,baselintimee)), alldata));%
 figure
 %plot(savefilename{15}{2}.AMP,avgalldata)
 errorbar([0;savefilename{15}{2}.AMP],[baselinedata;avgalldata],[stdalldatabaseline;stdalldata])
@@ -514,6 +625,27 @@ xlabel('Current (\muA)')
 ylabel('Firing rate (sp/s)')
 xlim([0 10])
 set(gca,'TickDir','out');
+hold on
+
+avgalldata=cellfun(@(x) mean(max(x(:,peaktime).*multiplyspk,[],2)), alldata);%find peak of the data
+baselinedata=mean(cellfun(@(x) mean(max(x(:,baselintimee).*multiplyspk,[],2)), alldata));
+stdalldata=cellfun(@(x) std(max(x(:,peaktime).*multiplyspk,[],2),0,'all')./length(max(x(:,peaktime).*multiplyspk,[],2)), alldata);%
+stdalldatabaseline=mean(cellfun(@(x) std(max(x(:,baselintimee).*multiplyspk,[],2),0,'all')./length(max(x(:,baselintimee).*multiplyspk,[],2)), alldata));%
+errorbar([0;savefilename{15}{2}.AMP],[baselinedata;avgalldata],[stdalldatabaseline;stdalldata])
+legend('Avg','Peak')
+% avgalldata=cellfun(@(x) mean(x(:,peaktime).*multiplyspk,'all'),alldata);%avg of all time points
+% %avgalldata=cellfun(@(x) mean(max(x(:,92:181).*multiplyspk,[],2)), alldata);%find peak of the data
+% %baselinedata=mean(cellfun(@(x) mean(max(x(:,1:85).*multiplyspk,[],2)), alldata));
+% baselinedata=mean(cellfun(@(x) mean((x(:,1:89).*multiplyspk),'all'), alldata));
+% %stdalldata=cellfun(@(x) std(x(:,92:181).*multiplyspk,0,'all'), alldata);
+% stdalldata=cellfun(@(x) std(max(x(:,peaktime).*multiplyspk,[],2),0,'all')./length(max(x(:,peaktime).*multiplyspk,[],2)), alldata);%
+% stdalldatabaseline=mean(cellfun(@(x) std(max(x(:,baselintimee).*multiplyspk,[],2),0,'all')./length(max(x(:,baselintimee).*multiplyspk,[],2)), alldata));%
+
+
+%% check where mean resp crosses each other in time
+resp=cellfun(@(x) (mean(x.*multiplyspk)),alldata,'UniformOutput',false);
+respall=[resp{1}-resp{2};resp{1}-resp{3};resp{1}-resp{4};resp{1}-resp{5}];
+[~,c]=find(respall(4,94:181)>0,5,'first');
 
 %% stimchnalilgn heatmap
 datastimchn=mean(centredstimchn{5}.*1000,3,'omitnan');
@@ -588,8 +720,50 @@ figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca
 maxdata=max(dataheatmap,[],'all')/2;
 fwhmdat=dataheatmap>=maxdata;
 
+%stimchn only
+dataheatmap=sum(centredstimchn{5}>0,3);
+figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
 
 
+numRows = 31;  % Number of rows (each row is 50 units apart)
+numCols = 7;   % Number of columns (each column is 200 units)
+% Create an array of row indices
+rowIndices = (-floor(numRows/2):floor(numRows/2)) * 50;
+% Create an array of column indices
+colIndices = (-floor(numCols/2):floor(numCols/2)) * 200;
+% Create the distance array
+distanceArray = sqrt((rowIndices.').^2 + (colIndices).^2);
+maxnum=1000;
+step=100;
+splitdist=cell(5,1);
+splitdist(cellfun(@isempty, splitdist)) =   {nan((maxnum/step),1)};
+stdsplitdist=splitdist;
+countsplidist=splitdist;
+figure; hold on;
+if all(chnrange>64)
+dataplot=centredstimchn;
+xlabel('Distance from stim electrode(\mum)')
+elseif all(chnrange<65)
+    dataplot=heatmap_centroid;
+    xlabel('Distance from centroid(\mum)')
+end
+    
+for current=1:2:5
+    dataheatmap=sum(dataplot{current}>0,3,'omitnan');
+for i=step:step:maxnum-step
+    splitdist{current}(i/step)=mean(dataheatmap(distanceArray>=i-step & distanceArray<i));
+    stdsplitdist{current}(i/step)=std(dataheatmap(distanceArray>=i-step & distanceArray<i));
+    countsplidist{current}(i/step)=sum(dataheatmap(distanceArray>=i-step & distanceArray<i));
+   
+end
+ errorbar(step:step:maxnum,splitdist{current},stdsplitdist{current})
+end
+color1 = linspace(0,1,3);
+newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
+colororder(newcolors);
+set(gca,'TickDir','out');
+
+ylabel('# significant electrodes')
 %% sigmoid using groupdata
 sigmoidampepoch=zeros(5,9);
 for ampit=1:5
