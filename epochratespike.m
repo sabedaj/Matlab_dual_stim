@@ -31,12 +31,16 @@ allV1electsignificantstimchn=cell(length(savefilename{15}{2}.AMP),1);
 alldata10uA=cell(5,1);
  totalchncount=zeros(5,1);
 heatmap_centroid=cell(5,1);
+V2ELresp=cell(5,1);
+V1ELresp=cell(5,1);
 numfolderstotal=size(ratestruct,1)-sum(cellfun(@isempty, ratestruct));
 ratespiking=cell(numfolderstotal,1);
 for ampit=1:length(savefilename{15}{2}.AMP)
     centredstimchn{ampit}=nan(31,7,500);
     heatmap_centroid{ampit}=nan(31,7,500);
 ampinterest=savefilename{15}{2}.AMP(ampit);
+V2ELresp{ampit}=cell(3,1);
+V1ELresp{ampit}=cell(3,1);
 groupdata{ampit}=cell(9,1);
 correlationdata{ampit}=cell(9,1);
 stimchnsignificant{ampit}=cell(9,1);
@@ -223,9 +227,18 @@ CatergoriesEBL=cell(size(sig,3),1);
 %    hold on
    for i=1:size(sig,3)
        if (size(CatergoriesEBL{i}{1},1)+size(CatergoriesEBL{i}{3},1))>0
-       ratio(stimchncount+i)=size(CatergoriesEBL{i}{3},1)/(size(CatergoriesEBL{i}{1},1)+size(CatergoriesEBL{i}{3},1));
-        %scatter(stimchncount+i,ratio(stimchncount+i),'k')
+       ratio(stimchncount+i)=size(CatergoriesEBL{i}{3},1)/(size(CatergoriesEBL{i}{1},1)+size(CatergoriesEBL{i}{3},1));%determines the ratio of early to late responses in V2
+      
+       %scatter(stimchncount+i,ratio(stimchncount+i),'k')
        end
+       %determine if the early and late responses have different
+       %characteristics
+        numcategories=cellfun(@(x) ~isempty(x), CatergoriesEBL{i});
+        if sum(numcategories)==1
+            V2ELresp{ampit}{numcategories}=[V2ELresp{ampit}{numcategories}; CatergoriesEBL{i}{numcategories}];
+            V1ELresp{ampit}{numcategories}=[V1ELresp{ampit}{numcategories}; rateAMPua(65:128,:,stimchn)];
+           
+        end
    end
 %    ylabel('Early(0) vs late(1)')
 %    xlabel('Stimchn session #')
@@ -292,40 +305,40 @@ for itstimchn=1:size(orderedsigchns,2)
     end
 end
 
-spreadgroup(ampit,1:9,1:length(avgspread))=avgspreadwg;
-spread(ampit,1:length(avgspread))=avgspread;
-figure(1000*ampit); hold on;
-tmpdat=cellfun(@(x) mean(x,1,'omitnan').*multiplyspk, groupdata{ampit}, 'UniformOutput', false);
-%use to remove lines of data
-%tmpdat(2:2:end)=[];
-cellfun(@(x) plot(-90:90,x), tmpdat)
-color1 = linspace(0,1,size(tmpdat,1));
-newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
-colororder(newcolors);
-indvsig=cellfun(@(x) size(x,1), groupdata{ampit});
-text(-80,24,'# sig:')
-text(-80,20,num2str(indvsig))
-%text(-80,10,num2str(indvsig))V2
-totalsig=sum(indvsig);
-text(-80,40,['Total sig: ' num2str(totalsig) ' / ' num2str(totalchncount(ampit))])
-xlabel('Time (ms)')
-ylabel('Firing rate (Sp/s)')
-xlim([-85 85])
-if normalisedat==1
-    ylim([0 1])
-else
-ylim([0 20])
-end
-%ylim([0 400])
-set(gca,'TickDir','out');
-title([num2str(ampinterest) '\muA'])
-leg=legend('2:11','12:21','22:31','32:41','42:51','52:61','62:71','72:81','82:91','Average');
-title(leg,'Time epoch(ms)')
-figure (6)
-plot(indvsig)
-hold on
-xlabel('V2 Epochs')
-ylabel('# channels significantly responding in V2')
+% spreadgroup(ampit,1:9,1:length(avgspread))=avgspreadwg;
+% spread(ampit,1:length(avgspread))=avgspread;
+% figure(1000*ampit); hold on;
+% tmpdat=cellfun(@(x) mean(x,1,'omitnan').*multiplyspk, groupdata{ampit}, 'UniformOutput', false);
+% %use to remove lines of data
+% %tmpdat(2:2:end)=[];
+% cellfun(@(x) plot(-90:90,x), tmpdat)
+% color1 = linspace(0,1,size(tmpdat,1));
+% newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
+% colororder(newcolors);
+% indvsig=cellfun(@(x) size(x,1), groupdata{ampit});
+% text(-80,24,'# sig:')
+% text(-80,20,num2str(indvsig))
+% %text(-80,10,num2str(indvsig))V2
+% totalsig=sum(indvsig);
+% text(-80,40,['Total sig: ' num2str(totalsig) ' / ' num2str(totalchncount(ampit))])
+% xlabel('Time (ms)')
+% ylabel('Firing rate (Sp/s)')
+% xlim([-85 85])
+% if normalisedat==1
+%     ylim([0 1])
+% else
+% ylim([0 20])
+% end
+% %ylim([0 400])
+% set(gca,'TickDir','out');
+% title([num2str(ampinterest) '\muA'])
+% leg=legend('2:11','12:21','22:31','32:41','42:51','52:61','62:71','72:81','82:91','Average');
+% title(leg,'Time epoch(ms)')
+% figure (6)
+% plot(indvsig)
+% hold on
+% xlabel('V2 Epochs')
+% ylabel('# channels significantly responding in V2')
 
 
 
@@ -360,51 +373,51 @@ end
 % xlabel('Current(\muA)')
 % ylabel('Firing rate (sp/s)')
 % title('All significant channels averaged')
+% 
+% figure(1001*ampit); hold on;tmpdat=cellfun(@(x) mean(x,1,'omitnan').*multiplyspk, stimchnsignificant{ampit}, 'UniformOutput', false);
+% %use to remove lines of data
+% %tmpdat(2:2:end)=[];
+% cellfun(@(x) plot(-90:90,x), tmpdat)
+% color1 = linspace(0,1,size(tmpdat,1));
+% newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
+% colororder(newcolors);
+% 
+% indvsig=cellfun(@(x) size(x,1), stimchnsignificant{ampit});
+% text(-80,350,['# sig / ' num2str(stimchncount) ' :'])
+% text(-80,250,num2str(indvsig))
+% xlabel('Time (ms)')
+% ylabel('Firing rate (Sp/s)')
+% xlim([-85 85])
+% %ylim([0 25])
+% if normalisedat==1
+%     ylim([0 1])
+% else
+% ylim([0 200])
+% end
+% set(gca,'TickDir','out');
+% title([num2str(ampinterest) '\muA Stimchn'])
 
-figure(1001*ampit); hold on;tmpdat=cellfun(@(x) mean(x,1,'omitnan').*multiplyspk, stimchnsignificant{ampit}, 'UniformOutput', false);
-%use to remove lines of data
-%tmpdat(2:2:end)=[];
-cellfun(@(x) plot(-90:90,x), tmpdat)
-color1 = linspace(0,1,size(tmpdat,1));
-newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
-colororder(newcolors);
-
-indvsig=cellfun(@(x) size(x,1), stimchnsignificant{ampit});
-text(-80,350,['# sig / ' num2str(stimchncount) ' :'])
-text(-80,250,num2str(indvsig))
-xlabel('Time (ms)')
-ylabel('Firing rate (Sp/s)')
-xlim([-85 85])
-%ylim([0 25])
-if normalisedat==1
-    ylim([0 1])
-else
-ylim([0 200])
-end
-set(gca,'TickDir','out');
-title([num2str(ampinterest) '\muA Stimchn'])
 
 
-
-figure(1002*ampit); hold on;cellfun(@(x) plot(-90:90,mean(x,1,'omitnan').*multiplyspk), allV1electsignificantstimchn{ampit})
-color1 = linspace(0,1,groupit);
-newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
-colororder(newcolors);
-indvsig=cellfun(@(x) size(x,1), allV1electsignificantstimchn{ampit});
-text(-80,350,['# sig / ' num2str(stimchncount*(64-15)) ' :'])
-text(-80,250,num2str(indvsig))
-xlabel('Time (ms)')
-ylabel('Firing rate (Sp/s)')
-xlim([-85 85])
-%ylim([0 25])
-ylim([0 400])
-set(gca,'TickDir','out');
-title([num2str(ampinterest) '\muA All chns on stim array'])
-figure (5)
-plot(indvsig)
-hold on
-xlabel('V2 Epochs')
-ylabel('# channels significantly responding in V1')
+% figure(1002*ampit); hold on;cellfun(@(x) plot(-90:90,mean(x,1,'omitnan').*multiplyspk), allV1electsignificantstimchn{ampit})
+% color1 = linspace(0,1,groupit);
+% newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
+% colororder(newcolors);
+% indvsig=cellfun(@(x) size(x,1), allV1electsignificantstimchn{ampit});
+% text(-80,350,['# sig / ' num2str(stimchncount*(64-15)) ' :'])
+% text(-80,250,num2str(indvsig))
+% xlabel('Time (ms)')
+% ylabel('Firing rate (Sp/s)')
+% xlim([-85 85])
+% %ylim([0 25])
+% ylim([0 400])
+% set(gca,'TickDir','out');
+% title([num2str(ampinterest) '\muA All chns on stim array'])
+% figure (5)
+% plot(indvsig)
+% hold on
+% xlabel('V2 Epochs')
+% ylabel('# channels significantly responding in V1')
 
 % figure(1003*ampit); hold on;cellfun(@(x) plot(-90:90,mean(x,1,'omitnan')), correlationdata{ampit})
 % color1 = linspace(0,1,groupit);
@@ -459,19 +472,36 @@ baslineSV2=nan(5,1);
 baselineSstdV2=baslineSV2;
 avgresp2V2=baslineSV2;
 stdresp2V2=baslineSV2;
-
+Earlylate_data=cell(5,1);
 baslineLV2=nan(5,1);
 baselineLstdV2=baslineSV2;
 avgrespLV2=baslineSV2;
 stdrespLV2=baslineSV2;
-bigcorall=cell(5,1);
-smallcorall=cell(5,1);
+% bigcorall=cell(5,1);
+% smallcorall=cell(5,1);
+DataLateV2=cell(5,1);
+DataEarlyV2=cell(5,1);
+DataLateV1=cell(5,1);
+DataEarlyV1=cell(5,1);
+
 for ampit=1:5
+
 HLB_data{ampit}=cell(3,1);
 avgalldata=mean(alldata{ampit}(:,92:181),2).*multiplyspk;
 [sorted_values, sorted_indices] = sort(avgalldata, 'ascend');
 halflength=ceil(length(sorted_indices)/2);
 sorted_indicesstim=[];
+
+Earlylate_data{ampit}=cell(3,1);
+avgalldata_Early=mean(alldata{ampit}(:,92:136),2).*multiplyspk;
+avgalldata_Late=mean(alldata{ampit}(:,137:181),2).*multiplyspk;
+sortLate=avgalldata_Early<avgalldata_Late;
+DataLateV2{ampit}=alldata{ampit}(sortLate,:);
+DataEarlyV2{ampit}=alldata{ampit}(~sortLate,:);
+sortLateV1=repelem(sortLate,64);
+DataLateV1{ampit}=alldata_stim{ampit}(sortLateV1,:).*multiplyspk;
+DataEarlyV1{ampit}=alldata_stim{ampit}(~sortLateV1,:).*multiplyspk;
+
 for i=1:length(sorted_indices)
 sorted_indicesstim=[sorted_indicesstim sorted_indices(i)*64-63:sorted_indices(i)*64];
 end
@@ -490,26 +520,30 @@ for iterateunique=1:length(ia)
         HLB_data{ampit}{1}=[HLB_data{ampit}{1}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
     
       
-        for coriterate=1:length(columnindex)
-            stimdat=alldatastim_sorted(columnindex(coriterate)*64-63:columnindex(coriterate)*64,:);
-           
-                for iteratestimarray=1:size(stimdat,1)
-                    [bigcor,~]=xcorr(alldata{ampit}(columnindex(coriterate),:),stimdat(iteratestimarray,:));
-                    bigcorall{ampit}=[bigcorall{ampit}; bigcor];
-                end
-          
-        end
+%         for coriterate=1:length(columnindex)
+%             stimdat=alldatastim_sorted(columnindex(coriterate)*64-63:columnindex(coriterate)*64,:);
+%            
+%                 for iteratestimarray=1:size(stimdat,1)
+%                     [bigcor,~]=xcorr(alldata{ampit}(columnindex(coriterate),:)./max(alldata{ampit}(columnindex(coriterate),:)),stimdat(iteratestimarray,:)./max(stimdat(iteratestimarray,:)));
+%                     bigcorall{ampit}=[bigcorall{ampit}; bigcor];
+%                 end
+%           
+%         end
     elseif all(columnindex<halflength)%small
         HLB_data{ampit}{2}=[HLB_data{ampit}{2}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
-        for coriterate=1:length(columnindex)
-            stimdat=alldatastim_sorted(columnindex(coriterate)*64-63:columnindex(coriterate)*64,:);
-            
-            for iteratestimarray=1:size(stimdat,1)
-                [smallcor,~]=xcorr(alldata{ampit}(columnindex(coriterate),:),stimdat(iteratestimarray,:));
-                smallcorall{ampit}=[smallcorall{ampit}; smallcor];
-            end
-            
-        end
+        %this kills 30mins to run - maybe try normalising by baseline? is
+        %this valid??? what question are you asking> maybe normalise V2 but
+        %not V1 - see if amplitude in v1 is correlated without influence fo
+        %V2 mathematically. 
+%         for coriterate=1:length(columnindex)
+%             stimdat=alldatastim_sorted(columnindex(coriterate)*64-63:columnindex(coriterate)*64,:);
+%             
+%             for iteratestimarray=1:size(stimdat,1)
+%                 [smallcor,~]=xcorr(alldata{ampit}(columnindex(coriterate),:)./max(alldata{ampit}(columnindex(coriterate),:)),stimdat(iteratestimarray,:)./max(stimdat(iteratestimarray,:)));
+%                 smallcorall{ampit}=[smallcorall{ampit}; smallcor];
+%             end
+%             
+%         end
     else%both
          HLB_data{ampit}{3}=[HLB_data{ampit}{3}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
     end
@@ -561,15 +595,6 @@ ylabel('Average Firing Rate (Sp/s)')
 title('V2')
 legend('Bottom 1/2','Top 1/2')
 
-% baselineS{ampit}{1}=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
-% baselineFR{ampit}{2}=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
-% errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{1}(:,avgtime)-baselineFR{ampit}{1},'all','omitnan').*multiplyspk,'r')
-% errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{2}(:,avgtime)-baselineFR{ampit}{2},'all','omitnan').*multiplyspk,'b')
-%   
-% correlation
-bigcorall
-smallcorall
-
 %10ua timing figures
 figure(100+ampit)
 ax=axes;
@@ -604,9 +629,117 @@ title('V1')
  ylim([-5 35])
 set(gca,'TickDir','out');
 
-corr(alldata{ampit}(sorted_indices(halflength:end),avgtime),HLB_data{ampit}{1})
-alldata{ampit}(sorted_indices(halflength:end),avgtime)
-HLB_data{ampit}{1}
+%early late
+figure
+ax=axes;
+hold on
+baselineE=mean(DataEarlyV2{5}(:,1:89),2);
+baselineL=mean(DataLateV2{5}(:,1:89),2);
+stdshade((DataEarlyV2{5}-baselineE).*multiplyspk,0.2,'r',[-90:90],1,ax);
+stdshade((DataLateV2{5}-baselineL).*multiplyspk,0.2,'b',[-90:90],1,ax);
+% plot(mean(DataEarlyV2{5}),'r')
+% plot(mean(DataLateV2{5}),'b')
+title('V2')
+xlabel('Time (ms)')
+ylabel('Firing rate (sp/s)')
+ xlim([-50,89])
+set(gca,'TickDir','out');
+legend('Early','Late')
+
+
+ dataE=reshape(mean(DataEarlyV1{ampit},2,'omitnan'),64,size(DataEarlyV1{ampit},1)/64);
+ dataE(isnan(dataE))=0;
+ dataL=reshape(mean(DataLateV1{ampit},2,'omitnan'),64,size(DataLateV1{ampit},1)/64);
+ dataL(isnan(dataL))=0;
+[~,iE] = setdiff(dataE.', dataL.', 'rows');
+[~,iL] = setdiff(dataL.', dataE.', 'rows');
+dataE=[];
+for i=1:length(iE)
+    dataE=[dataE; DataEarlyV1{ampit}(iE(i)*64-63:iE(i)*64,:)];
+end
+dataE=unique(dataE,'rows');
+dataL=[];
+for i=1:length(iL)
+    dataL=[dataL; DataLateV1{ampit}(iL(i)*64-63:iL(i)*64,:)];
+end
+dataL=unique(dataL,'rows');
+
+figure
+ax=axes;
+hold on
+baselineE=mean(dataE(:,1:89),2,'omitnan');
+baselineL=mean(dataL(:,1:89),2,'omitnan');
+stdshade((dataE-baselineE),0.2,'r',[-90:90],1,ax);
+stdshade((dataL-baselineL),0.2,'b',[-90:90],1,ax);
+% plot(mean(dataE,'omitnan'),'r')
+% plot(mean(dataL,'omitnan'),'b')
+title('V1')
+xlabel('Time (ms)')
+ylabel('Firing rate (sp/s)')
+ xlim([-50,89])
+set(gca,'TickDir','out');
+legend('Early','Late')
+ylim([-2.5 30])
+
+
+% baselineS{ampit}{1}=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
+% baselineFR{ampit}{2}=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
+% errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{1}(:,avgtime)-baselineFR{ampit}{1},'all','omitnan').*multiplyspk,'r')
+% errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{2}(:,avgtime)-baselineFR{ampit}{2},'all','omitnan').*multiplyspk,'b')
+%   
+% correlation
+% [maxbig,lagbig]=max(bigcorall{5}(:,181:end),[],2);
+% lagbig(isnan(maxbig))=0;
+% maxbig(isnan(maxbig))=0;
+% lagbig((maxbig)==0)=[];
+% maxbig((maxbig)==0)=[];
+% lagbig((maxbig)==1)=[];
+% maxbig((maxbig)==1)=[];
+% figure
+% scatter(lagbig,maxbig,'r')
+% 
+% [maxsmall,lagsmall]=max(smallcorall{5}(:,181:end),[],2);
+% lagsmall(isnan(maxsmall))=0;
+% maxsmall(isnan(maxsmall))=0;
+% lagsmall((maxsmall)==0)=[];
+% maxsmall((maxsmall)==0)=[];
+% lagsmall((maxsmall)==1)=[];
+% maxsmall((maxsmall)==1)=[];
+% hold on
+% scatter(lagsmall,maxsmall,'b')
+
+
+% subsnum=1:length(lagsmall);
+% permuted_numbers = subsnum(randperm(length(subsnum)));
+% subselectnum=permuted_numbers(1:length(lagbig)); %baseline to subtract from
+
+% 
+% figure
+% hold on
+% 
+% histogram(lagsmall(subselectnum))
+% histogram(lagbig)
+% title('lags')
+% figure
+% hold on
+% histogram(maxsmall(subselectnum),8)
+% histogram(maxbig,8)
+% title('correlation')
+% bigcorall
+% smallcorall
+
+%% early late
+ampit=5;
+figure
+plot(mean(V2ELresp{ampit}{1}.*multiplyspk,'omitnan'),'r')
+hold on
+plot(mean(V2ELresp{ampit}{3}.*multiplyspk,'omitnan'),'b')
+
+figure
+plot(mean(V1ELresp{ampit}{1}.*multiplyspk,'omitnan'),'r')
+hold on
+plot(mean(V1ELresp{ampit}{3}.*multiplyspk,'omitnan'),'b')
+
 
 
 
@@ -764,44 +897,44 @@ colororder(newcolors);
 set(gca,'TickDir','out');
 
 ylabel('# significant electrodes')
-%% sigmoid using groupdata
-sigmoidampepoch=zeros(5,9);
-for ampit=1:5
-    for epoch=1:9
-        sigmoidampepoch(ampit,epoch)=mean(alldata10uA{ampit}{epoch}(:,82+(10*epoch):91+(10*epoch)),'all'); 
-    end
-end
-figure; hold on
-for i=1:9
-plot([2 5 6 8 10],sigmoidampepoch(:,i).*multiplyspk)
-end
-color1 = linspace(0,1,9);
-newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
-colororder(newcolors);
-%plot([2 5 6 8 10],mean(sigmoidampepoch,2).*1000,'k')
-xlabel('current (\muA)')
-ylabel('Firing rate (sp/s)')
-leg=legend('2:11','12:21','22:31','32:41','42:51','52:61','61:72','72:81','82:91','Average');
-%leg=legend('2:11','22:31','42:51','61:72','82:91');
-title(leg,'Time epoch(ms)')
-set(gca,'TickDir','out');
-
-indvsig=zeros(5,9);
-for i=1:5
-indvsig(i,:)=cellfun(@(x) size(x,1), groupdata{i});
-end
-
-figure
-hold on
-plot([2 5 6 8 10],indvsig)
-colororder(newcolors);
-plot([2 5 6 8 10],sum(indvsig,2),'k')
-yline((0.003)*totalchncount(1),'r')
-xlabel('current (\muA)')
-ylabel('# elect sig')
-%leg=legend('2:11','22:31','42:51','62:71','82:91','Total','Significance');
-leg=legend('2:11','12:21','22:31','32:41','42:51','52:61','61:72','72:81','82:91','Total','Significance');
-title(leg,'Time epoch(ms)')
-set(gca,'TickDir','out');
+% %% sigmoid using groupdata
+% sigmoidampepoch=zeros(5,9);
+% for ampit=1:5
+%     for epoch=1:9
+%         sigmoidampepoch(ampit,epoch)=mean(alldata10uA{ampit}{epoch}(:,82+(10*epoch):91+(10*epoch)),'all'); 
+%     end
+% end
+% figure; hold on
+% for i=1:9
+% plot([2 5 6 8 10],sigmoidampepoch(:,i).*multiplyspk)
+% end
+% color1 = linspace(0,1,9);
+% newcolors = [zeros(length(color1),1) flipud(color1') (color1')];
+% colororder(newcolors);
+% %plot([2 5 6 8 10],mean(sigmoidampepoch,2).*1000,'k')
+% xlabel('current (\muA)')
+% ylabel('Firing rate (sp/s)')
+% leg=legend('2:11','12:21','22:31','32:41','42:51','52:61','61:72','72:81','82:91','Average');
+% %leg=legend('2:11','22:31','42:51','61:72','82:91');
+% title(leg,'Time epoch(ms)')
+% set(gca,'TickDir','out');
+% 
+% indvsig=zeros(5,9);
+% for i=1:5
+% indvsig(i,:)=cellfun(@(x) size(x,1), groupdata{i});
+% end
+% 
+% figure
+% hold on
+% plot([2 5 6 8 10],indvsig)
+% colororder(newcolors);
+% plot([2 5 6 8 10],sum(indvsig,2),'k')
+% yline((0.003)*totalchncount(1),'r')
+% xlabel('current (\muA)')
+% ylabel('# elect sig')
+% %leg=legend('2:11','22:31','42:51','62:71','82:91','Total','Significance');
+% leg=legend('2:11','12:21','22:31','32:41','42:51','52:61','61:72','72:81','82:91','Total','Significance');
+% title(leg,'Time epoch(ms)')
+% set(gca,'TickDir','out');
 
 end
