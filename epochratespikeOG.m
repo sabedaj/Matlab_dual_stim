@@ -1,4 +1,4 @@
-function epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
+function epochratespikeOG(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
 %% epoch has to be increasing with current once significant
 % trial avg single elect - - standard deviation -  bins all electrodes based on thresh
 if normalisedat==1
@@ -6,7 +6,6 @@ if normalisedat==1
 else
     multiplyspk=1000;
 end
- s = RandStream('mt19937ar','Seed',296);%45
 D_data=dir;
 if length(D_data)>size(ratestruct)
 cd([D_data(12).folder filesep D_data(12).name;])
@@ -20,7 +19,6 @@ ordershapearray=reshape(E_MAP,16,8);
 ordershapearray=ordershapearray(:,[1,3,4,2]);
 alldata=cell(length(savefilename{15}{2}.AMP),1);
 alldata_stim=cell(length(savefilename{15}{2}.AMP),1);
-
 trialsig=cell(9,length(savefilename{15}{2}.AMP),length(savefilename));
 folderIDsig=cell(9,length(savefilename{15}{2}.AMP));
 stimchncount=0;
@@ -38,10 +36,6 @@ V1ELresp=cell(5,1);
 numfolderstotal=size(ratestruct,1)-sum(cellfun(@isempty, ratestruct));
 ratespiking=cell(numfolderstotal,1);
 for ampit=1:length(savefilename{15}{2}.AMP)
-    iteratestimdat=1;
-iteratealldat=1;
-    alldata_stim{ampit}=nan(108000,181);
-    alldata{ampit}=nan(1800,181);
     centredstimchn{ampit}=nan(31,7,500);
     heatmap_centroid{ampit}=nan(31,7,500);
 ampinterest=savefilename{15}{2}.AMP(ampit);
@@ -112,7 +106,7 @@ for numerfolders=1:numfolderstotal
        pmax=squeeze(pmax);%min
    else
        subselectbaseline=1:89;
-       permuted_numbers = subselectbaseline(randperm(s,length(subselectbaseline)));
+       permuted_numbers = subselectbaseline(randperm(length(subselectbaseline)));
        subselectbaseline=permuted_numbers(1:50);
        thresh=squeeze(mean(rateAMPua(:,subselectbaseline,:),2)+(std(rateAMPua(:,subselectbaseline,:),[],2).*3));
        for groupit=1:9
@@ -160,11 +154,9 @@ CatergoriesEBL=cell(size(sig,3),1);
            simchnall=savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),3);
            stimchnall_notsorted=E_MAP(simchnall);
            if sigsingle(chn,stimchn)==1
-               alldata{ampit}(iteratealldat,1:181)=rateAMPua(chn,:,stimchn);
-               iteratealldat=iteratealldat+1;
+               alldata{ampit}=[alldata{ampit}; rateAMPua(chn,:,stimchn)];
                %if  ~any(foldercheck{ampit}{numerfolders}==stimchn)
-               alldata_stim{ampit}(iteratestimdat:iteratestimdat+63,1:181)=rateAMPua(65:128,:,stimchn);
-               iteratestimdat=iteratestimdat+64;
+               alldata_stim{ampit}=[alldata_stim{ampit}; rateAMPua(65:128,:,stimchn)];
                significantspread(chn,stimchn+stimchncount)=mean(rateAMPua(chn,92:181,stimchn),2);
                folderIDsig{ampit}=[folderIDsig{ampit} str2double(savefilename{numerfolders}{3})];%determine how many different monkeys creating significance
                %stimchnsave{ampit}=[stimchnsave{ampit}; stimchn];
@@ -257,12 +249,12 @@ fprintf(num2str(stimchncount))
 %current significance
 orderedsigchns=significantspread(E_MAP,:);
 avgspread=nan(size(orderedsigchns,2),1);
-% figure(21+ampit)
-% hold on
-% hist(ratio)
-%    xlabel('Early(0) vs late(1)')
-%    ylabel('# stimchn sessions')
-%    title([num2str(savefilename{15}{2}.AMP(ampit)),'\muA'])
+figure(21+ampit)
+hold on
+hist(ratio)
+   xlabel('Early(0) vs late(1)')
+   ylabel('# stimchn sessions')
+   title([num2str(savefilename{15}{2}.AMP(ampit)),'\muA'])
 for itstimchn=1:size(orderedsigchns,2)
     tmp=reshape(orderedsigchns(chnrange,itstimchn),16,4);
     tmp=tmp(:,[1 3 4 2]);
@@ -312,8 +304,7 @@ for itstimchn=1:size(orderedsigchns,2)
         heatmap_centroid{ampit}(16-ycent+1:16-ycent+16,4-xcent+1:4-xcent+4,itstimchn)=tmp;
     end
 end
-alldata{ampit}(iteratealldat:end,:)=[];
-alldata_stim{ampit}(iteratestimdat:end,:)=[];
+
 % spreadgroup(ampit,1:9,1:length(avgspread))=avgspreadwg;
 % spread(ampit,1:length(avgspread))=avgspread;
 % figure(1000*ampit); hold on;
@@ -468,14 +459,14 @@ end
 end
 
 %% high and low V2 response vs V1 response
-%need to sort this out. not what was expected at the moment. double
-%dipping=cause? how to get around this?
-avgtime=92:180;
-baselinetime=subselectbaseline;%baseline to subtract only 50random samples
-subselectbaseline=1:89;
 
 
 HLB_data=cell(5,1);
+avgtime=92:180;
+baselinetime=subselectbaseline;%baseline to subtract
+subselectbaseline=1:89;
+permuted_numbers = subselectbaseline(randperm(length(subselectbaseline)));
+subselectbaseline=permuted_numbers(1:length(avgtime)); %baseline to subtract from
 baslineSV2=nan(5,1);
 baselineSstdV2=baslineSV2;
 avgresp2V2=baslineSV2;
@@ -493,9 +484,10 @@ DataLateV1=cell(5,1);
 DataEarlyV1=cell(5,1);
 
 for ampit=1:5
+
 HLB_data{ampit}=cell(3,1);
-avgalldata=mean(alldata{ampit}(:,avgtime),2).*multiplyspk;
-[~, sorted_indices] = sort(avgalldata, 'ascend');
+avgalldata=mean(alldata{ampit}(:,92:181),2).*multiplyspk;
+[sorted_values, sorted_indices] = sort(avgalldata, 'ascend');
 halflength=ceil(length(sorted_indices)/2);
 sorted_indicesstim=[];
 
@@ -503,14 +495,11 @@ Earlylate_data{ampit}=cell(3,1);
 avgalldata_Early=mean(alldata{ampit}(:,92:136),2).*multiplyspk;
 avgalldata_Late=mean(alldata{ampit}(:,137:181),2).*multiplyspk;
 sortLate=avgalldata_Early<avgalldata_Late;
-DataLateV2{ampit}=alldata{ampit}(sortLate,:).*multiplyspk;
-DataEarlyV2{ampit}=alldata{ampit}(~sortLate,:).*multiplyspk;
-
+DataLateV2{ampit}=alldata{ampit}(sortLate,:);
+DataEarlyV2{ampit}=alldata{ampit}(~sortLate,:);
 sortLateV1=repelem(sortLate,64);
 DataLateV1{ampit}=alldata_stim{ampit}(sortLateV1,:).*multiplyspk;
 DataEarlyV1{ampit}=alldata_stim{ampit}(~sortLateV1,:).*multiplyspk;
-ttest(mean(DataLateV2{ampit}(:,92:181)-mean(DataLateV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV2{ampit}(:,92:181)-mean(DataEarlyV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
-ttest(mean(DataLateV1{ampit}(:,92:112)-mean(DataLateV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV1{ampit}(:,92:112)-mean(DataEarlyV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
 
 for i=1:length(sorted_indices)
 sorted_indicesstim=[sorted_indicesstim sorted_indices(i)*64-63:sorted_indices(i)*64];
@@ -563,16 +552,15 @@ HLB_data{ampit}{2}(sum(HLB_data{ampit}{2},2)==0,:)=[];
 
 %sigmoidstuff
 baslineSV2(ampit)=mean(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
-baselineSstdV2(ampit)=SEM(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),'all','omitnan'),0).*multiplyspk;
+baselineSstdV2(ampit)=std(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)),'all').*multiplyspk;
 avgresp2V2(ampit)=mean(alldata{ampit}(sorted_indices(1:halflength),avgtime)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
-stdresp2V2(ampit)=SEM(alldata{ampit}(sorted_indices(1:halflength),avgtime)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),0).*multiplyspk;
+stdresp2V2(ampit)=std(alldata{ampit}(sorted_indices(1:halflength),avgtime)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(1:halflength),avgtime)),'all').*multiplyspk;
 
 baslineLV2(ampit)=mean(alldata{ampit}(sorted_indices(halflength:end),subselectbaseline)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
-baselineLstdV2(ampit)=SEM(alldata{ampit}(sorted_indices(halflength:end),subselectbaseline)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),0).*multiplyspk;
+baselineLstdV2(ampit)=std(alldata{ampit}(sorted_indices(halflength:end),subselectbaseline)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(halflength:end),subselectbaseline)),'all').*multiplyspk;
 avgrespLV2(ampit)=mean(alldata{ampit}(sorted_indices(halflength:end),avgtime)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
-stdrespLV2(ampit)=SEM(alldata{ampit}(sorted_indices(halflength:end),avgtime)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),0).*multiplyspk;
+stdrespLV2(ampit)=std(alldata{ampit}(sorted_indices(halflength:end),avgtime)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(alldata{ampit}(sorted_indices(halflength:end),avgtime)),'all').*multiplyspk;
 
-%ttest(mean(alldata{ampit}(sorted_indices(halflength:end),avgtime)-mean(alldata{ampit}(sorted_indices(halflength:end),baselinetime),2,'omitnan')), mean(alldata{ampit}(sorted_indices(1:halflength),avgtime)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan')))%test significance in V2 - V1 test on line 587
 
 end
 
@@ -581,21 +569,21 @@ avgtime=92:112;
 figure(200)
 hold on
 baslineS=mean(HLB_data{ampit}{2}(:,subselectbaseline)-mean(HLB_data{ampit}{2}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
-baselineSstd=SEM(HLB_data{ampit}{2}(:,subselectbaseline)-mean(HLB_data{ampit}{2}(:,baselinetime),2,'omitnan'),0).*multiplyspk;
+baselineSstd=std(HLB_data{ampit}{2}(:,subselectbaseline)-mean(HLB_data{ampit}{2}(:,baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(HLB_data{ampit}{1}(:,subselectbaseline)),'all').*multiplyspk;
 avgresp2=cellfun(@(x) mean(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk,HLB_data);
-stdresp2=cellfun(@(x) SEM(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan'),0)*multiplyspk,HLB_data);
+stdresp2=cellfun(@(x) std(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan'),0,'all','omitnan')*multiplyspk./sum(~isnan(x{2}(:,avgtime)),'all'),HLB_data);
 errorbar([0; savefilename{15}{2}.AMP],[baslineS; avgresp2],[baselineSstd;stdresp2],'b')
 baselineL=mean(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),'all','omitnan').*multiplyspk;
-baselineLstd=SEM(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),0).*multiplyspk;
+baselineLstd=std(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),0,'all','omitnan')./sum(~isnan(HLB_data{ampit}{1}(:,subselectbaseline)),'all').*multiplyspk;
 avgresp=cellfun(@(x) mean(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk,HLB_data);
-stdresp=cellfun(@(x) SEM(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),0)*multiplyspk,HLB_data);
+stdresp=cellfun(@(x) std(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),0,'all','omitnan')*multiplyspk./sum(~isnan(x{1}(:,avgtime)),'all'),HLB_data);
 errorbar([0; savefilename{15}{2}.AMP],[baselineL; avgresp],[baselineLstd; stdresp],'r')
 set(gca,'TickDir','out');
 xlabel('Current (\muA)');
 ylabel('Average Firing Rate (Sp/s)')
 title('V1')
 legend('Bottom 1/2','Top 1/2')
-%test signifiance - ttest(mean(HLB_data{ampit}{1}(:,avgtime)-baselineL,1,'omitnan'),mean((HLB_data{ampit}{2}(:,avgtime)-baslineS),1,'omitnan'))
+
 figure(201)
 hold on
 errorbar([0; savefilename{15}{2}.AMP],[mean(baslineLV2); avgrespLV2],[mean(baselineLstdV2); stdrespLV2],'r')
@@ -640,14 +628,14 @@ title('V1')
  ylim([-5 35])
 set(gca,'TickDir','out');
 
-%% early late
+%early late
 figure
 ax=axes;
 hold on
 baselineE=mean(DataEarlyV2{5}(:,1:89),2);
 baselineL=mean(DataLateV2{5}(:,1:89),2);
-stdshade((DataEarlyV2{5}-baselineE),0.2,'r',[-90:90],1,ax);
-stdshade((DataLateV2{5}-baselineL),0.2,'b',[-90:90],1,ax);
+stdshade((DataEarlyV2{5}-baselineE).*multiplyspk,0.2,'r',[-90:90],1,ax);
+stdshade((DataLateV2{5}-baselineL).*multiplyspk,0.2,'b',[-90:90],1,ax);
 % plot(mean(DataEarlyV2{5}),'r')
 % plot(mean(DataLateV2{5}),'b')
 title('V2')
@@ -658,18 +646,11 @@ set(gca,'TickDir','out');
 legend('Early','Late')
 
 
-sigmoidELV1=nan(5,2);
-sigmoidELstdV1=nan(5,2);
-baselineV1EL=nan(5,2);
-baselineELstdV1=nan(5,2);
-timesigmoid=92:122;
-for ampit=1:5
-    %V1
  dataE=reshape(mean(DataEarlyV1{ampit},2,'omitnan'),64,size(DataEarlyV1{ampit},1)/64);
  dataE(isnan(dataE))=0;
  dataL=reshape(mean(DataLateV1{ampit},2,'omitnan'),64,size(DataLateV1{ampit},1)/64);
  dataL(isnan(dataL))=0;
-[~,iE] = setdiff(dataE.', dataL.', 'rows');%making sure its exclusively early or late ->NOT BOTH
+[~,iE] = setdiff(dataE.', dataL.', 'rows');
 [~,iL] = setdiff(dataL.', dataE.', 'rows');
 dataE=[];
 for i=1:length(iE)
@@ -681,31 +662,7 @@ for i=1:length(iL)
     dataL=[dataL; DataLateV1{ampit}(iL(i)*64-63:iL(i)*64,:)];
 end
 dataL=unique(dataL,'rows');
-baselineE=mean(dataE(:,baselinetime),2,'omitnan');
-baselineL=mean(dataL(:,baselinetime),2,'omitnan');
 
-sigmoidELV1(ampit,2)=mean(dataL(:,timesigmoid)-baselineL,'all','omitnan');
-sigmoidELV1(ampit,1)=mean(dataE(:,timesigmoid)-baselineE,'all','omitnan');
-sigmoidELstdV1(ampit,1)=SEM(dataE(:,timesigmoid)-baselineE,0);
-sigmoidELstdV1(ampit,2)=SEM(dataL(:,timesigmoid)-baselineL,0);
-
-baselineV1EL(ampit,2)=mean(dataL(:,subselectbaseline)-baselineL,'all','omitnan');
-baselineV1EL(ampit,1)=mean(dataE(:,subselectbaseline)-baselineE,'all','omitnan');
-baselineELstdV1(ampit,1)=SEM(dataE(:,subselectbaseline)-baselineE,0);
-baselineELstdV1(ampit,2)=SEM(dataL(:,subselectbaseline)-baselineL,0);
-%V2
-
-DataEarlyV2
-sigmoidELV21(ampit,2)=mean(dataL(:,timesigmoid)-baselineL,'all','omitnan');
-sigmoidELV1(ampit,1)=mean(dataE(:,timesigmoid)-baselineE,'all','omitnan');
-sigmoidELstdV1(ampit,1)=SEM(dataE(:,timesigmoid)-baselineE,0);
-sigmoidELstdV1(ampit,2)=SEM(dataL(:,timesigmoid)-baselineL,0);
-
-baselineV1EL(ampit,2)=mean(dataL(:,subselectbaseline)-baselineL,'all','omitnan');
-baselineV1EL(ampit,1)=mean(dataE(:,subselectbaseline)-baselineE,'all','omitnan');
-baselineELstdV1(ampit,1)=SEM(dataE(:,subselectbaseline)-baselineE,0);
-baselineELstdV1(ampit,2)=SEM(dataL(:,subselectbaseline)-baselineL,0);
-end
 figure
 ax=axes;
 hold on
@@ -724,26 +681,6 @@ legend('Early','Late')
 ylim([-2.5 30])
 
 
-%sigmoid early late
-figure
-hold on
-errorbar([0 2 5 6 8 10],[mean(baselineV1EL(:,1)); sigmoidELV1(:,1)],[mean(baselineELstdV1(:,1)); sigmoidELstdV1(:,1)],'r')
-errorbar([0 2 5 6 8 10],[mean(baselineV1EL(:,2)); sigmoidELV1(:,2)],[mean(baselineELstdV1(:,2)); sigmoidELstdV1(:,2)],'b')
-set(gca,'TickDir','out');
-legend('Early','Late')
-title('V1')
-xlabel('Current (ua)')
-ylabel('Firing rate (sp/s)')
-
-figure
-hold on
-errorbar([2 5 6 8 10],[sigmoidELV2(:,1)],sigmoidELstdV2(:,1),'r')
-errorbar([2 5 6 8 10],[sigmoidELV2(:,2)],sigmoidELstdV2(:,2),'b')
-set(gca,'TickDir','out');
-legend('Early','Late')
-title('V2')
-xlabel('Current (ua)')
-ylabel('Firing rate (sp/s)')
 % baselineS{ampit}{1}=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
 % baselineFR{ampit}{2}=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
 % errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{1}(:,avgtime)-baselineFR{ampit}{1},'all','omitnan').*multiplyspk,'r')
@@ -806,13 +743,13 @@ plot(mean(V1ELresp{ampit}{3}.*multiplyspk,'omitnan'),'b')
 
 
 %% sigmoid
-baselintimee=1:89;%2:12 for V1, 1:89 for v2
-peaktime=92:180;%92:102 for V1, 92:180 for v2
+baselintimee=2:12;%2:12 for V1, 1:85 for v2
+peaktime=92:102;%92:102 for V1, 92:181 for v2
 avgtimeV1=peaktime;
 avgalldata=cellfun(@(x) mean(x(:,avgtimeV1).*multiplyspk,'all'),alldata);%avg of all time points
 baselinedata=mean(cellfun(@(x) mean((x(:,baselintimee).*multiplyspk),'all'), alldata));
-stdalldata=cellfun(@(x) SEM(x(:,avgtimeV1).*multiplyspk,0), alldata);
-stdalldatabaseline=mean(cellfun(@(x) SEM(x(:,baselintimee).*multiplyspk,0), alldata));%
+stdalldata=cellfun(@(x) std(x(:,avgtimeV1).*multiplyspk,0,'all')./length(x(:,avgtimeV1)), alldata);
+stdalldatabaseline=mean(cellfun(@(x) std(x(:,baselintimee).*multiplyspk,0,'all')./length(x(:,baselintimee)), alldata));%
 figure
 %plot(savefilename{15}{2}.AMP,avgalldata)
 errorbar([0;savefilename{15}{2}.AMP],[baselinedata;avgalldata],[stdalldatabaseline;stdalldata])
@@ -824,13 +761,10 @@ hold on
 
 avgalldata=cellfun(@(x) mean(max(x(:,peaktime).*multiplyspk,[],2)), alldata);%find peak of the data
 baselinedata=mean(cellfun(@(x) mean(max(x(:,baselintimee).*multiplyspk,[],2)), alldata));
-stdalldata=cellfun(@(x) SEM(max(x(:,peaktime).*multiplyspk,[],2),0), alldata);%
-stdalldatabaseline=mean(cellfun(@(x) SEM(max(x(:,baselintimee).*multiplyspk,[],2),0), alldata));%
+stdalldata=cellfun(@(x) std(max(x(:,peaktime).*multiplyspk,[],2),0,'all')./length(max(x(:,peaktime).*multiplyspk,[],2)), alldata);%
+stdalldatabaseline=mean(cellfun(@(x) std(max(x(:,baselintimee).*multiplyspk,[],2),0,'all')./length(max(x(:,baselintimee).*multiplyspk,[],2)), alldata));%
 errorbar([0;savefilename{15}{2}.AMP],[baselinedata;avgalldata],[stdalldatabaseline;stdalldata])
 legend('Avg','Peak')
-
-%use this to compare ttest(mean(alldata{5}(:,avgtimeV1),1),mean(alldata{4}(:,avgtimeV1),1))
-
 % avgalldata=cellfun(@(x) mean(x(:,peaktime).*multiplyspk,'all'),alldata);%avg of all time points
 % %avgalldata=cellfun(@(x) mean(max(x(:,92:181).*multiplyspk,[],2)), alldata);%find peak of the data
 % %baselinedata=mean(cellfun(@(x) mean(max(x(:,1:85).*multiplyspk,[],2)), alldata));
@@ -889,7 +823,7 @@ ylabel('Latency to return to baseline after peak (ms)')
 title('V1')
 
 
-%% # Sig monkeys and stim elect per time
+%%# Sig monkeys and stim elect per time
 sigmonkeys=cellfun(@(x) unique(x), folderIDsig, 'UniformOutput', false);
 sigmonkeys=cellfun(@(x) sum(diff(x)>3)+1,sigmonkeys);
 
@@ -911,7 +845,7 @@ set(gca,'TickDir','out');
 ylabel('Distance from centroid (um)')
 xlabel('Group time')
 
-%% Distance heatmap response
+%% Distance and heatmap response
 figure; heatmap(sum(heatmap_centroid{5}>0,3)); set(gca,'ColorScaling','log')
 dataheatmap=sum(heatmap_centroid{5}>0,3);
 figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
