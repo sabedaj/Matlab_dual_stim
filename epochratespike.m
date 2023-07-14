@@ -372,6 +372,7 @@ colororder(newcolors);
 leg=legend('2','6','10');
 title(leg,'Current(uA)')
 xlim([-50 85])
+beautifyPlot;
 %plot(-90:90,mean(alldata{ampit}.*multiplyspk))
 end
 
@@ -656,7 +657,7 @@ ylabel('Firing rate (sp/s)')
  xlim([-50,89])
 set(gca,'TickDir','out');
 legend('Early','Late')
-
+beautifyPlot;
 
 sigmoidELV1=nan(5,2);
 sigmoidELstdV1=nan(5,2);
@@ -666,7 +667,8 @@ sigmoidELV2=nan(5,2);
 sigmoidELstdV2=nan(5,2);
 baselineV2EL=nan(5,2);
 baselineELstdV2=nan(5,2);
-timesigmoid=92:122;
+timesigmoidV2=90+47:181;
+timesigmoidV1=92:122;
 for ampit=1:5
     %V1
  dataE=reshape(mean(DataEarlyV1{ampit},2,'omitnan'),64,size(DataEarlyV1{ampit},1)/64);
@@ -688,10 +690,10 @@ dataL=unique(dataL,'rows');
 baselineE=mean(dataE(:,baselinetime),2,'omitnan');
 baselineL=mean(dataL(:,baselinetime),2,'omitnan');
 
-sigmoidELV1(ampit,2)=mean(dataL(:,timesigmoid)-baselineL,'all','omitnan');
-sigmoidELV1(ampit,1)=mean(dataE(:,timesigmoid)-baselineE,'all','omitnan');
-sigmoidELstdV1(ampit,1)=SEM(dataE(:,timesigmoid)-baselineE,0);
-sigmoidELstdV1(ampit,2)=SEM(dataL(:,timesigmoid)-baselineL,0);
+sigmoidELV1(ampit,2)=mean(dataL(:,timesigmoidV1)-baselineL,'all','omitnan');
+sigmoidELV1(ampit,1)=mean(dataE(:,timesigmoidV1)-baselineE,'all','omitnan');
+sigmoidELstdV1(ampit,1)=SEM(dataE(:,timesigmoidV1)-baselineE,0);
+sigmoidELstdV1(ampit,2)=SEM(dataL(:,timesigmoidV1)-baselineL,0);
 
 baselineV1EL(ampit,2)=mean(dataL(:,subselectbaseline)-baselineL,'all','omitnan');
 baselineV1EL(ampit,1)=mean(dataE(:,subselectbaseline)-baselineE,'all','omitnan');
@@ -701,10 +703,10 @@ baselineELstdV1(ampit,2)=SEM(dataL(:,subselectbaseline)-baselineL,0);
 
 baselineE=mean(DataEarlyV2{ampit}(:,baselinetime),2,'omitnan');
 baselineL=mean(DataLateV2{ampit}(:,baselinetime),2,'omitnan');
-sigmoidELV2(ampit,2)=mean(DataLateV2{ampit}(:,timesigmoid)-baselineL,'all','omitnan');
-sigmoidELV2(ampit,1)=mean(DataEarlyV2{ampit}(:,timesigmoid)-baselineE,'all','omitnan');
-sigmoidELstdV2(ampit,1)=SEM(DataEarlyV2{ampit}(:,timesigmoid)-baselineE,0);
-sigmoidELstdV2(ampit,2)=SEM(DataLateV2{ampit}(:,timesigmoid)-baselineL,0);
+sigmoidELV2(ampit,2)=mean(DataLateV2{ampit}(:,timesigmoidV2)-baselineL,'all','omitnan');
+sigmoidELV2(ampit,1)=mean(DataEarlyV2{ampit}(:,timesigmoidV2)-baselineE,'all','omitnan');
+sigmoidELstdV2(ampit,1)=SEM(DataEarlyV2{ampit}(:,timesigmoidV2)-baselineE,0);
+sigmoidELstdV2(ampit,2)=SEM(DataLateV2{ampit}(:,timesigmoidV2)-baselineL,0);
 
 baselineV2EL(ampit,2)=mean(DataLateV2{ampit}(:,subselectbaseline)-baselineL,'all','omitnan');
 baselineV2EL(ampit,1)=mean(DataEarlyV2{ampit}(:,subselectbaseline)-baselineE,'all','omitnan');
@@ -726,8 +728,8 @@ ylabel('Firing rate (sp/s)')
  xlim([-50,89])
 set(gca,'TickDir','out');
 legend('Early','Late')
-ylim([-2.5 30])
-
+ylim([-2.5 35])
+beautifyPlot;
 
 %sigmoid early late
 figure
@@ -739,6 +741,8 @@ legend('Early','Late')
 title('V1')
 xlabel('Current (ua)')
 ylabel('Firing rate (sp/s)')
+beautifyPlot;
+
 figure
 hold on
 errorbar([0 2 5 6 8 10],[mean(baselineV2EL(:,1)); sigmoidELV2(:,1)],[mean(baselineELstdV2(:,1)); sigmoidELstdV2(:,1)],'r')
@@ -748,6 +752,7 @@ legend('Early','Late')
 title('V2')
 xlabel('Current (ua)')
 ylabel('Firing rate (sp/s)')
+beautifyPlot;
 % baselineS{ampit}{1}=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
 % baselineFR{ampit}{2}=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
 % errorbar((savefilename{15}{2}.AMP(ampit)),mean(HLB_data{ampit}{1}(:,avgtime)-baselineFR{ampit}{1},'all','omitnan').*multiplyspk,'r')
@@ -794,20 +799,6 @@ ylabel('Firing rate (sp/s)')
 % bigcorall
 % smallcorall
 
-%% early late
-ampit=5;
-figure
-plot(mean(V2ELresp{ampit}{1}.*multiplyspk,'omitnan'),'r')
-hold on
-plot(mean(V2ELresp{ampit}{3}.*multiplyspk,'omitnan'),'b')
-
-figure
-plot(mean(V1ELresp{ampit}{1}.*multiplyspk,'omitnan'),'r')
-hold on
-plot(mean(V1ELresp{ampit}{3}.*multiplyspk,'omitnan'),'b')
-
-
-
 
 %% sigmoid
 baselintimee=1:89;%2:12 for V1, 1:89 for v2
@@ -825,6 +816,7 @@ ylabel('Firing rate (sp/s)')
 xlim([0 10])
 set(gca,'TickDir','out');
 hold on
+beautifyPlot;
 
 avgalldata=cellfun(@(x) mean(max(x(:,peaktime).*multiplyspk,[],2)), alldata);%find peak of the data
 baselinedata=mean(cellfun(@(x) mean(max(x(:,baselintimee).*multiplyspk,[],2)), alldata));
@@ -855,42 +847,42 @@ figure
 imagesc(datastimchn)
 colorbar
 
-%% peak and time to return to baseline
-%V1
-maxpeakV1=cellfun(@(x) max(x(:,90:end),[],2),stimchnsignificant{5},'UniformOutput',false);
-avgpeakV1=cellfun(@(x) mean(x,'omitnan').*multiplyspk,maxpeakV1);
-
-%V2
-maxpeakV2=cellfun(@(x) max(x(:,90:end),[],2),groupdata{5},'UniformOutput',false);
-avgpeakV2=cellfun(@(x) mean(x,'omitnan').*multiplyspk,maxpeakV2);
-figure; plot(1:9,avgpeakV1)
-hold on
-plot(1:9,avgpeakV2)
-set(gca,'TickDir','out');
-xlabel('epoch')
-ylabel('Max firing rate')
-
-leg=legend('V1','V2')
-
-%width resp
-timemaxsave=nan(300,9);
-for group=1:9
-    for i = 1:size(maxpeakV1{group})
-        if ~isnan(maxpeakV1{group}(i)) && maxpeakV1{group}(i)~=0
-            [~,c]=find(stimchnsignificant{5}{group}(i,90:end)./maxpeakV1{group}(i)==1,1,'first');
-            baselinemean=mean(stimchnsignificant{5}{group}(i,1:85),'omitnan');
-            baselinestd=std(stimchnsignificant{5}{group}(i,1:85),'omitnan');
-            [~,c2]=find(stimchnsignificant{5}{group}(i,c:end)<=baselinemean+baselinestd,1,'first');
-            timemaxsave(i,group)=c+c2;
-        end
-    end
-end
-timemax=timemaxsave;
-figure; plot(1:9, mean(timemax,'omitnan'))
-set(gca,'TickDir','out');
-xlabel('epoch')
-ylabel('Latency to return to baseline after peak (ms)')
-title('V1')
+% %% peak and time to return to baseline
+% %V1
+% maxpeakV1=cellfun(@(x) max(x(:,90:end),[],2),stimchnsignificant{5},'UniformOutput',false);
+% avgpeakV1=cellfun(@(x) mean(x,'omitnan').*multiplyspk,maxpeakV1);
+% 
+% %V2
+% maxpeakV2=cellfun(@(x) max(x(:,90:end),[],2),groupdata{5},'UniformOutput',false);
+% avgpeakV2=cellfun(@(x) mean(x,'omitnan').*multiplyspk,maxpeakV2);
+% figure; plot(1:9,avgpeakV1)
+% hold on
+% plot(1:9,avgpeakV2)
+% set(gca,'TickDir','out');
+% xlabel('epoch')
+% ylabel('Max firing rate')
+% 
+% leg=legend('V1','V2')
+% 
+% %width resp
+% timemaxsave=nan(300,9);
+% for group=1:9
+%     for i = 1:size(maxpeakV1{group})
+%         if ~isnan(maxpeakV1{group}(i)) && maxpeakV1{group}(i)~=0
+%             [~,c]=find(stimchnsignificant{5}{group}(i,90:end)./maxpeakV1{group}(i)==1,1,'first');
+%             baselinemean=mean(stimchnsignificant{5}{group}(i,1:85),'omitnan');
+%             baselinestd=std(stimchnsignificant{5}{group}(i,1:85),'omitnan');
+%             [~,c2]=find(stimchnsignificant{5}{group}(i,c:end)<=baselinemean+baselinestd,1,'first');
+%             timemaxsave(i,group)=c+c2;
+%         end
+%     end
+% end
+% timemax=timemaxsave;
+% figure; plot(1:9, mean(timemax,'omitnan'))
+% set(gca,'TickDir','out');
+% xlabel('epoch')
+% ylabel('Latency to return to baseline after peak (ms)')
+% title('V1')
 
 
 %% # Sig monkeys and stim elect per time
@@ -901,32 +893,21 @@ sigmonkeys=cellfun(@(x) sum(diff(x)>3)+1,sigmonkeys);
 sigstimelect=sum((cellfun(@(x) length(unique(x)),trialsig,'UniformOutput',true)),3);
 
 
-figure;ax=axes; [lineOut, fillOut] = stdshade(spread',0.2,'r',[2 5 6 8 10],1,ax);
-set(gca,'TickDir','out');
-ylabel('Distance from centroid (um)')
-xlabel('Current (uA)')
-
-
-figure;ax=axes; hold on;
-for ampit=1:5
-[lineOut, fillOut] = stdshade(squeeze(spreadgroup(ampit,:,:))',0.2,[0 0 ampit/5],[1:9],1,ax);
-end
-set(gca,'TickDir','out');
-ylabel('Distance from centroid (um)')
-xlabel('Group time')
+% figure;ax=axes; [lineOut, fillOut] = stdshade(spread',0.2,'r',[2 5 6 8 10],1,ax);
+% set(gca,'TickDir','out');
+% ylabel('Distance from centroid (um)')
+% xlabel('Current (uA)')
+% 
+% 
+% figure;ax=axes; hold on;
+% for ampit=1:5
+% [lineOut, fillOut] = stdshade(squeeze(spreadgroup(ampit,:,:))',0.2,[0 0 ampit/5],[1:9],1,ax);
+% end
+% set(gca,'TickDir','out');
+% ylabel('Distance from centroid (um)')
+% xlabel('Group time')
 
 %% Distance heatmap response
-figure; heatmap(sum(heatmap_centroid{5}>0,3)); set(gca,'ColorScaling','log')
-dataheatmap=sum(heatmap_centroid{5}>0,3);
-figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
-maxdata=max(dataheatmap,[],'all')/2;
-fwhmdat=dataheatmap>=maxdata;
-
-%stimchn only
-dataheatmap=sum(centredstimchn{5}>0,3);
-figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
-
-
 numRows = 31;  % Number of rows (each row is 50 units apart)
 numCols = 7;   % Number of columns (each column is 200 units)
 % Create an array of row indices
@@ -935,6 +916,27 @@ rowIndices = (-floor(numRows/2):floor(numRows/2)) * 50;
 colIndices = (-floor(numCols/2):floor(numCols/2)) * 200;
 % Create the distance array
 distanceArray = sqrt((rowIndices.').^2 + (colIndices).^2);
+
+
+% figure; heatmap(sum(heatmap_centroid{5}>0,3)); set(gca,'ColorScaling','log')
+% dataheatmap=sum(heatmap_centroid{5}>0,3);
+if all(chnrange<65)
+figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
+maxdata=max(dataheatmap,[],'all')/2;
+fwhmdat=dataheatmap>=maxdata;
+
+
+%calcualte standard deviation of the heatmap
+errorheatmap=std(repelem(distanceArray(:),dataheatmap(:)),0,'all');%repeats the number of elements in distance for the number of electrodes at each position
+end
+
+%stimchn only
+dataheatmap=sum(centredstimchn{5}>0,3);
+figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
+errorheatmap=std(repelem(distanceArray(:),dataheatmap(:)),0,'all');%repeats the number of elements in distance for the number of electrodes at each position
+
+
+
 maxnum=1000;
 step=100;
 splitdist=cell(5,1);
@@ -964,8 +966,8 @@ color1 = linspace(0,1,3);
 newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
 colororder(newcolors);
 set(gca,'TickDir','out');
-
 ylabel('# significant electrodes')
+beautifyPlot;
 % %% sigmoid using groupdata
 % sigmoidampepoch=zeros(5,9);
 % for ampit=1:5

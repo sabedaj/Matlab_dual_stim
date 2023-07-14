@@ -212,7 +212,7 @@ end
 
 %% plot spiking rate epoch
 excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see below)
-chnrange=1:64;
+chnrange=65:128;
 normalisedat=0;
 close all
 if all(savefilenamecompiled{7,1}{1,2}.CHN<65)
