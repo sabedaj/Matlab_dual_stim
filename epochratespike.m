@@ -1,4 +1,4 @@
-function epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
+function epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat,V1stim)
 %% epoch has to be increasing with current once significant
 % trial avg single elect - - standard deviation -  bins all electrodes based on thresh
 if normalisedat==1
@@ -57,15 +57,19 @@ stimchncount=0;
 significantspread_groupsplit=nan(128,500,9);
 foldercheck{ampit}=cell(numfolderstotal,1);
 for numerfolders=1:numfolderstotal
-
-    trialend=length(fieldnames(ratestruct{numerfolders}));
+    
+    trialend=length((savefilename{numerfolders}{4}));
     for trial=1:trialend
-        trialcheck=['T' num2str(trial)];
-        ratespiking{numerfolders}(:,:,trial)=nanmean(ratestruct{numerfolders}.(trialcheck),3);
+        trialcheck=['T' num2str(savefilename{numerfolders}{4}(trial,1))];
+        if (V1stim==1 && savefilename{numerfolders}{4}(trial,3)<65) || (V1stim==0 && savefilename{numerfolders}{4}(trial,3)>64)
+            ratespiking{numerfolders}(:,:,trial)=nan(128,181);
+        else
+            ratespiking{numerfolders}(:,:,trial)=nanmean(ratestruct{numerfolders}.(trialcheck),3);
+        end
     end
-   %%%%%%need to see if this line will pick the correct spiking trials.
-   %%%%%%compare amp and select trial with that amp from savefile name.
-   %%%%%%need to see if this owrrks with both the current steered data and
+    %%%%%%need to see if this line will pick the correct spiking trials.
+    %%%%%%compare amp and select trial with that amp from savefile name.
+    %%%%%%need to see if this owrrks with both the current steered data and
    %%%%%%non-current steering
     [m,i]=min(abs(savefilename{numerfolders}{4}(:,2)-ampinterest)); ampinterest=savefilename{numerfolders}{4}(i,2);%nearest neighbour amp
    if excitesupress==1
@@ -96,8 +100,12 @@ for numerfolders=1:numfolderstotal
    rateAMPua=rateAMPua./max(squeeze(max(rateAMPua,[],2)),[],2);
    end
 
-   goodchns=chnrange(~ismember(chnrange,unique(chnexclude)));
-   totalchncount(ampit)=(length(goodchns))*size(rateAMPua,3)+totalchncount(ampit);
+   %old code
+%    goodchns=chnrange(~ismember(chnrange,unique(chnexclude)));
+%    totalchncount(ampit)=(length(goodchns))*size(rateAMPua,3)+totalchncount(ampit);
+  %new code
+  totalchncount(ampit)=sum(~isnan(squeeze(sum(rateAMPua(chnrange,:,:),2,'includenan'))),'all')+totalchncount(ampit); %removes any possible wrong stimulation channels in the total count since they have already been removed from the data
+  
    meancatdata=cat(2,mean(rateAMPua(:,92:101,:),2),mean(rateAMPua(:,102:111,:),2),mean(rateAMPua(:,112:121,:),2),mean(rateAMPua(:,122:131,:),2),mean(rateAMPua(:,132:141,:),2),mean(rateAMPua(:,142:151,:),2),mean(rateAMPua(:,152:161,:),2),mean(rateAMPua(:,162:171,:),2),mean(rateAMPua(:,172:181,:),2));
    meancatdataEL=cat(2,mean(rateAMPua(:,92:136,:),2),mean(rateAMPua(:,137:181,:),2));
    sig=false(128,9,size(meancatdata,3));
@@ -163,17 +171,25 @@ CatergoriesEBL=cell(size(sig,3),1);
                alldata{ampit}(iteratealldat,1:181)=rateAMPua(chn,:,stimchn);
                iteratealldat=iteratealldat+1;
                %if  ~any(foldercheck{ampit}{numerfolders}==stimchn)
-               alldata_stim{ampit}(iteratestimdat:iteratestimdat+63,1:181)=rateAMPua(65:128,:,stimchn);
+               if any(mean(rateAMPua(1:64,80:90,stimchn),2)>0.3 & mean(rateAMPua(1:64,1:11,stimchn),2)<0.2)
+                   figure(5)
+                   hold on
+                   plot(-90:90,mean(rateAMPua(1:64,:,stimchn),1,'omitnan'))
+               end
+               
+               if V1stim==1
+                alldata_stim{ampit}(iteratestimdat:iteratestimdat+63,1:181)=rateAMPua(65:128,:,stimchn);
+               else
+                   alldata_stim{ampit}(iteratestimdat:iteratestimdat+63,1:181)=rateAMPua(1:64,:,stimchn);
+               end
                iteratestimdat=iteratestimdat+64;
                significantspread(chn,stimchn+stimchncount)=mean(rateAMPua(chn,92:181,stimchn),2);
                folderIDsig{ampit}=[folderIDsig{ampit} str2double(savefilename{numerfolders}{3})];%determine how many different monkeys creating significance
                %stimchnsave{ampit}=[stimchnsave{ampit}; stimchn];
                %foldercheck{ampit}{numerfolders}=[foldercheck{ampit}{numerfolders};stimchn];
                % end
-              
+              stimchnarray=[1:16;33:48;49:64;17:32]';
                 if all(chnrange>64)
-                    stimchnarray=[1:16;33:48;49:64;17:32]';
-          
                      sortedmap=reshape(E_MAP(65:128),16,4);
                      sortedmap=sortedmap(:,[1 3 4 2]);
                      [rchn,cchn]=find(E_MAP(chn)==sortedmap);
@@ -188,9 +204,15 @@ CatergoriesEBL=cell(size(sig,3),1);
 %                         [r,c]=find(stimchnarray==(simchnall(i)-64));
 %                         centredstimchn{ampit}(17-r:32-r,5-c:8-c,stimchncount+i)=V1arraysorted(:,:,i);
 %                     end
+                else
+                    sortedmap=reshape(E_MAP(1:64),16,4);
+                    sortedmap=sortedmap(:,[1 3 4 2]);
+                    [rchn,cchn]=find(E_MAP(chn)==sortedmap);
+                    [r,c]=find(stimchnarray==(simchnall(stimchn)));
+                    centredstimchn{ampit}(17-r+(rchn-1),5-c+(cchn-1),stimchncount+stimchn)=squeeze(mean(rateAMPua(chn,92:102,stimchn),2));
                     
                 end
-          end
+           end
           group=find(squeeze(sig(chn,:,stimchn)==1));
            if ~isempty(group)
                for gnum=1:length(group)
@@ -594,7 +616,11 @@ errorbar([0; savefilename{15}{2}.AMP],[baselineL; avgresp],[baselineLstd; stdres
 set(gca,'TickDir','out');
 xlabel('Current (\muA)');
 ylabel('Average Firing Rate (Sp/s)')
+if V1stim==1
 title('V1')
+elseif V1stim==0
+    title('V2')
+end
 legend('Bottom 1/2','Top 1/2')
 %test signifiance - ttest(mean(HLB_data{ampit}{1}(:,avgtime)-baselineL,1,'omitnan'),mean((HLB_data{ampit}{2}(:,avgtime)-baslineS),1,'omitnan'))
 figure(201)
@@ -604,7 +630,11 @@ errorbar([0; savefilename{15}{2}.AMP],[mean(baslineSV2); avgresp2V2],[mean(basel
 set(gca,'TickDir','out');
 xlabel('Current (\muA)');
 ylabel('Average Firing Rate (Sp/s)')
+if V1stim==1
 title('V2')
+elseif V1stim==0
+    title('V1')
+end
 legend('Bottom 1/2','Top 1/2')
 
 %10ua timing figures
@@ -616,7 +646,11 @@ baselineL=mean(alldata{ampit}(sorted_indices(halflength+1:end),1:89),2,'omitnan'
 stdshade((alldata{ampit}(sorted_indices(1:halflength),:)-baselineS).*multiplyspk,0.2,'b',[-90:90],1,ax);
 xlabel('Time(ms)')
 ylabel('FR (sp/s)')
+if V1stim==1
 title('V2')
+elseif V1stim==0
+    title('V1')
+end
  xlim([-50,89])
 set(gca,'TickDir','out');
 stdshade((alldata{ampit}(sorted_indices(halflength+1:end),:)-baselineL).*multiplyspk,0.2,'r',[-90:90],1,ax);
@@ -636,7 +670,11 @@ text(-40,20,['N=',num2str(size(HLB_data{ampit}{1},1)),'electrodes'],'Color','red
 text(-40,18,['N=',num2str(size(HLB_data{ampit}{2},1)),'electrodes'],'Color','blue')
 xlabel('Time(ms)')
 ylabel('FR (sp/s)')
+if V1stim==1
 title('V1')
+elseif V1stim==0
+    title('V2')
+end
  xlim([-50,89])
  ylim([-5 35])
 set(gca,'TickDir','out');
@@ -694,6 +732,7 @@ sigmoidELV1(ampit,2)=mean(dataL(:,timesigmoidV1)-baselineL,'all','omitnan');
 sigmoidELV1(ampit,1)=mean(dataE(:,timesigmoidV1)-baselineE,'all','omitnan');
 sigmoidELstdV1(ampit,1)=SEM(dataE(:,timesigmoidV1)-baselineE,0);
 sigmoidELstdV1(ampit,2)=SEM(dataL(:,timesigmoidV1)-baselineL,0);
+%test signifiance -ttest(mean(dataL(:,timesigmoidV1)-baselineL,1,'omitnan'),mean((dataE(:,timesigmoidV1)-baselineE),1,'omitnan'))
 
 baselineV1EL(ampit,2)=mean(dataL(:,subselectbaseline)-baselineL,'all','omitnan');
 baselineV1EL(ampit,1)=mean(dataE(:,subselectbaseline)-baselineE,'all','omitnan');
@@ -707,6 +746,7 @@ sigmoidELV2(ampit,2)=mean(DataLateV2{ampit}(:,timesigmoidV2)-baselineL,'all','om
 sigmoidELV2(ampit,1)=mean(DataEarlyV2{ampit}(:,timesigmoidV2)-baselineE,'all','omitnan');
 sigmoidELstdV2(ampit,1)=SEM(DataEarlyV2{ampit}(:,timesigmoidV2)-baselineE,0);
 sigmoidELstdV2(ampit,2)=SEM(DataLateV2{ampit}(:,timesigmoidV2)-baselineL,0);
+%test signifiance -ttest(mean(DataLateV2{ampit}(:,timesigmoidV2)-baselineL,1,'omitnan'),mean((DataEarlyV2{ampit}(:,timesigmoidV2)-baselineE),1,'omitnan'))
 
 baselineV2EL(ampit,2)=mean(DataLateV2{ampit}(:,subselectbaseline)-baselineL,'all','omitnan');
 baselineV2EL(ampit,1)=mean(DataEarlyV2{ampit}(:,subselectbaseline)-baselineE,'all','omitnan');
@@ -919,7 +959,7 @@ distanceArray = sqrt((rowIndices.').^2 + (colIndices).^2);
 
 
 % figure; heatmap(sum(heatmap_centroid{5}>0,3)); set(gca,'ColorScaling','log')
-% dataheatmap=sum(heatmap_centroid{5}>0,3);
+ dataheatmap=sum(heatmap_centroid{5}>0,3);
 if all(chnrange<65)
 figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
 maxdata=max(dataheatmap,[],'all')/2;

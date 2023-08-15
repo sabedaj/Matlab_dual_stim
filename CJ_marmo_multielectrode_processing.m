@@ -211,14 +211,15 @@ for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using t
 end
 
 %% plot spiking rate epoch
+V1stim=1;%0 for V2 stim, 1 for V1 stim;
 excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see below)
-chnrange=65:128;
+chnrange=1:64;
 normalisedat=0;
 close all
 if all(savefilenamecompiled{7,1}{1,2}.CHN<65)
     chnstoremove=[];
 end
-epochratespike(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove,normalisedat);
+epochratespike(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove,normalisedat,V1stim);
 %%
 relationshipV1V2chn(IDstructsavecompiled(:,3),savefilenamecompiled,chnstoremove) %%%%%%%continue working on this function
 
