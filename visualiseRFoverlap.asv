@@ -68,7 +68,7 @@ for ich = aSysOrder
     
     [~, nSpikeTrials, ~] = size(d.spikes.spk); 
     
-    nSpikesTot = sum(cellfun(@length, d.spikes.spk(:,:,ich))); 
+    nSpikesTot = sum(cellfun(@length, d.spikes.spk{:,ich})); 
     fprintf('%i spikes detected ... \n', nSpikesTot); 
    
     allSpikes{ich} = zeros(1, nSpikesTot);
@@ -79,7 +79,7 @@ for ich = aSysOrder
         nFrames = sum(nFramesList(:, iTrial));
         
         if iTrial <= nSpikeTrials
-            sTimes = round(d.spikes.spk{1,iTrial,ich}*1000); %spikeTimes in ms 
+            sTimes = round(d.spikes.spk{iTrial}*1000); %spikeTimes in ms 
             sCount = length(sTimes); 
             allSpikes{ich}(spikeInd(ich):spikeInd(ich)+sCount-1) = sTimes+tOffset; 
             spikeInd(ich) = spikeInd(ich) + sCount;
