@@ -8,7 +8,16 @@ clear;
 %nsfile = '/home/marmolab/data/2022/10/11/cj225.noisegrid.163819.mat';
 nsfile = 'E:\DATA\MarmoblitzVisualDataCJ\2022\10\11\cj225.noisegrid.163819.mat';
 %nsfile = 'E:\DATA\MarmoblitzVisualDataCJ\2022\09\07\cj222.noisegrid.115113.mat';
-chList = [128,13,76,41,88,23,5,120,89,103,82,99,16,70,56,38,105,49,79,15,40,1,37,80,45,53,18,122,58,115,61,121,74,64,104,25,106,117,62,11,31,78,90,98,20,68,125,46,17,52,59,2,6,93,8,29,26,81,102,77,54,12,107,109,47,84,55,19,111,7,108,91,97,34,27,42,60,69,57,75,83,100,63,10,113,87,51,92,9,33,36,123,44,118,127,116,119,85,35,86,32,95,67,24,101,126,4,73,94,65,3,124,50,110,72,43,71,22,28,112,21,114,96,48,66,30,14,39]; ; %[33   36   39    9   24   40   61  101   48   43   17   57  104   97   11  108   65   52   15   96  103  106   58   23   16  105   19  125   55   72   70  112  107   71   89   94  110   37   66   38   10  116   45   67   90   42   44   18]; %1:128;
+chList = 1:128;%[128,13,76,41,88,23,5,120,89,103,82,99,16,70,56,38,105,49,79,15,40,1,37,80,45,53,18,122,58,115,61,121,74,64,104,25,106,117,62,11,31,78,90,98,20,68,125,46,17,52,59,2,6,93,8,29,26,81,102,77,54,12,107,109,47,84,55,19,111,7,108,91,97,34,27,42,60,69,57,75,83,100,63,10,113,87,51,92,9,33,36,123,44,118,127,116,119,85,35,86,32,95,67,24,101,126,4,73,94,65,3,124,50,110,72,43,71,22,28,112,21,114,96,48,66,30,14,39]; ; %[33   36   39    9   24   40   61  101   48   43   17   57  104   97   11  108   65   52   15   96  103  106   58   23   16  105   19  125   55   72   70  112  107   71   89   94  110   37   66   38   10  116   45   67   90   42   44   18]; %1:128;
+fileS=dir;
+alreadysaveddobject=find(contains({fileS.name},'dobject'));
+if ~isempty(alreadysaveddobject)
+    load(fileS(alreadysaveddobject).name)
+else
+    d = mapping.analysis.noisegrid(nsfile,'loadArgs', ...
+        {'spikes',true,'source','ghetto','reload', true 'channels', chList});
+end
+    %%
 totCh = length(chList); 
 chArea = zeros(1,128);
 chArea(chList<65) = 2;
@@ -16,7 +25,7 @@ chArea(chList>64) = 1;
 % chArea = 1+ones(1, totCh);
 % chArea(1) = 1; 
 aSysOrder = randsample(1:totCh, totCh);
-ROI = [-10 0; 0 10];
+ROI = [-10 10; -10 10];
 aList = {'V1', 'V2'};
 
 sWin = 100;
@@ -29,8 +38,7 @@ RF = cell(1, totCh);
 firstTime = true; 
 for ich = aSysOrder
     fprintf('Loading Channel %i ... \n', chList(ich)); 
-    d = mapping.analysis.noisegrid(nsfile,'loadArgs', ...
-        {'spikes',true,'source','intan','reload', true 'channels', chList(ich)});
+
 
     tOffset = 1; 
     frameOffset = 0;
@@ -113,13 +121,13 @@ for ich = aSysOrder
     if nSpikesTot > 300
         RF{ich} = getRFMap(sTrain, onsetInds, sWin, sBin);
     else
-        RF{ich} = zeros(length(xs), length(ys));
+        RF{ich} = zeros(length(ys),length(xs));
     end
     
         figure(1); 
         subplot(11,12, ich); 
      
-        imagesc(flipud(RF{ich})); colormap('gray'); 
+        imagesc(xs,ys,(RF{ich})); colormap('gray'); 
         set(gca, 'XTick', [])
         set(gca, 'YTick', [])
         drawnow;

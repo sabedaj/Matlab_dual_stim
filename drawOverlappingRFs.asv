@@ -46,7 +46,7 @@ for f = 1:2
     Array{f} = Array{f}/max(Array{f}(:)); % normalise
 
     diffImg(:,:,f) = Array{f}; % the third dim of the diffImg is RGB
-    image(xs,ys,(diffImg)); axis image;
+    image(ys,xs,(diffImg)); axis image;
     title(aList{f});
 %     set(gca, 'XTick', 1:tickSp:length(xs), 'XTickLabel', xs(1:tickSp:end))
 %     set(gca, 'YTick', 1:tickSp:length(ys), 'YTickLabel', ys(end:-tickSp:1))
