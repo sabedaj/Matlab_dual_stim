@@ -15,7 +15,7 @@ for numerfolders=1:numfolderstotal
         permuted_numbers = subselectbaseline(randperm(s,length(subselectbaseline)));
         subselectbaseline=permuted_numbers(1:50);
         thresh=squeeze(mean(ratespiking{numerfolders}(:,subselectbaseline,trial),2)+(std(ratespiking{numerfolders}(:,subselectbaseline,trial),[],2).*3));
-        notsigsingle=squeeze(mean(ratespiking{numerfolders}(:,92:100,trial),2))<=thresh;
+        notsigsingle=squeeze(mean(ratespiking{numerfolders}(:,92:181,trial),2))<=thresh;
         ratespiking{numerfolders}(notsigsingle,:,trial)=nan;
     end
 end
@@ -28,7 +28,7 @@ respelect=cell(numelecttotal,1);
 V2resp=cell(numelecttotal,1);
 V1resp=cell(numelecttotal,1);
 for numstimelect=1:numelecttotal
-    for numerfolders=1:numfolderstotal
+    for numerfolders=1%:numfolderstotal
         trialend=size(savefilename{numerfolders}{2}.AMP,1);
         for trial=1:trialend
             whichelectstim=savefilename{numerfolders}{2}.AMP(trial,:)==ampinterest;
@@ -71,7 +71,7 @@ hold on
 color1 = linspace(0,1,numelecttotal);
 newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
 legendCell=cell(numelecttotal,1);
-for numelect=1:2:numelecttotal
+for numelect=1:numelecttotal
    stdshade(V2resp{numelect}.*1000,0.2,newcolors(numelect,:),[-90:90],1,ax); 
    legendCell{numelect} = num2str(numelect);
 end
