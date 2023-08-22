@@ -41,7 +41,7 @@ for f = 1:2
                 Array{f} = Array{f} + double(binRF) ;
             end
         end
-    end
+    end 
 
     Array{f} = Array{f}/max(Array{f}(:)); % normalise
 

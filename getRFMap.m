@@ -20,7 +20,7 @@ for x = 1:length(xs)
         end
     end
 end
-   
+    
     % average across trials
     meanSDF = cellfun(@(x) squeeze(mean(x)), thisSDF, 'UniformOutput', false);
     

@@ -1148,7 +1148,7 @@ xlabel('Time (ms)')
 rateplot=cellfun(@(x) nanmean(x(1:64,:,:),3),ratespiking,'UniformOutput',false);
 figure
 hold on
-title('V1 rate')
+title('V1 rate') 
 cellfun(@(x) plot(nanmean(x,1).*1000),rateplot','UniformOutput',false)
 lgd = legend('1','2','3','4','5','6','7','8');
 lgd.Title.String = 'folder';
