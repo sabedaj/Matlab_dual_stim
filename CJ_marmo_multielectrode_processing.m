@@ -220,6 +220,7 @@ if all(savefilenamecompiled{7,1}{1,2}.CHN<65)
 end
 epochratespike(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove,normalisedat);
 %%
+close all
 excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see below)
 chnrange=1:64;
 multielectplot(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove)

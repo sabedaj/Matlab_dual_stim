@@ -15,14 +15,14 @@ for x = 1:length(xs)
         thisSDF{y,x} = zeros(length(theseTimes), sWin);
         for t = 1:length(theseTimes)
             if theseTimes(t) + sWin-1 < nTimes
-                thisSDF{y,x}(t,:) = sdf(theseTimes(t):theseTimes(t) + sWin-1); % for each onset, get the spikes in the chosen window
+                thisSDF{y,x}(t,:) = sdf(theseTimes(t):theseTimes(t) + sWin-1); % for each onset, get the spi
             end
         end
     end
 end
     
     % average across trials
-    meanSDF = cellfun(@(x) squeeze(mean(x)), thisSDF, 'UniformOutput', false);%for every randel onset, we have the chosen window (ms) of data. Average across randel onsets to get one signal for the chosen window e.g. if window is 100ms, 100 elements representing 1ms each will be present
+    meanSDF = cellfun(@(x) squeeze(mean(x)), thisSDF, 'UniformOutput', false);
     
     % take the peak of the SDF
-    RF = cellfun(@max, meanSDF);% get the max firing rate in the window
+    RF = cellfun(@max, meanSDF);

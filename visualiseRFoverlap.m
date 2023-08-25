@@ -25,11 +25,11 @@ chArea(chList>64) = 1;
 % chArea = 1+ones(1, totCh);
 % chArea(1) = 1; 
 aSysOrder = randsample(1:totCh, totCh);
-ROI = [-10 10; -10 10];
+ROI = [-15 15; -15 15];
 aList = {'V1', 'V2'};
 
-sWin = 100;
-sBin = 50; 
+sWin = 100;%window to look in after randel change in ms
+sBin = 50; %amount of smoothing for sdf - basically a movmean bin
 interp = 1;
 tickSp = 5;
 figure(1); clf;
@@ -46,29 +46,35 @@ for ich = aSysOrder
         fprintf('Getting trial onsets...')
         [x,y,onsets] = d.getSingleSquareOnsets(); % onset times of the flashed squares
         
+        %onsets [x*y,trials] - x*y is number randels or number squares
+        %x= xvalues for whole grid. should be column 1 first i.e. all same
+        %xvalue, then column 2 etc. 
+        %y = yvalues for whole grid. should be column 1 first, i.e.
+        %decreasing as you move down, then column 2 etc. 
+        
 
-        inROIx = x >= ROI(1,1) & x <= ROI(1,2);
+        inROIx = x >= ROI(1,1) & x <= ROI(1,2);%determines if xval/yval within the ROI you declared above
         inROIy = y >= ROI(2,1) & y <= ROI(2,2);
         
-        useRand = inROIx & inROIy;
+        useRand = inROIx & inROIy;%gets index of randels within the ROI
         xroi = x(useRand); yroi = y(useRand); 
         %onroi = onsets{inROIx & inROIy};
 
-        onMS = cellfun(@(x) round(x.*1000), onsets, 'UniformOutput', false);
+        onMS = cellfun(@(x) round(x.*1000), onsets, 'UniformOutput', false);%randel onset time in ms
 
-        nFramesList = cellfun(@length, onsets);
-        nFramesList = nFramesList(useRand, :);
+        nFramesList = cellfun(@length, onsets); %determines how many onsets in each trial for that randel
+        nFramesList = nFramesList(useRand, :); %only use the randels within the ROI
         nRand = sum(useRand);
         [~, nStimTrials] = size(onsets);  
         
-        onsetInds = zeros(3, sum(nFramesList(:)));
+        onsetInds = zeros(3, sum(nFramesList(:)));%total number of square onsets for all randels over all trials
         
         allSpikes = cell(1, d.spikes.numChannels); 
     end
     
     [~, nSpikeTrials, ~] = size(d.spikes.spk); 
     
-    nSpikesTot = sum(cellfun(@length, d.spikes.spk(:,:,ich))); 
+    nSpikesTot = sum(cellfun(@length, d.spikes.spk(:,:,ich))); %total number of spikes on that channel for all trials&frames
     fprintf('%i spikes detected ... \n', nSpikesTot); 
    
     allSpikes{ich} = zeros(1, nSpikesTot);
@@ -76,49 +82,49 @@ for ich = aSysOrder
     
     fprintf('Getting spike times...')
     for iTrial = 1:nStimTrials
-        nFrames = sum(nFramesList(:, iTrial));
+        nFrames = sum(nFramesList(:, iTrial));%total number of randel/square onsets for all randels in one trial
         
         if iTrial <= nSpikeTrials
-            sTimes = round(d.spikes.spk{1,iTrial,ich}*1000); %spikeTimes in ms 
+            sTimes = round(d.spikes.spk{1,iTrial,ich}*1000); %spikeTimes in ms for 1 channel in 1 trial
             sCount = length(sTimes); 
-            allSpikes{ich}(spikeInd(ich):spikeInd(ich)+sCount-1) = sTimes+tOffset; 
-            spikeInd(ich) = spikeInd(ich) + sCount;
+            allSpikes{ich}(spikeInd(ich):spikeInd(ich)+sCount-1) = sTimes+tOffset; %spike time at start of trial plus 1ms
+            spikeInd(ich) = spikeInd(ich) + sCount;%total number of spikes for each channel + number for this trial
         else
            warning('No spikes for this trial!');  
         end
   
 %         if ich == 1
-            timeList  = zeros(1, nFrames); 
+            timeList  = zeros(1, nFrames);
             idList    = zeros(1, nFrames);
             frameInd  = 1; 
-            for iRand = find(useRand)
-                t = onMS{iRand, iTrial}; 
-                nf = length(t); 
-                timeList(frameInd:frameInd+nf-1) = t;
-                idList(frameInd:frameInd+nf-1) = iRand*ones(1, nf);
-                frameInd = frameInd + nf;
+            for iRand = find(useRand)% iterate for randels in ROI
+                t = onMS{iRand, iTrial}; %get one randel's onsets for current trial
+                nf = length(t); %total number of onsets
+                timeList(frameInd:frameInd+nf-1) = t;%saving those onsets in the array with total number of randel/square onsets for all randels in one trial
+                idList(frameInd:frameInd+nf-1) = iRand*ones(1, nf);%which randel onsets have been saved in timelist already
+                frameInd = frameInd + nf;%total number of onsets
             end   
     
-            [orderTime, ind] = sort(timeList);
-            orderId = idList(ind); 
-            onsetInds(1, 1+frameOffset:nFrames+frameOffset) = orderTime + tOffset;
-            onsetInds(2, 1+frameOffset:nFrames+frameOffset) = x(orderId); 
-            onsetInds(3, 1+ frameOffset:nFrames+frameOffset) = y(orderId);
+            [orderTime, ind] = sort(timeList);%Timlist is currnently in order of randel location e.g. onsets for [1,1] first in the list then [2,1] etc. Need them in order of time. e.g. square 1 and square 20 might have flashed together first 
+            orderId = idList(ind); %sort the randel list into time order too
+            onsetInds(1, 1+frameOffset:nFrames+frameOffset) = orderTime + tOffset; %save the onset times of the randels
+            onsetInds(2, 1+frameOffset:nFrames+frameOffset) = x(orderId); % save the respective x coordinates for the randel list in order of onset time
+            onsetInds(3, 1+ frameOffset:nFrames+frameOffset) = y(orderId); % save the respective y coordinates for the randel list in order of onset time
             
-            xs = unique(x(useRand)); 
+            xs = unique(x(useRand)); %get only the unique x and y coordinates 
             ys = unique(y(useRand));
 %         end
    
     
-    tOffset = tOffset + max(timeList) + 500; 
-    frameOffset = frameOffset + nFrames;
+    tOffset = tOffset + max(timeList) + 500;%offset for the next trial 
+    frameOffset = frameOffset + nFrames;%total number of onsets
    
     end
     
     sTrain = zeros(1, tOffset+1000); 
-    allSpikes{ich} = allSpikes{ich}(allSpikes{ich}>0);
-    sTrain(allSpikes{ich}) = 1; 
-    if nSpikesTot > 300
+    allSpikes{ich} = allSpikes{ich}(allSpikes{ich}>0);%checks all the spikes were registered
+    sTrain(allSpikes{ich}) = 1; %makes index of 1 for any randel onsets that had a spike 
+    if nSpikesTot > 300%only include in the overlapping RF is there were more than 300 spikes
         RF{ich} = getRFMap(sTrain, onsetInds, sWin, sBin);
     else
         RF{ich} = zeros(length(ys),length(xs));
