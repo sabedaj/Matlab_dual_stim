@@ -28,7 +28,7 @@ respelect=cell(numelecttotal,1);
 V2resp=cell(numelecttotal,1);
 V1resp=cell(numelecttotal,1);
 for numstimelect=1:numelecttotal
-    for numerfolders=1%:numfolderstotal
+    for numerfolders=5%:numfolderstotal
         trialend=size(savefilename{numerfolders}{2}.AMP,1);
         for trial=1:trialend
             whichelectstim=savefilename{numerfolders}{2}.AMP(trial,:)==ampinterest;

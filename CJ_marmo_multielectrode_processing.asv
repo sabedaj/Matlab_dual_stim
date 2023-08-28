@@ -293,12 +293,9 @@ endRange = datetime(date_time{2}, 'InputFormat', formats);
 % Check if each datetime falls within the range
 isWithinRange = datetimes >= startRange & datetimes <= endRange;
 
-% get relevent folders from penetration
+% get 
 relevantData=IDstructsavecompiled(isWithinRange,1:3);
 relevantSavefilename=savefilenamecompiled(isWithinRange);
-
-% now need to run epoch spike rate with relevant V1 and V2 channels found
-% in chn_inRF VS chn_outRF
 
 %%
 close all
