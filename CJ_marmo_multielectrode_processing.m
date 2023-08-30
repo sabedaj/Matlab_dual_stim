@@ -236,6 +236,7 @@ end
 epochratespike(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove,normalisedat);
 %%
 %manual input required for penetration info
+chnrange=1:64;%pick V1 or V2 channels
 overlappingRFs=1;%1 for overlapping channels only, -1 for non overlapping, 0 for all channels
 if overlappingRFs~=0
     load('E:\DATA\MarmoblitzVisualDataCJ\2022\09\07\RF_MAP_full.mat')
@@ -299,6 +300,69 @@ relevantSavefilename=savefilenamecompiled(isWithinRange);
 
 % now need to run epoch spike rate with relevant V1 and V2 channels found
 % in chn_inRF VS chn_outRF
+if overlappingRFs==1
+    chns=chn_inRF;
+elseif overlappingRFs==-1
+    chns=chn_outRF;
+end
+
+
+%CJ225
+chs_inRFCJ225=[1 4 90 87 35 64 113 100];
+chn_outRFCJ225=setdiff(1:128, chs_inRFCJ225);
+
+date_time=[{'221011_160000'} {'221012_120000'}];%start and end penetration folders
+% Define your datetime range
+startRange = datetime(date_time{1}, 'InputFormat', formats);
+endRange = datetime(date_time{2}, 'InputFormat', formats);
+
+% Check if each datetime falls within the range
+isWithinRange = datetimes >= startRange & datetimes <= endRange;
+relevantDataCJ225=IDstructsavecompiled(isWithinRange,1:3);
+relevantSavefilenameCJ225=savefilenamecompiled(isWithinRange);
+
+relevantData_all=[relevantData;relevantDataCJ225];
+savefilename_all=[relevantSavefilename;relevantSavefilenameCJ225];
+
+if overlappingRFs==1
+    chnsCJ225=chs_inRFCJ225;
+elseif overlappingRFs==-1
+    chnsCJ225=chn_outRFCJ225;
+end
+
+%make the channel lists the same size to ensure we can concatenate them
+largestRFsize=max(length(chns),length(chnsCJ225));
+chnsCJ225=[chnsCJ225 zeros(1,largestRFsize-length(chnsCJ225))];
+chns=[chns zeros(1,largestRFsize-length(chns))];
+
+chnCJ222=repmat(chns,[length(relevantData(:,3)),1]);
+chnCJ225=repmat(chnsCJ225,[length(relevantDataCJ225(:,3)),1]);
+
+chns_all=[chnCJ222;chnCJ225];
+
+excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see below)
+
+normalisedat=0;
+close all
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%messed with significance - need to
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%check this
+epochratespikeRFmatch(relevantData_all(:,3),savefilename_all,chnrange,excitesupress,chnstoremove,normalisedat,chns_all);
+
+
+
+
+
+
+%epochratespikeRFmatch(relevantData(:,3),relevantSavefilename,chnrange,excitesupress,chnstoremove,normalisedat,chns);
+
+%%
+                    
+E_MAP=Depth(1);
+[mappedchns,~]=find(E_MAP==chns);
+intersect(relevantSavefilename{4}{1, 2}.CHN,mappedchns)
+intersect([67 86 116 99],mappedchns)
+
 
 %%
 close all

@@ -1,4 +1,4 @@
-function epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
+function epochratespikeRFmatch(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat,chnsrelevent)
 %% epoch has to be increasing with current once significant
 % trial avg single elect - - standard deviation -  bins all electrodes based on thresh
 cd('E:\DATA\CJ_V1sigmoid')
@@ -32,9 +32,7 @@ alldata_stim=cell(length(savefilename{folderint}{2}.AMP),1);
 
 trialsig=cell(9,length(savefilename{folderint}{2}.AMP),length(savefilename));
 folderIDsig=cell(9,length(savefilename{folderint}{2}.AMP));
-stimchncount=0;
-spread=nan(length(savefilename{folderint}{2}.AMP),500);
-spreadgroup=nan(length(savefilename{folderint}{2}.AMP),9,500);
+
 groupdata=cell(length(savefilename{folderint}{2}.AMP),1);
 correlationdata=cell(length(savefilename{folderint}{2}.AMP),1);
 stimchnsignificant=cell(length(savefilename{folderint}{2}.AMP),1);
@@ -66,7 +64,11 @@ stimchncount=0;
 significantspread_groupsplit=nan(128,500,9);
 foldercheck{ampit}=cell(numfolderstotal,1);
 for numerfolders=1:numfolderstotal
-
+    simchnall=savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),3);
+    stimchnall_notsorted=E_MAP(simchnall);
+    chnrel=chnsrelevent(numerfolders,:);%relevent to RF
+    chnrel(chnrel==0)=[];
+    releventstimchnRF=intersect(stimchnall_notsorted,chnsrelevent(numerfolders,:));
     trialend=length(fieldnames(ratestruct{numerfolders}));
     for trial=1:trialend
         trialcheck=['T' num2str(trial)];
@@ -80,7 +82,6 @@ for numerfolders=1:numfolderstotal
    if excitesupress==1
        %determines if spiking increases with increases in current overall -
        %just has to have a net increase between 2 and 10
-       rateepochcurrent=nan(128,9,length(savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1)),5);
        rateELcurrent=nan(128,2,length(savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1)),5);
        rateecurrent=nan(128,length(savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1)),5);
 
@@ -89,15 +90,12 @@ for numerfolders=1:numfolderstotal
            [m,i]=min(abs(savefilename{numerfolders}{4}(:,2)-ampinterest1)); ampinterest1=savefilename{numerfolders}{4}(i,2);%nearest neighbour amp
            
            rateAMPua=ratespiking{numerfolders}(:,:,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest1),1));
-           rateepochcurrent(1:size(rateAMPua,1),:,:,ampit1)=cat(2,mean(rateAMPua(:,92:101,:),2),mean(rateAMPua(:,102:111,:),2),mean(rateAMPua(:,112:121,:),2),mean(rateAMPua(:,122:131,:),2),mean(rateAMPua(:,132:141,:),2),mean(rateAMPua(:,142:151,:),2),mean(rateAMPua(:,152:161,:),2),mean(rateAMPua(:,162:171,:),2),mean(rateAMPua(:,172:181,:),2));
            rateELcurrent(1:size(rateAMPua,1),:,:,ampit1)=cat(2,mean(rateAMPua(:,92:136,:),2),mean(rateAMPua(:,137:181,:),2));
            rateecurrent(1:size(rateAMPua,1),:,ampit1)=mean(rateAMPua(:,92:181,:),2);
 
        end
-       validchannels=sum(diff(rateepochcurrent,[],4),4,'omitnan')>0;
        validchannelsEL=sum(diff(rateELcurrent,[],4),4,'omitnan')>0;
-       validchannelsingle=sum(diff(rateecurrent,[],3),3,'omitnan')>0;
-
+       
    end
    rateAMPua=ratespiking{numerfolders}(:,:,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1));
    rateAMPua(chnexclude,:,:)=nan;
@@ -107,38 +105,29 @@ for numerfolders=1:numfolderstotal
 
    goodchns=chnrange(~ismember(chnrange,unique(chnexclude)));
    totalchncount(ampit)=(length(goodchns))*size(rateAMPua,3)+totalchncount(ampit);
-   meancatdata=cat(2,mean(rateAMPua(:,92:101,:),2),mean(rateAMPua(:,102:111,:),2),mean(rateAMPua(:,112:121,:),2),mean(rateAMPua(:,122:131,:),2),mean(rateAMPua(:,132:141,:),2),mean(rateAMPua(:,142:151,:),2),mean(rateAMPua(:,152:161,:),2),mean(rateAMPua(:,162:171,:),2),mean(rateAMPua(:,172:181,:),2));
-   meancatdataEL=cat(2,mean(rateAMPua(:,92:136,:),2),mean(rateAMPua(:,137:181,:),2));
-   sig=false(128,9,size(meancatdata,3));
-   sigEL=false(128,2,size(meancatdata,3));
+      meancatdataEL=cat(2,mean(rateAMPua(:,92:136,:),2),mean(rateAMPua(:,137:181,:),2));
+   
+   sigEL=false(128,2,size(meancatdataEL,3));
    if excitesupress==0
-       thresh=squeeze(mean(rateAMPua(:,1:85,:),2)-(std(rateAMPua(:,1:85,:),[],2).*1)); %%%%%NOTE LOWER THRESHOLD
-       for groupit=1:9
-           sig(:,groupit,:)=squeeze(meancatdata(:,groupit,:))<thresh;
-       end
-       check_multiple=sum(sig,2)>1;
-       [~,pmax]=min(meancatdata,[],2);%pmin
-       pmax=squeeze(pmax);%min
+%if we want to look at supression
    else
        subselectbaseline=1:89;
        permuted_numbers = subselectbaseline(randperm(s,length(subselectbaseline)));
        subselectbaseline=permuted_numbers(1:50);
        thresh=squeeze(mean(rateAMPua(:,subselectbaseline,:),2)+(std(rateAMPua(:,subselectbaseline,:),[],2).*3));
-       for groupit=1:9
-           sig(1:size(meancatdata,1),groupit,:)=squeeze(meancatdata(:,groupit,:))>thresh;
-       end
-       sig=sig&validchannels;
-       %permutedRate = permute(rateAMPua, [2 1 3]);
        sigsingle=squeeze(mean(rateAMPua(:,92:181,:),2))>thresh;%ttest(permutedRate(92:181,:,:),permutedRate(1:90,:,:),"Tail","right");%
-       %sigsingle(isnan(sigsingle))=false;
-       %sigsingle=squeeze(sigsingle)&validchannelsingle;
-       check_multiple=squeeze(sum(sig,2)>1);
-       [~,pmax]=max(meancatdata,[],2);
-       pmax=squeeze(pmax);
+       allchns=false(size(sigsingle));
+       allchns(chnsrelevent(numerfolders,:),:)=true;
+       sigsingle=sigsingle&allchns;
+        sigsingle=allchns;
+           
+
        for EL=1:2
             sigEL(1:size(meancatdataEL,1),EL,:)=squeeze(meancatdataEL(:,EL,:))>thresh;
        end
-       sigEL=sigEL&validchannelsEL;
+       allchns=false(size(sigEL));
+       allchns(chnsrelevent(numerfolders,:),:,:)=true;
+       sigEL=sigEL&validchannelsEL&allchns;
    end
    %edit savefilename{4} in loop to store channels in 3rd column. then can
    %use the trial IDs from
@@ -147,9 +136,12 @@ for numerfolders=1:numfolderstotal
    %only stored once though
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    %stimchnall=;
-CatergoriesEBL=cell(size(sig,3),1);
+CatergoriesEBL=cell(size(sigEL,3),1);
    for chn=chnrange
-       for stimchn=1:size(sig,3)
+       for stimchn=1:size(sigEL,3)
+           if ~ismember(stimchnall_notsorted(stimchn),releventstimchnRF)%skip those stimchns not rlelevent to RF
+               continue
+           end
            if isempty(CatergoriesEBL{stimchn})
                CatergoriesEBL{stimchn}=cell(3,1);
            end
@@ -162,12 +154,7 @@ CatergoriesEBL=cell(size(sig,3),1);
                CatergoriesEBL{stimchn}{3}=[CatergoriesEBL{stimchn}{3}; rateAMPua(chn,:,stimchn)];%late
            end
            
-           if check_multiple(chn,stimchn)
-               sig(chn,:,stimchn)=false;
-               sig(chn,pmax(chn,stimchn),stimchn)=true;
-           end
-           simchnall=savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),3);
-           stimchnall_notsorted=E_MAP(simchnall);
+
            if sigsingle(chn,stimchn)==1
                alldata{ampit}(iteratealldat,1:181)=rateAMPua(chn,:,stimchn);
                iteratealldat=iteratealldat+1;
@@ -200,66 +187,34 @@ CatergoriesEBL=cell(size(sig,3),1);
                     
                 end
           end
-          group=find(squeeze(sig(chn,:,stimchn)==1));
-           if ~isempty(group)
-               for gnum=1:length(group)
-                   groupdata{ampit}{group(gnum)}=[groupdata{ampit}{group(gnum)}; rateAMPua(chn,:,stimchn)];
- 
-                   [co,~]=xcorr(rateAMPua(stimchnall_notsorted(stimchn),90:180,stimchn).*multiplyspk,rateAMPua(chn,90:180,stimchn).*multiplyspk,'coeff');
-                   correlationdata{ampit}{group(gnum)}=[correlationdata{ampit}{group(gnum)}; co];
-                   
-                   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                   if (isempty(stimchnsignificant{ampit}{group(gnum)}) || ~any(all(stimchnsignificant{ampit}{group(gnum)}==rateAMPua(stimchnall_notsorted(stimchn),:,stimchn),2)))
-                       stimchnsignificant{ampit}{group(gnum)}=[stimchnsignificant{ampit}{group(gnum)}; rateAMPua(stimchnall_notsorted(stimchn),:,stimchn)];
-                       if stimchnall_notsorted(1)>64
-                           sigV1=squeeze(any(sig,2));
-                           sigV1(1:64,:)=false;
-                           allV1electsignificantstimchn{ampit}{group(gnum)}=[allV1electsignificantstimchn{ampit}{group(gnum)}; rateAMPua(sigV1(:,stimchn),:,stimchn)];
-                       else
-                           allV1electsignificantstimchn{ampit}{group(gnum)}=[allV1electsignificantstimchn{ampit}{group(gnum)}; rateAMPua(1:64,:,stimchn)];
-                       end
-                   end
-                   %use if you only want the channels in 10uA from 2:10uA
-                   if ampit==5
-                       for itAua=1:5
-                           ampinterest1=savefilename{folderint}{2}.AMP(itAua);
-                           [m,i]=min(abs(savefilename{numerfolders}{4}(:,2)-ampinterest1)); ampinterest1=savefilename{numerfolders}{4}(i,2);%nearest neighbour amp
-                           
-                           rateAMPua1=ratespiking{numerfolders}(:,:,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest1),1));
-                           alldata10uA{itAua}{group(gnum)}=[alldata10uA{itAua}{group(gnum)}; rateAMPua1(chn,:,stimchn)];
-                       end
-                   end
-                 
-                   significantspread_groupsplit(chn,stimchn+stimchncount,group(gnum))=meancatdata(chn,group(gnum),stimchn);
-                   trialsig{group(gnum),ampit,numerfolders}=[trialsig{group(gnum),ampit,numerfolders} stimchn];%determine how many different stim electrodes creating significance
-                   %folderIDsig{group(gnum),ampit}=[folderIDsig{group(gnum),ampit} str2double(savefilename{numerfolders}{3})];%determine how many different monkeys creating significance
-               end
-           end
+
            
        end
        
    end
     
-%    figure(20*ampit)
-%    hold on
-   for i=1:size(sig,3)
-       if (size(CatergoriesEBL{i}{1},1)+size(CatergoriesEBL{i}{3},1))>0
-       ratio(stimchncount+i)=size(CatergoriesEBL{i}{3},1)/(size(CatergoriesEBL{i}{1},1)+size(CatergoriesEBL{i}{3},1));%determines the ratio of early to late responses in V2
-      
-       %scatter(stimchncount+i,ratio(stimchncount+i),'k')
+   %    figure(20*ampit)
+   %    hold on
+   for i=1:size(sigEL,3)
+       if ~isempty(CatergoriesEBL{i})
+           if (size(CatergoriesEBL{i}{1},1)+size(CatergoriesEBL{i}{3},1))>0
+               ratio(stimchncount+i)=size(CatergoriesEBL{i}{3},1)/(size(CatergoriesEBL{i}{1},1)+size(CatergoriesEBL{i}{3},1));%determines the ratio of early to late responses in V2
+               
+               %scatter(stimchncount+i,ratio(stimchncount+i),'k')
+           end
+           %determine if the early and late responses have different
+           %characteristics
+           numcategories=cellfun(@(x) ~isempty(x), CatergoriesEBL{i});
+           if sum(numcategories)==1
+               V2ELresp{ampit}{numcategories}=[V2ELresp{ampit}{numcategories}; CatergoriesEBL{i}{numcategories}];
+               V1ELresp{ampit}{numcategories}=[V1ELresp{ampit}{numcategories}; rateAMPua(65:128,:,stimchn)];
+               
+           end
        end
-       %determine if the early and late responses have different
-       %characteristics
-        numcategories=cellfun(@(x) ~isempty(x), CatergoriesEBL{i});
-        if sum(numcategories)==1
-            V2ELresp{ampit}{numcategories}=[V2ELresp{ampit}{numcategories}; CatergoriesEBL{i}{numcategories}];
-            V1ELresp{ampit}{numcategories}=[V1ELresp{ampit}{numcategories}; rateAMPua(65:128,:,stimchn)];
-           
-        end
    end
-%    ylabel('Early(0) vs late(1)')
+   %    ylabel('Early(0) vs late(1)')
 %    xlabel('Stimchn session #')
-  stimchncount=stimchncount+size(sig,3);
+  stimchncount=stimchncount+size(sigsingle,2);
     
 end
 fprintf(num2str(stimchncount))
@@ -286,27 +241,7 @@ for itstimchn=1:size(orderedsigchns,2)
     avgspread(itstimchn)=mean(sqrt((((yval-ycent).*50).^2)+(((xval-xcent).*200).^2)),'all','omitnan');
     
 end
-%group significance
-orderedgroupsig=significantspread_groupsplit(E_MAP,:,:);
-avgspreadwg=nan(9,500);
 
-for group=1:9
-    for itstimchn=1:size(orderedsigchns,2)
-        tmp=reshape(squeeze(orderedgroupsig(chnrange,itstimchn,group)),16,4);
-        tmp=tmp(:,[1 3 4 2]);
-        tmp(isnan(tmp))=0;
-        xcent=sum(tmp.*[1 2 3 4],'all','omitnan')./sum((tmp),'all','omitnan');%centroid/centre of mass location
-        ycent=sum(tmp.*(1:16)','all','omitnan')./sum((tmp),'all','omitnan');%centroid/centre of mass location
-        
-        xval=~isnan(tmp).*[1 2 3 4];
-        xval(xval==0)=nan;
-        yval=~isnan(tmp).*(1:16)';
-        yval(yval==0)=nan;
-        avgspreadwg(group,itstimchn)=mean(sqrt((((yval-ycent).*50).^2)+(((xval-xcent).*200).^2)),'all','omitnan');
-    end
-end
-
-%this merges all groups
 orderedgroupsig=significantspread(E_MAP,:);%merges the groups because we don't care about that for now
 for itstimchn=1:size(orderedsigchns,2)
     tmp=reshape(orderedgroupsig(chnrange,itstimchn),16,4);
@@ -519,8 +454,9 @@ DataEarlyV2{ampit}=alldata{ampit}(~sortLate,:).*multiplyspk;
 sortLateV1=repelem(sortLate,64);
 DataLateV1{ampit}=alldata_stim{ampit}(sortLateV1,:).*multiplyspk;
 DataEarlyV1{ampit}=alldata_stim{ampit}(~sortLateV1,:).*multiplyspk;
-ttest(mean(DataLateV2{ampit}(:,92:181)-mean(DataLateV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV2{ampit}(:,92:181)-mean(DataEarlyV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
-ttest(mean(DataLateV1{ampit}(:,92:112)-mean(DataLateV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV1{ampit}(:,92:112)-mean(DataEarlyV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
+%too few samples
+% ttest(mean(DataLateV2{ampit}(:,92:181)-mean(DataLateV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV2{ampit}(:,92:181)-mean(DataEarlyV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
+% ttest(mean(DataLateV1{ampit}(:,92:112)-mean(DataLateV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV1{ampit}(:,92:112)-mean(DataEarlyV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
 
 for i=1:length(sorted_indices)
 sorted_indicesstim=[sorted_indicesstim sorted_indices(i)*64-63:sorted_indices(i)*64];
@@ -568,8 +504,10 @@ for iterateunique=1:length(ia)
          HLB_data{ampit}{3}=[HLB_data{ampit}{3}; alldatastim_sorted(columnindex(1)*64-63:columnindex(1)*64,:)];
     end
 end
+if ~isempty(HLB_data{ampit}{1})&~isempty(HLB_data{ampit}{2})
 HLB_data{ampit}{1}(sum(HLB_data{ampit}{1},2)==0,:)=[];
 HLB_data{ampit}{2}(sum(HLB_data{ampit}{2},2)==0,:)=[];
+end
 
 %sigmoidstuff
 baslineSV2(ampit)=mean(alldata{ampit}(sorted_indices(1:halflength),subselectbaseline)-mean(alldata{ampit}(sorted_indices(1:halflength),baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
