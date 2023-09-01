@@ -46,16 +46,14 @@ for f = 1:2
     Array{f} = Array{f}/max(Array{f}(:)); % normalise
     if f==2
         diffImg(:,:,3) = Array{f}; % the third dim of the diffImg is RGB;%need to make it blue and red to be colourblind friendly
-        diffImg(:,:,f) = Array{f}; % the third dim of the diffImg is RGB
+        diffImg(:,:,2) = Array{f}; % the third dim of the diffImg is RGB
     else
         diffImg(:,:,f) = Array{f}; % the third dim of the diffImg is RGB
     end
-    
+    diffImg(:,:,p) = Array{f}; % the third dim of the diffImg is RGB
     image(xs,ys,(diffImg)); axis image;
      set(gca,'YDir','normal')
     title(aList{f});
-    ylabel(['Visual angle (' char(176) ')'])
-xlabel(['Visual angle (' char(176) ')'])
 %     set(gca, 'XTick', 1:tickSp:length(xs), 'XTickLabel', xs(1:tickSp:end))
 %     set(gca, 'YTick', 1:tickSp:length(ys), 'YTickLabel', ys(end:-tickSp:1))
 
@@ -64,13 +62,10 @@ end
 % finally a subplot that overlays the composites from both areas.
 subplot(1,3,3);
 diffImg(:,:,1) = Array{1}; % red
-diffImg(:,:,2) = Array{2}; % green
-diffImg(:,:,3) = Array{2}; % blue - add to make colourblindfriendly
+diffImg(:,:,3) = Array{2}; % blue
 image(xs,ys,(diffImg)); axis image
 % set(gca, 'XTick', 1:tickSp:length(xs), 'XTickLabel', xs(1:tickSp:end))
 % set(gca, 'YTick', 1:tickSp:length(ys), 'YTickLabel', ys(end:-tickSp:1))
-ylabel(['Visual angle (' char(176) ')'])
-xlabel(['Visual angle (' char(176) ')'])
  set(gca,'YDir','normal')
 title('Overlay');
 drawnow 

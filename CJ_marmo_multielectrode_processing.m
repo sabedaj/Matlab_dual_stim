@@ -308,6 +308,18 @@ end
 
 
 %CJ225
+% V1
+% S1E 2 3 7 8 
+% S4E whole shank, s11-16 weak 8-10 bursty
+% S2E 2 3 4 5 6 7 8 9 10
+% S3E 1-9
+% 
+% V2
+% S1E 3 4 5 6 7 8 9 10 11 13 15 16
+% S4E 2 3 8 9 10
+% S2E 3 4 6 10 12 13
+% S3E 5 7 8 9 10
+
 chs_inRFCJ225=[1 4 90 87 35 64 113 100];
 chn_outRFCJ225=setdiff(1:128, chs_inRFCJ225);
 
@@ -344,6 +356,9 @@ excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see b
 
 normalisedat=0;
 close all
+
+%CJ230 - overlapping in pen1
+%overlapping in pen2
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%messed with significance - need to
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%check this
