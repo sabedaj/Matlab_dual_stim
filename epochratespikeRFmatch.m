@@ -17,7 +17,7 @@ folderint=round(length(savefilename)/2);
 filmatch=find(contains({D_data.name},savefilename{folderint}{5}));
 
 cd([D_data(filmatch).folder filesep D_data(filmatch).name;])
-
+chosenamp=[2 5 6 8 10];
 
 
 ratio=nan(1000,1);
@@ -44,14 +44,14 @@ V2ELresp=cell(5,1);
 V1ELresp=cell(5,1);
 numfolderstotal=size(ratestruct,1)-sum(cellfun(@isempty, ratestruct));
 ratespiking=cell(numfolderstotal,1);
-for ampit=1:length(savefilename{folderint}{2}.AMP)
+for ampit=1:length(chosenamp)
     iteratestimdat=1;
 iteratealldat=1;
     alldata_stim{ampit}=nan(108000,181);
     alldata{ampit}=nan(1800,181);
     centredstimchn{ampit}=nan(31,7,500);
     heatmap_centroid{ampit}=nan(31,7,500);
-ampinterest=savefilename{folderint}{2}.AMP(ampit);
+ampinterest=chosenamp(ampit);
 V2ELresp{ampit}=cell(3,1);
 V1ELresp{ampit}=cell(3,1);
 groupdata{ampit}=cell(9,1);
@@ -64,6 +64,7 @@ stimchncount=0;
 significantspread_groupsplit=nan(128,500,9);
 foldercheck{ampit}=cell(numfolderstotal,1);
 for numerfolders=1:numfolderstotal
+    [m,i]=min(abs(savefilename{numerfolders}{4}(:,2)-ampinterest)); ampinterest=savefilename{numerfolders}{4}(i,2);%nearest neighbour amp
     simchnall=savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),3);
     stimchnall_notsorted=E_MAP(simchnall);
     chnrel=chnsrelevent(numerfolders,:);%relevent chns to RF
@@ -78,15 +79,15 @@ for numerfolders=1:numfolderstotal
    %%%%%%compare amp and select trial with that amp from savefile name.
    %%%%%%need to see if this owrrks with both the current steered data and
    %%%%%%non-current steering
-    [m,i]=min(abs(savefilename{numerfolders}{4}(:,2)-ampinterest)); ampinterest=savefilename{numerfolders}{4}(i,2);%nearest neighbour amp
+
    if excitesupress==1
        %determines if spiking increases with increases in current overall -
        %just has to have a net increase between 2 and 10
        rateELcurrent=nan(128,2,length(savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1)),5);
        rateecurrent=nan(128,length(savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1)),5);
 
-       for ampit1=1:length(savefilename{folderint}{2}.AMP)
-           ampinterest1=savefilename{folderint}{2}.AMP(ampit1);
+       for ampit1=1:length(chosenamp)
+           ampinterest1=chosenamp(ampit1);
            [m,i]=min(abs(savefilename{numerfolders}{4}(:,2)-ampinterest1)); ampinterest1=savefilename{numerfolders}{4}(i,2);%nearest neighbour amp
            
            rateAMPua=ratespiking{numerfolders}(:,:,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest1),1));

@@ -235,17 +235,12 @@ if all(savefilenamecompiled{7,1}{1,2}.CHN<65)
 end
 epochratespike(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove,normalisedat);
 %% Overlap RFs
-chnrange=65:128;
-%change chnrange for V1 vs V2 then use these below to select overlap amount
-fulloverlapRFs=true;%only those with full overlap
-NOTfulloverlapRFs=false;%everything without full overlap
-
-%don't touch
-partialoverlapRFs=false; %only partial overlap
 AlloverlapRFs=false;%find stim data from overlapping RFs = true or false for non-overlap
-
+fulloverlapRFs=false;%only those with full overlap
+partialoverlapRFs=false; %only partial overlap
+NOTfulloverlapRFs=true;%everything without full overlap
 excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see below)
-
+chnrange=65:128;
 normalisedat=0;
 close all
 if all(savefilenamecompiled{7,1}{1,2}.CHN<65)
@@ -299,10 +294,13 @@ relevantSavefilename=savefilenamecompiled(withinrangeAllpens);
 
 alldata=epochratespike(relevantData(:,3),relevantSavefilename,chnrange,excitesupress,chnstoremove,normalisedat);
 %%
+nooverlap=alldata;
+nooverlap=nooverlap(1:5);
+partialoverlapdata=alldata;
 fulloverlapdata=alldata;
 noneApartial=alldata;
 %% overlap,non-overlapping
-V2=false;%false if V1
+V2=true;%false if V1
 NPO_data=[noneApartial fulloverlapdata];%full overlap or no overlap
 
 s = RandStream('mt19937ar','Seed',296);
@@ -311,7 +309,7 @@ permuted_numbers = subselectbaseline(randperm(s,length(subselectbaseline)));
 subselectbaseline=permuted_numbers(1:50);
 
 if V2
-    timetoavg=137:181;
+    timetoavg=92:181;
 else
     timetoavg=92:112;
 end
@@ -344,11 +342,7 @@ stdshade((NPO_data{5,1}).*1000,0.2,'r',[-90:90],1,ax);
 stdshade((NPO_data{5,2}).*1000,0.2,'b',[-90:90],1,ax);
 xlabel('Time(ms)')
 ylabel('FR (sp/s)')
-if V2
 title('V2')
-else
-    title('V1')
-end
  xlim([-50,89])
 set(gca,'TickDir','out');
 beautifyPlot;

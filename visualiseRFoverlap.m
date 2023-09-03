@@ -52,7 +52,7 @@ for ich = aSysOrder
     frameOffset = 0;
     if firstTime
         fprintf('Getting trial onsets...')
-        [x,y,onsets] = d.getSingleSquareOnsets('blackonly',true); % onset times of the flashed squares
+        [x,y,onsets] = d.getSingleSquareOnsets(); % onset times of the flashed squares
         
         %onsets [x*y,trials] - x*y is number randels or number squares
         %x= xvalues for whole grid. should be column 1 first i.e. all same

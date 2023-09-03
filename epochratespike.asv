@@ -1,4 +1,4 @@
-function alldata=epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
+function epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
 %% epoch has to be increasing with current once significant
 % trial avg single elect - - standard deviation -  bins all electrodes based on thresh
 cd('E:\DATA\CJ_V1sigmoid')
@@ -570,12 +570,10 @@ for iterateunique=1:length(ia)
 end
 if ~isempty(HLB_data{ampit}{1})
 HLB_data{ampit}{1}(sum(HLB_data{ampit}{1},2)==0,:)=[];
-else
 HLB_data{ampit}{1}=nan(5,181);
 end
 if ~isempty(HLB_data{ampit}{2})
 HLB_data{ampit}{2}(sum(HLB_data{ampit}{2},2)==0,:)=[];
-else
 HLB_data{ampit}{2}=nan(5,181);
 end
 
@@ -605,8 +603,10 @@ stdresp2=cellfun(@(x) SEM(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan')
 errorbar([0; AMPchosen'],[baslineS; avgresp2],[baselineSstd;stdresp2],'b')
 baselineL=mean(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),'all','omitnan').*multiplyspk;
 baselineLstd=SEM(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),0).*multiplyspk;
-avgresp=cellfun(@(x) mean(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk,HLB_data);
-stdresp=cellfun(@(x) SEM(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),0)*multiplyspk,HLB_data);
+for ii=1:length(HLB_data)
+avgresp(ii)=mean(HLB_data{ii}{1}(:,avgtime)-mean(HLB_data{ii}{1}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
+stdresp(ii)=SEM(HLB_data{ii}{1}(:,avgtime)-mean(HLB_data{ii}{1}(:,baselinetime),2,'omitnan'),0)*multiplyspk;
+end
 errorbar([0; AMPchosen'],[baselineL; avgresp],[baselineLstd; stdresp],'r')
 set(gca,'TickDir','out');
 xlabel('Current (\muA)');
@@ -816,7 +816,7 @@ beautifyPlot;
 % bigcorall
 % smallcorall
 
-try
+
 %% sigmoid
 baselintimee=1:89;%2:12 for V1, 1:89 for v2
 peaktime=92:180;%92:102 for V1, 92:180 for v2
@@ -1024,6 +1024,5 @@ beautifyPlot;
 % leg=legend('2:11','12:21','22:31','32:41','42:51','52:61','61:72','72:81','82:91','Total','Significance');
 % title(leg,'Time epoch(ms)')
 % set(gca,'TickDir','out');
-catch
-end
+
 end
