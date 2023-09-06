@@ -234,11 +234,13 @@ if all(savefilenamecompiled{7,1}{1,2}.CHN<65)
     chnstoremove=[];
 end
 epochratespike(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove,normalisedat);
+%% multielectrode plot
+multielectplot(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove)
 %% Overlap RFs
 chnrange=65:128;
 %change chnrange for V1 vs V2 then use these below to select overlap amount
-fulloverlapRFs=true;%only those with full overlap
-NOTfulloverlapRFs=false;%everything without full overlap
+fulloverlapRFs=false;%only those with full overlap
+NOTfulloverlapRFs=true;%everything without full overlap
 
 %don't touch
 partialoverlapRFs=false; %only partial overlap
@@ -248,9 +250,9 @@ excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see b
 
 normalisedat=0;
 close all
-if all(savefilenamecompiled{7,1}{1,2}.CHN<65)
-    chnstoremove=[];
-end
+% if all(savefilenamecompiled{3,1}{1,2}.CHN<65)
+%     chnstoremove=[];
+% end
 
 %CJ219 had no overlap, CJ222 had partial overlap both pens, CJ225 full 
 %overlap both pens, CJ230 had partial overlap in p3 and full overlap p1
@@ -298,6 +300,8 @@ relevantData=IDstructsavecompiled(withinrangeAllpens,1:3);
 relevantSavefilename=savefilenamecompiled(withinrangeAllpens);
 
 alldata=epochratespike(relevantData(:,3),relevantSavefilename,chnrange,excitesupress,chnstoremove,normalisedat);
+%% multielectrode plot
+multielectplot(relevantData(:,3),relevantSavefilename,chnrange,excitesupress,chnstoremove)
 %%
 fulloverlapdata=alldata;
 noneApartial=alldata;
