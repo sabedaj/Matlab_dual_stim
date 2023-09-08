@@ -196,8 +196,15 @@ for numerfolders=1:numfolderstotal
             [centV2rdual,centV2cdual]=centroidpos(V2dual(emap_shaped(:,1:4)));
             [centV2rE1,centV2cE1]=centroidpos(V2E1(emap_shaped(:,1:4)));
             [centV2rE2,centV2cE2]=centroidpos(V2E2(emap_shaped(:,1:4)));
+%              [centV2rdual,centV2cdual]=find(V2dual(emap_shaped(:,1:4))==max(V2dual),1,'first');
+%             [centV2rE1,centV2cE1]=find(V2E1(emap_shaped(:,1:4))==max(V2E1),1,'first');
+%             [centV2rE2,centV2cE2]=find(V2E2(emap_shaped(:,1:4))==max(V2E2),1,'first');
             rdist=(abs(centV2rdual-centV2rE1)+abs(centV2rdual-centV2rE2))/2;
             cdist=(abs(centV2cdual-centV2cE1)+abs(centV2cdual-centV2cE2))/2;
+%             if isempty(rdist) || isempty(cdist) 
+%                 cdist=nan;
+%                 rdist=nan;
+%             end
             V2resp_centroid{6}=cat(1,V2resp_centroid{6},[rdist,cdist]);
             E1num=savefilename{numerfolders}{1, 4}(trialE1,3);  
              E2num=savefilename{numerfolders}{1, 4}(trialE2,3);
@@ -239,7 +246,7 @@ for i=200:200:800
     stdcent(i/200)=SEM(centshiftV2(roundedV1==i),0);
     avFR(i/200)=mean(V2resp_centroid{3}(roundedV1==i),'omitnan');
      avFRsingle(i/200)=mean(V2resp_centroid{5}(roundedV1==i),'omitnan');
-    datforsig(i/200,1:sum(roundedV1==i))=centshiftV2(roundedV1==i);
+    datforsig(i/200,1:sum(roundedV1==i))=V2resp_centroid{1}(roundedV1==i);
     stdFR(i/200)=SEM(V2resp_centroid{3}(roundedV1==i),0);
     stdFRsingle(i/200)=SEM(V2resp_centroid{5}(roundedV1==i),0);
         avgnumelect(i/200)=mean(V2resp_centroid{1}(roundedV1==i),'omitnan');
