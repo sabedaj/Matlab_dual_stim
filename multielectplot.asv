@@ -153,7 +153,7 @@ beautifyPlot
 
 
 %% compare single and dual electrode centroid position
-areaV=1;
+areaV=2;
 if areaV==2
     chns=1:64;
     cols=1:4;
@@ -253,7 +253,7 @@ for i=200:200:800
         avgsinglenumelect(i/200)=mean(V2resp_centroid{4}(roundedV1==i),'omitnan');
     stdavgnumelect(i/200)=SEM(V2resp_centroid{1}(roundedV1==i),0);
        stdavgnumelectsingle(i/200)=SEM(V2resp_centroid{4}(roundedV1==i),0);
-    sum(~isnan(V2resp_centroid{5}(roundedV1==i)))
+    sum(~isnan(V2resp_centroid{3}(roundedV1==i)))
 end
 
 figure

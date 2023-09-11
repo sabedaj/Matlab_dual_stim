@@ -266,12 +266,12 @@ fprintf(num2str(stimchncount))
 %current significance
 orderedsigchns=significantspread(E_MAP,:);
 avgspread=nan(size(orderedsigchns,2),1);
-% figure(21+ampit)
-% hold on
-% hist(ratio)
-%    xlabel('Early(0) vs late(1)')
-%    ylabel('# stimchn sessions')
-%    title([num2str(savefilename{folderint}{2}.AMP(ampit)),'\muA'])
+figure(21+ampit)
+hold on
+hist(ratio)
+   xlabel('Early(0) vs late(1)')
+   ylabel('# stimchn sessions')
+   title([num2str(savefilename{folderint}{2}.AMP(ampit)),'\muA'])
 for itstimchn=1:size(orderedsigchns,2)
     tmp=reshape(orderedsigchns(chnrange,itstimchn),16,4);
     tmp=tmp(:,[1 3 4 2]);
@@ -598,13 +598,13 @@ end
 avgtime=92:112;
 figure(200)
 hold on
-baslineS=mean(HLB_data{ampit}{2}(:,subselectbaseline)-mean(HLB_data{ampit}{2}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
-baselineSstd=SEM(HLB_data{ampit}{2}(:,subselectbaseline)-mean(HLB_data{ampit}{2}(:,baselinetime),2,'omitnan'),0).*multiplyspk;
+baslineS=mean(HLB_data{5}{2}(:,subselectbaseline)-mean(HLB_data{5}{2}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk;
+baselineSstd=SEM(HLB_data{5}{2}(:,subselectbaseline)-mean(HLB_data{5}{2}(:,baselinetime),2,'omitnan'),0).*multiplyspk;
 avgresp2=cellfun(@(x) mean(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk,HLB_data);
 stdresp2=cellfun(@(x) SEM(x{2}(:,avgtime)-mean(x{2}(:,baselinetime),2,'omitnan'),0)*multiplyspk,HLB_data);
 errorbar([0; AMPchosen'],[baslineS; avgresp2],[baselineSstd;stdresp2],'b')
-baselineL=mean(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),'all','omitnan').*multiplyspk;
-baselineLstd=SEM(HLB_data{ampit}{1}(:,subselectbaseline)-mean(HLB_data{ampit}{1}(:,baselinetime),2,'omitnan'),0).*multiplyspk;
+baselineL=mean(HLB_data{5}{1}(:,subselectbaseline)-mean(HLB_data{5}{1}(:,baselinetime),2,'omitnan'),'all','omitnan').*multiplyspk;
+baselineLstd=SEM(HLB_data{5}{1}(:,subselectbaseline)-mean(HLB_data{5}{1}(:,baselinetime),2,'omitnan'),0).*multiplyspk;
 avgresp=cellfun(@(x) mean(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),'all','omitnan')*multiplyspk,HLB_data);
 stdresp=cellfun(@(x) SEM(x{1}(:,avgtime)-mean(x{1}(:,baselinetime),2,'omitnan'),0)*multiplyspk,HLB_data);
 errorbar([0; AMPchosen'],[baselineL; avgresp],[baselineLstd; stdresp],'r')
@@ -616,8 +616,8 @@ legend('Bottom 1/2','Top 1/2')
 %test signifiance - ttest(mean(HLB_data{ampit}{1}(:,avgtime)-baselineL,1,'omitnan'),mean((HLB_data{ampit}{2}(:,avgtime)-baslineS),1,'omitnan'))
 figure(201)
 hold on
-errorbar([0; AMPchosen'],[mean(baslineLV2); avgrespLV2],[mean(baselineLstdV2); stdrespLV2],'r')
-errorbar([0; AMPchosen'],[mean(baslineSV2); avgresp2V2],[mean(baselineSstdV2); stdresp2V2],'b')
+errorbar([0; AMPchosen'],[baslineLV2(5); avgrespLV2],[baselineLstdV2(5); stdrespLV2],'r')
+errorbar([0; AMPchosen'],[baslineSV2(5); avgresp2V2],[baselineSstdV2(5); stdresp2V2],'b')
 set(gca,'TickDir','out');
 xlabel('Current (\muA)');
 ylabel('Average Firing Rate (Sp/s)')
@@ -751,8 +751,8 @@ beautifyPlot;
 %sigmoid early late
 figure
 hold on
-errorbar([0 AMPchosen],[mean(baselineV1EL(:,1)); sigmoidELV1(:,1)],[mean(baselineELstdV1(:,1)); sigmoidELstdV1(:,1)],'r')
-errorbar([0 AMPchosen],[mean(baselineV1EL(:,2)); sigmoidELV1(:,2)],[mean(baselineELstdV1(:,2)); sigmoidELstdV1(:,2)],'b')
+errorbar([0 AMPchosen],[(baselineV1EL(5,1)); sigmoidELV1(:,1)],[(baselineELstdV1(5,1)); sigmoidELstdV1(:,1)],'r')
+errorbar([0 AMPchosen],[(baselineV1EL(5,2)); sigmoidELV1(:,2)],[(baselineELstdV1(5,2)); sigmoidELstdV1(:,2)],'b')
 set(gca,'TickDir','out');
 legend('Early','Late')
 title('V1')
@@ -762,8 +762,8 @@ beautifyPlot;
 
 figure
 hold on
-errorbar([0 2 5 6 8 10],[mean(baselineV2EL(:,1)); sigmoidELV2(:,1)],[mean(baselineELstdV2(:,1)); sigmoidELstdV2(:,1)],'r')
-errorbar([0 2 5 6 8 10],[mean(baselineV2EL(:,2)); sigmoidELV2(:,2)],[mean(baselineELstdV2(:,2)); sigmoidELstdV2(:,2)],'b')
+errorbar([0 2 5 6 8 10],[(baselineV2EL(5,1)); sigmoidELV2(:,1)],[(baselineELstdV2(5,1)); sigmoidELstdV2(:,1)],'r')
+errorbar([0 2 5 6 8 10],[(baselineV2EL(5,2)); sigmoidELV2(:,2)],[(baselineELstdV2(5,2)); sigmoidELstdV2(:,2)],'b')
 set(gca,'TickDir','out');
 legend('Early','Late')
 title('V2')
@@ -936,7 +936,7 @@ distanceArray = sqrt((rowIndices.').^2 + (colIndices).^2);
 
 
 % figure; heatmap(sum(heatmap_centroid{5}>0,3)); set(gca,'ColorScaling','log')
-% dataheatmap=sum(heatmap_centroid{5}>0,3);
+ dataheatmap=sum(heatmap_centroid{5}>0,3);
 if all(chnrange<65)
 figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
 maxdata=max(dataheatmap,[],'all')/2;

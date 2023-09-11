@@ -237,10 +237,10 @@ epochratespike(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesup
 %% multielectrode plot
 multielectplot(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesupress,chnstoremove)
 %% Overlap RFs
-chnrange=65:128;
+chnrange=1:64;
 %change chnrange for V1 vs V2 then use these below to select overlap amount
-fulloverlapRFs=false;%only those with full overlap
-NOTfulloverlapRFs=true;%everything without full overlap
+fulloverlapRFs=true;%only those with full overlap
+NOTfulloverlapRFs=false;%everything without full overlap
 
 %don't touch
 partialoverlapRFs=false; %only partial overlap
@@ -306,7 +306,7 @@ multielectplot(relevantData(:,3),relevantSavefilename,chnrange,excitesupress,chn
 fulloverlapdata=alldata;
 noneApartial=alldata;
 %% overlap,non-overlapping
-V2=false;%false if V1
+V2=true;%false if V1
 NPO_data=[noneApartial fulloverlapdata];%full overlap or no overlap
 
 s = RandStream('mt19937ar','Seed',296);
@@ -315,7 +315,7 @@ permuted_numbers = subselectbaseline(randperm(s,length(subselectbaseline)));
 subselectbaseline=permuted_numbers(1:50);
 
 if V2
-    timetoavg=137:181;
+    timetoavg=92:181;
 else
     timetoavg=92:112;
 end
@@ -326,9 +326,9 @@ avgnpo=cellfun(@(x) mean(mean(x(:,timetoavg)-mean(x(:,subselectbaseline),2,'omit
 
 stdnpo=cellfun(@(x) mean(SEM(x(:,timetoavg)-mean(x(:,subselectbaseline),2,'omitnan'),0)),NPO_data,'UniformOutput',true).*1000;
 figure;
-errorbar([0 2 5 6 8 10],[mean(baselinenpo(:,1)); avgnpo(:,1)],[mean(baselinestdnpo(:,1)); stdnpo(:,1)],'r')
+errorbar([0 2 5 6 8 10],[(baselinenpo(5,1)); avgnpo(:,1)],[(baselinestdnpo(5,1)); stdnpo(:,1)],'r')
 hold on
-errorbar([0 2 5 6 8 10],[mean(baselinenpo(:,2)); avgnpo(:,2)],[mean(baselinestdnpo(:,2)); stdnpo(:,2)],'b')
+errorbar([0 2 5 6 8 10],[(baselinenpo(5,2)); avgnpo(:,2)],[(baselinestdnpo(5,2)); stdnpo(:,2)],'b')
 %errorbar([0 2 5 6 8 10],[mean(baselinenpo(:,3)); avgnpo(:,3)],[mean(baselinestdnpo(:,3)); stdnpo(:,3)],'g')
 set(gca,'TickDir','out');
 xlabel('Current (\muA)');

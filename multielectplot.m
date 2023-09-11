@@ -153,7 +153,7 @@ beautifyPlot
 
 
 %% compare single and dual electrode centroid position
-areaV=1;
+areaV=2;
 if areaV==2
     chns=1:64;
     cols=1:4;
