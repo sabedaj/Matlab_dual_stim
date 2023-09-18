@@ -239,8 +239,8 @@ multielectplot(IDstructsavecompiled(:,3),savefilenamecompiled,chnrange,excitesup
 %% Overlap RFs
 chnrange=1:64;
 %change chnrange for V1 vs V2 then use these below to select overlap amount
-fulloverlapRFs=true;%only those with full overlap
-NOTfulloverlapRFs=false;%everything without full overlap
+fulloverlapRFs=false;%only those with full overlap
+NOTfulloverlapRFs=true;%everything without full overlap
 
 %don't touch
 partialoverlapRFs=false; %only partial overlap
@@ -356,6 +356,18 @@ end
  xlim([-50,89])
 set(gca,'TickDir','out');
 beautifyPlot;
+
+% big small
+avgallstim=cellfun(@(x) sort((mean(x(:,timetoavg)-mean(x(:,subselectbaseline),2,'omitnan'),2,'omitnan')).*1000),NPO_data,'UniformOutput',false);
+smalldat=cellfun(@(x) mean(x(1:round(length(x)/2))),avgallstim,'UniformOutput',true);
+bigdat=cellfun(@(x) mean(x(round(length(x)/2):end)),avgallstim,'UniformOutput',true);
+
+figure
+plot(smalldat)
+hold on
+plot(bigdat)
+
+
 %%
 %manual input required for penetration info
 chnrange=1:64;%pick V1 or V2 channels

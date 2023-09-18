@@ -153,15 +153,17 @@ beautifyPlot
 
 
 %% compare single and dual electrode centroid position
-areaV=2;
+areaV=1;
 if areaV==2
     chns=1:64;
     cols=1:4;
+    timetolook=92:181;
 else
     chns=65:128;
     cols=5:8;
+    timetolook=92:112;
 end
-timetolook=92:181;
+
 stimarray=[1:16;33:48;49:64;17:32;]'+64;
 s = RandStream('mt19937ar','Seed',296);
 subselectbaseline=1:89;
@@ -246,14 +248,14 @@ for i=200:200:800
     stdcent(i/200)=SEM(centshiftV2(roundedV1==i),0);
     avFR(i/200)=mean(V2resp_centroid{3}(roundedV1==i),'omitnan');
      avFRsingle(i/200)=mean(V2resp_centroid{5}(roundedV1==i),'omitnan');
-    datforsig(i/200,1:sum(roundedV1==i))=V2resp_centroid{1}(roundedV1==i);
+    datforsig(i/200,1:sum(roundedV1==i))=centshiftV2(roundedV1==i);
     stdFR(i/200)=SEM(V2resp_centroid{3}(roundedV1==i),0);
     stdFRsingle(i/200)=SEM(V2resp_centroid{5}(roundedV1==i),0);
         avgnumelect(i/200)=mean(V2resp_centroid{1}(roundedV1==i),'omitnan');
         avgsinglenumelect(i/200)=mean(V2resp_centroid{4}(roundedV1==i),'omitnan');
     stdavgnumelect(i/200)=SEM(V2resp_centroid{1}(roundedV1==i),0);
        stdavgnumelectsingle(i/200)=SEM(V2resp_centroid{4}(roundedV1==i),0);
-    sum(~isnan(V2resp_centroid{5}(roundedV1==i)))
+    sum(~isnan(V2resp_centroid{3}(roundedV1==i)))
 end
 
 figure

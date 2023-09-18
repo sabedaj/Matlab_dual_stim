@@ -254,4 +254,19 @@ E_MAP=Depth(1);
         set(gca,'YDir','normal')
      end
  
-%%
+%% E_MAP=Depth(1);
+   arrayshape=reshape(E_MAP,16,8);
+   arrayshape=arrayshape(:,[1 3 4 2 5 7 8 6]);
+   arrayshape=flipud(arrayshape);
+     for ich=1:128
+        figure(8); 
+        [r,c]=find(arrayshape==ich);
+        subplot(8,16, find(arrayshape==ich)); 
+     
+        imagesc(xs,ys,(RF{ich})); colormap('gray'); 
+        set(gca, 'XTick', [])
+        set(gca, 'YTick', [])
+        drawnow;
+        set(gca,'YDir','normal')
+     end
+ 

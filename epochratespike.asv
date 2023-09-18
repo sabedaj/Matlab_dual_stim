@@ -836,15 +836,15 @@ catLatEarlyhighlow{2}(ampit,4)=SEM((DataLateV1high{ampit}(:,92:122)-baselineS),0
 
 %V2
 
-catLatEarlyhighlowV2{1}(ampit,1)=mean((DataEarlyV2low{ampit}(:,92:181)-mean(DataEarlyV2low{ampit}(:,1:89),2,'omitnan')),'all','omitnan');
-catLatEarlyhighlowV2{2}(ampit,1)=SEM((DataEarlyV2low{ampit}(:,92:181)-mean(DataEarlyV2low{ampit}(:,1:89),2,'omitnan')),0);
-catLatEarlyhighlowV2{1}(ampit,2)=mean((DataEarlyV2high{ampit}(:,92:181)-mean(DataEarlyV2high{ampit}(:,1:89),2,'omitnan')),'all','omitnan');
-catLatEarlyhighlowV2{2}(ampit,2)=SEM((DataEarlyV2high{ampit}(:,92:181)-mean(DataEarlyV2high{ampit}(:,1:89),2,'omitnan')),0);
+catLatEarlyhighlowV2{1}(ampit,1)=mean((DataEarlyV2low{ampit}(:,92:181)-baselineL),'all','omitnan');
+catLatEarlyhighlowV2{2}(ampit,1)=SEM((DataEarlyV2low{ampit}(:,92:181)-baselineL),0);
+catLatEarlyhighlowV2{1}(ampit,2)=mean((DataEarlyV2high{ampit}(:,92:181)-baselineS),'all','omitnan');
+catLatEarlyhighlowV2{2}(ampit,2)=SEM((DataEarlyV2high{ampit}(:,92:181)-baselineS),0);
 
-catLatEarlyhighlowV2{1}(ampit,3)=mean((DataLateV2low{ampit}(:,92:181)-mean(DataLateV2low{ampit}(:,1:89),2,'omitnan')),'all','omitnan');%-baselineL
-catLatEarlyhighlowV2{2}(ampit,3)=SEM((DataLateV2low{ampit}(:,92:181)-mean(DataLateV2low{ampit}(:,1:89),2,'omitnan')),0);%-baselineL
-catLatEarlyhighlowV2{1}(ampit,4)=mean((DataLateV2high{ampit}(:,92:181)-mean(DataLateV2high{ampit}(:,1:89),2,'omitnan')),'all','omitnan');
-catLatEarlyhighlowV2{2}(ampit,4)=SEM((DataLateV2high{ampit}(:,92:181)-mean(DataLateV2high{ampit}(:,1:89),2,'omitnan')),0);
+catLatEarlyhighlowV2{1}(ampit,3)=mean((DataLateV2low{ampit}(:,92:181)-baselineL),'all','omitnan');%-baselineL
+catLatEarlyhighlowV2{2}(ampit,3)=SEM((DataLateV2low{ampit}(:,92:181)-baselineL),0);%-baselineL
+catLatEarlyhighlowV2{1}(ampit,4)=mean((DataLateV2high{ampit}(:,92:181)-baselineS),'all','omitnan');
+catLatEarlyhighlowV2{2}(ampit,4)=SEM((DataLateV2high{ampit}(:,92:181)-baselineS),0);
 
 figure;
 ax=axes;
