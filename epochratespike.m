@@ -782,8 +782,8 @@ beautifyPlot;
 %% high low early late both combined
 ampit=5;
 catLatEarlyhighlow=cell(2,1);
-catLatEarlyhighlow{1}=zeros(5,4);
-catLatEarlyhighlow{2}=zeros(5,4);
+catLatEarlyhighlow{1}=zeros(6,4);
+catLatEarlyhighlow{2}=zeros(6,4);
 catLatEarlyhighlowV2=catLatEarlyhighlow;
 for ampit=1:5
 halflength=ceil(length(sorted_indices_save{ampit})/2);
@@ -806,89 +806,179 @@ DataEarlyV1high{ampit}=HLB_data{ampit}{1}(indexearlylate{ampit}{1}~=1,:).*multip
 
 DataLateV1low{ampit}=HLB_data{ampit}{2}(indexearlylate{ampit}{2}==1,:).*multiplyspk;
 DataEarlyV1low{ampit}=HLB_data{ampit}{2}(indexearlylate{ampit}{2}~=1,:).*multiplyspk;
-
+subselectbaseline=1:89;
+permuted_numbers = subselectbaseline(randperm(s,length(subselectbaseline)));
+subselectbaseline=permuted_numbers(1:50);
+baselineL=mean(DataLateV1low{ampit}(:,subselectbaseline),2,'omitnan');
+baselineS=mean(DataLateV1high{ampit}(:,subselectbaseline),2,'omitnan');
 %V1
+if ampit==5
 figure;
 ax=axes;
 hold on
 
-baselineL=mean(DataLateV1low{ampit}(:,1:89),2,'omitnan');
-baselineS=mean(DataLateV1high{ampit}(:,1:89),2,'omitnan');
-stdshade((DataLateV1low{ampit}-baselineL),0.2,'r',[-90:90],1,ax);
-stdshade((DataLateV1high{ampit}-baselineS),0.2,'b',[-90:90],1,ax);
+stdshade((DataLateV1low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
+stdshade((DataLateV1high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
 
-text(-40,20,['N=',num2str(size(DataLateV1low{ampit},1)),'electrodes'],'Color','red')
-text(-40,18,['N=',num2str(size(DataLateV1high{ampit},1)),'electrodes'],'Color','blue')
-xlabel('Time(ms)')
-ylabel('FR (sp/s)')
+text(-40,20,['N=',num2str(size(DataLateV1low{ampit},1)),'electrodes'],'Color','blue')
+text(-40,18,['N=',num2str(size(DataLateV1high{ampit},1)),'electrodes'],'Color','red')
+xlabel('Time (ms)')
+ylabel('Firing rate (sp/s)')
 title('V1-Late')
  xlim([-50,89])
  ylim([-5 35])
- legend('low','high')
+ legend('Bottom 50%','Top 50%')
 set(gca,'TickDir','out');
-
-
-catLatEarlyhighlow{1}(ampit,3)=mean((DataLateV1low{ampit}(:,92:122)-baselineL),'all','omitnan');%-baselineL
-catLatEarlyhighlow{2}(ampit,3)=SEM((DataLateV1low{ampit}(:,92:122)-baselineL),0);%-baselineL
-catLatEarlyhighlow{1}(ampit,4)=mean((DataLateV1high{ampit}(:,92:122)-baselineS),'all','omitnan');
-catLatEarlyhighlow{2}(ampit,4)=SEM((DataLateV1high{ampit}(:,92:122)-baselineS),0);
+beautifyPlot;
+end
+timeV1=92:95;
+catLatEarlyhighlow{1}(ampit+1,3)=mean((DataLateV1low{ampit}(:,timeV1)-baselineL),'all','omitnan');%-baselineL
+catLatEarlyhighlow{2}(ampit+1,3)=SEM((DataLateV1low{ampit}(:,timeV1)-baselineL),0);%-baselineL
+catLatEarlyhighlow{1}(ampit+1,4)=mean((DataLateV1high{ampit}(:,timeV1)-baselineS),'all','omitnan');
+catLatEarlyhighlow{2}(ampit+1,4)=SEM((DataLateV1high{ampit}(:,timeV1)-baselineS),0);
+% dat1=DataEarlyV1high;
+% dat2=DataLateV1high;
+% ttest2(mean(dat1{ampit}(:,timeV1)-mean(dat1{ampit}(:,subselectbaseline),2,'omitnan'),2,'omitnan'),mean(dat2{ampit}(:,timeV1)-mean(dat2{ampit}(:,subselectbaseline),2,'omitnan'),2,'omitnan'))
+BLtime=1:89;
+catLatEarlyhighlow{1}(1,3)=mean((DataLateV1low{ampit}(:,BLtime)-baselineL),'all','omitnan');%-baselineL
+catLatEarlyhighlow{2}(1,3)=SEM((DataLateV1low{ampit}(:,BLtime)-baselineL),0);%-baselineL
+catLatEarlyhighlow{1}(1,4)=mean((DataLateV1high{ampit}(:,BLtime)-baselineS),'all','omitnan');
+catLatEarlyhighlow{2}(1,4)=SEM((DataLateV1high{ampit}(:,1:BLtime)-baselineS),0);
 
 
 %V2
 
-catLatEarlyhighlowV2{1}(ampit,1)=mean((DataEarlyV2low{ampit}(:,92:181)-mean(DataEarlyV2low{ampit}(:,1:89),2,'omitnan')),'all','omitnan');
-catLatEarlyhighlowV2{2}(ampit,1)=SEM((DataEarlyV2low{ampit}(:,92:181)-mean(DataEarlyV2low{ampit}(:,1:89),2,'omitnan')),0);
-catLatEarlyhighlowV2{1}(ampit,2)=mean((DataEarlyV2high{ampit}(:,92:181)-mean(DataEarlyV2high{ampit}(:,1:89),2,'omitnan')),'all','omitnan');
-catLatEarlyhighlowV2{2}(ampit,2)=SEM((DataEarlyV2high{ampit}(:,92:181)-mean(DataEarlyV2high{ampit}(:,1:89),2,'omitnan')),0);
+catLatEarlyhighlowV2{1}(ampit+1,1)=mean((DataEarlyV2low{ampit}(:,92:181)-mean(DataEarlyV2low{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');
+catLatEarlyhighlowV2{2}(ampit+1,1)=SEM((DataEarlyV2low{ampit}(:,92:181)-mean(DataEarlyV2low{ampit}(:,subselectbaseline),2,'omitnan')),0);
+catLatEarlyhighlowV2{1}(ampit+1,2)=mean((DataEarlyV2high{ampit}(:,92:181)-mean(DataEarlyV2high{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');
+catLatEarlyhighlowV2{2}(ampit+1,2)=SEM((DataEarlyV2high{ampit}(:,92:181)-mean(DataEarlyV2high{ampit}(:,subselectbaseline),2,'omitnan')),0);
 
-catLatEarlyhighlowV2{1}(ampit,3)=mean((DataLateV2low{ampit}(:,92:181)-mean(DataLateV2low{ampit}(:,1:89),2,'omitnan')),'all','omitnan');%-baselineL
-catLatEarlyhighlowV2{2}(ampit,3)=SEM((DataLateV2low{ampit}(:,92:181)-mean(DataLateV2low{ampit}(:,1:89),2,'omitnan')),0);%-baselineL
-catLatEarlyhighlowV2{1}(ampit,4)=mean((DataLateV2high{ampit}(:,92:181)-mean(DataLateV2high{ampit}(:,1:89),2,'omitnan')),'all','omitnan');
-catLatEarlyhighlowV2{2}(ampit,4)=SEM((DataLateV2high{ampit}(:,92:181)-mean(DataLateV2high{ampit}(:,1:89),2,'omitnan')),0);
+catLatEarlyhighlowV2{1}(ampit+1,3)=mean((DataLateV2low{ampit}(:,92:181)-mean(DataLateV2low{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');%-baselineL
+catLatEarlyhighlowV2{2}(ampit+1,3)=SEM((DataLateV2low{ampit}(:,92:181)-mean(DataLateV2low{ampit}(:,subselectbaseline),2,'omitnan')),0);%-baselineL
+catLatEarlyhighlowV2{1}(ampit+1,4)=mean((DataLateV2high{ampit}(:,92:181)-mean(DataLateV2high{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');
+catLatEarlyhighlowV2{2}(ampit+1,4)=SEM((DataLateV2high{ampit}(:,92:181)-mean(DataLateV2high{ampit}(:,subselectbaseline),2,'omitnan')),0);
 
+catLatEarlyhighlowV2{1}(1,1)=mean((DataEarlyV2low{ampit}(:,BLtime)-mean(DataEarlyV2low{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');
+catLatEarlyhighlowV2{2}(1,1)=SEM((DataEarlyV2low{ampit}(:,BLtime)-mean(DataEarlyV2low{ampit}(:,subselectbaseline),2,'omitnan')),0);
+catLatEarlyhighlowV2{1}(1,2)=mean((DataEarlyV2high{ampit}(:,BLtime)-mean(DataEarlyV2high{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');
+catLatEarlyhighlowV2{2}(1,2)=SEM((DataEarlyV2high{ampit}(:,BLtime)-mean(DataEarlyV2high{ampit}(:,subselectbaseline),2,'omitnan')),0);
+
+catLatEarlyhighlowV2{1}(1,3)=mean((DataLateV2low{ampit}(:,BLtime)-mean(DataLateV2low{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');%-baselineL
+catLatEarlyhighlowV2{2}(1,3)=SEM((DataLateV2low{ampit}(:,BLtime)-mean(DataLateV2low{ampit}(:,subselectbaseline),2,'omitnan')),0);%-baselineL
+catLatEarlyhighlowV2{1}(1,4)=mean((DataLateV2high{ampit}(:,BLtime)-mean(DataLateV2high{ampit}(:,subselectbaseline),2,'omitnan')),'all','omitnan');
+catLatEarlyhighlowV2{2}(1,4)=SEM((DataLateV2high{ampit}(:,BLtime)-mean(DataLateV2high{ampit}(:,subselectbaseline),2,'omitnan')),0);
+
+
+if ampit==5
+    baselineL=mean(DataLateV2low{ampit}(:,subselectbaseline),2,'omitnan');
+baselineS=mean(DataLateV2high{ampit}(:,subselectbaseline),2,'omitnan');
+figure
+ax=axes;
+hold on
+stdshade((DataLateV2low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
+stdshade((DataLateV2high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
+text(-40,20,['N=',num2str(size(DataLateV1low{ampit},1)),'electrodes'],'Color','blue')
+text(-40,18,['N=',num2str(size(DataLateV1high{ampit},1)),'electrodes'],'Color','red')
+xlabel('Time (ms)')
+ylabel('Firing rate (sp/s)')
+title('V2-Late')
+ xlim([-50,89])
+ ylim([-1 10])
+ legend('Bottom 50%','Top 50%')
+set(gca,'TickDir','out');
+beautifyPlot;
 figure;
 ax=axes;
 hold on
 
-baselineL=mean(DataEarlyV1low{ampit}(:,1:89),2,'omitnan');
-baselineS=mean(DataEarlyV1high{ampit}(:,1:89),2,'omitnan');
-stdshade((DataEarlyV1low{ampit}-baselineL),0.2,'r',[-90:90],1,ax);
-stdshade((DataEarlyV1high{ampit}-baselineS),0.2,'b',[-90:90],1,ax);
+baselineL=mean(DataEarlyV2low{ampit}(:,subselectbaseline),2,'omitnan');
+baselineS=mean(DataEarlyV2high{ampit}(:,subselectbaseline),2,'omitnan');
+stdshade((DataEarlyV2low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
+stdshade((DataEarlyV2high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
 
-text(-40,20,['N=',num2str(size(DataEarlyV1low{ampit},1)),'electrodes'],'Color','red')
-text(-40,18,['N=',num2str(size(DataEarlyV1high{ampit},1)),'electrodes'],'Color','blue')
-xlabel('Time(ms)')
-ylabel('FR (sp/s)')
+text(-40,20,['N=',num2str(size(DataEarlyV2low{ampit},1)),'electrodes'],'Color','blue')
+text(-40,18,['N=',num2str(size(DataEarlyV2high{ampit},1)),'electrodes'],'Color','red')
+xlabel('Time (ms)')
+ylabel('Firing rate (sp/s)')
+title('V2-Early')
+ xlim([-50,89])
+ ylim([-1 10])
+  legend('Bottom 50%','Top 50%')
+set(gca,'TickDir','out');
+beautifyPlot;
+end
+baselineL=mean(DataEarlyV1low{ampit}(:,subselectbaseline),2,'omitnan');
+baselineS=mean(DataEarlyV1high{ampit}(:,subselectbaseline),2,'omitnan');
+%V1
+if ampit==5
+
+figure;
+ax=axes;
+hold on
+stdshade((DataEarlyV1low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
+stdshade((DataEarlyV1high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
+
+text(-40,20,['N=',num2str(size(DataEarlyV1low{ampit},1)),'electrodes'],'Color','blue')
+text(-40,18,['N=',num2str(size(DataEarlyV1high{ampit},1)),'electrodes'],'Color','red')
+xlabel('Time (ms)')
+ylabel('Firing rate (sp/s)')
 title('V1-Early')
  xlim([-50,89])
  ylim([-5 35])
- legend('low','high')
+ legend('Bottom 50%','Top 50%')
 set(gca,'TickDir','out');
+beautifyPlot;
+end
+catLatEarlyhighlow{1}(ampit+1,1)=mean((DataEarlyV1low{ampit}(:,timeV1)-baselineL),'all','omitnan');
+catLatEarlyhighlow{2}(ampit+1,1)=SEM((DataEarlyV1low{ampit}(:,timeV1)-baselineL),0);
+catLatEarlyhighlow{1}(ampit+1,2)=mean((DataEarlyV1high{ampit}(:,timeV1)-baselineS),'all','omitnan');
+catLatEarlyhighlow{2}(ampit+1,2)=SEM((DataEarlyV1high{ampit}(:,timeV1)-baselineS),0);
 
-catLatEarlyhighlow{1}(ampit,1)=mean((DataEarlyV1low{ampit}(:,92:122)-baselineL),'all','omitnan');
-catLatEarlyhighlow{2}(ampit,1)=SEM((DataEarlyV1low{ampit}(:,92:122)-baselineL),0);
-catLatEarlyhighlow{1}(ampit,2)=mean((DataEarlyV1high{ampit}(:,92:122)-baselineS),'all','omitnan');
-catLatEarlyhighlow{2}(ampit,2)=SEM((DataEarlyV1high{ampit}(:,92:122)-baselineS),0);
+catLatEarlyhighlow{1}(1,1)=mean((DataEarlyV1low{ampit}(:,subselectbaseline)-baselineL),'all','omitnan');
+catLatEarlyhighlow{2}(1,1)=SEM((DataEarlyV1low{ampit}(:,subselectbaseline)-baselineL),0);
+catLatEarlyhighlow{1}(1,2)=mean((DataEarlyV1high{ampit}(:,subselectbaseline)-baselineS),'all','omitnan');
+catLatEarlyhighlow{2}(1,2)=SEM((DataEarlyV1high{ampit}(:,subselectbaseline)-baselineS),0);
 
-figure;
-hold on
-%['Early-low','Early-high','Late-low','Late-high']
-bar(1:4,catLatEarlyhighlow{1}(ampit,:));
-er = errorbar(1:4,catLatEarlyhighlow{1}(ampit,:),catLatEarlyhighlow{2}(ampit,:));
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-set(gca,'TickDir','out');
-ylabel('FR (sp/s)')
-xlabel('V2 category')
-title('V1')
+% figure;
+% hold on
+% %['Early-low','Early-high','Late-low','Late-high']
+% bar(1:4,catLatEarlyhighlow{1}(ampit,:));
+% er = errorbar(1:4,catLatEarlyhighlow{1}(ampit,:),catLatEarlyhighlow{2}(ampit,:));
+% er.Color = [0 0 0];                            
+% er.LineStyle = 'none';  
+% set(gca,'TickDir','out');
+% ylabel('FR (sp/s)')
+% xlabel('V2 category')
+% title('V1')
 end
 
 figure;hold on
 for i=1:4
-errorbar([2 5 6 8 10], catLatEarlyhighlow{1}(:,i),catLatEarlyhighlow{2}(:,i))
+errorbar([0 2 5 6 8 10], catLatEarlyhighlow{1}(:,i),catLatEarlyhighlow{2}(:,i))
 end
-legend('Early-low','Early-high','Late-low','Late-high')
+legend('Early-Bottom 50%','Early-Top 50%','Late-Bottom 50%','Late-Top 50%')
 set(gca,'TickDir','out');
+title('V1')
+xlabel('Current (\muA)')
+ylabel('Firing rate (sp/s)')
+color1 = linspace(0,1,4);
+newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
+colororder(newcolors);
+beautifyPlot;
+
+figure;hold on
+for i=1:4
+errorbar([0 2 5 6 8 10], catLatEarlyhighlowV2{1}(:,i),catLatEarlyhighlowV2{2}(:,i))
+end
+legend('Early-Bottom 50%','Early-Top 50%','Late-Bottom 50%','Late-Top 50%')
+set(gca,'TickDir','out');
+title('V2')
+xlabel('Current (\muA)')
+ylabel('Firing rate (sp/s)')
+color1 = linspace(0,1,4);
+newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
+colororder(newcolors);
+beautifyPlot;
 % baselineS{ampit}{1}=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
 % baselineFR{ampit}{2}=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
 % errorbar((savefilename{folderint}{2}.AMP(ampit)),mean(HLB_data{ampit}{1}(:,avgtime)-baselineFR{ampit}{1},'all','omitnan').*multiplyspk,'r')
