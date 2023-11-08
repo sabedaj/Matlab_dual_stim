@@ -9,13 +9,13 @@ FS=frequency_parameters.amplifier_sample_rate;
 
 order = Depth(1);
 spsort=sp(order);
-maxcor=zeros(64,64);
-lagcor=zeros(64,64);
+maxcor=zeros(nChn,nChn);
+lagcor=zeros(nChn,nChn);
 %enter trialnums 
 %channels
 
 if strcmp(typecor,'noise')
-    BIN = [-30 -10]; %time ms to look
+    BIN = [-70 -10]; %time ms to look
 
 elseif strcmp(typecor,'stim')
     BIN = [0 20]; %time ms to look
@@ -62,7 +62,7 @@ for chn1=1:nChn
 % 
 %         end
 %         combsave=[combsave; sort([chn1,chn2])];
-        if ~all(isnan(xc))
+        if ~all(isnan(xc))&&sum(ratechn1)>1&&sum(ratechn2)>1
         maxcor(chn1,chn2)=max(xc);
         lagcor(chn1,chn2)=find(max(xc)==xc,1,'first');
         end
@@ -72,12 +72,12 @@ end
 
 
 
-% figure
-% surf(maxcor)
-% title(['Maximum correlation ' typecor ' ID:' num2str(ID) ' Channel: ' num2str(chns(2))])
-% figure
-% surf(lagcor)
-% title(['Lag of maximum correlation ' typecor ' ID:' num2str(ID) ' Channel: ' num2str(chns(2))])
+figure
+surf(maxcor)
+title(['Maximum correlation ' typecor ' ID:' num2str(ID) ' Channel: ' num2str(chns(1))])
+figure
+surf(lagcor)
+title(['Lag of maximum correlation ' typecor ' ID:' num2str(ID) ' Channel: ' num2str(chns(1))])
 % 
 
 

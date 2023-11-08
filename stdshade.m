@@ -28,14 +28,29 @@ end
 if ne(size(F,1),1)
     F=F';
 end
-
-
-if smth > 1
-    amatrix = boxFilter(amatrix,smth); %use boxfilter to smooth data
-end
 amean = nanmean(amatrix,1); %get man over first dimension
 %astd = nanstd(amatrix,[],1); % to get std shading
 astd = nanstd(amatrix,[],1)./sqrt(sum(~isnan(amatrix),1)); % to get sem shading
+
+if smth >= 1
+    %amatrix = boxFilter(amatrix,smth); %use boxfilter to smooth data
+    %window = normpdf(-3*smth:3*smth,0,smth);
+    %amean = amean(:,3*smth+1:end-3*smth);
+    % astd = astd(:,3*smth+1:end-3*smth);
+   
+    a = 1;
+    b = ones(1,smth)./smth;
+    amean = filtfilt(b,a,amean);
+   
+    astd = nanstd(amatrix,[],1)./sqrt(sum(~isnan(amatrix),1)); % to get sem shading
+    astd = filtfilt(b,a,astd);
+   
+    
+
+end
+% amean = nanmean(amatrix,1); %get man over first dimension
+% %astd = nanstd(amatrix,[],1); % to get std shading
+% astd = nanstd(amatrix,[],1)./sqrt(sum(~isnan(amatrix),1)); % to get sem shading
 amean_nan=amean;
 std_nan=astd;
 astd(isnan(astd))=0;

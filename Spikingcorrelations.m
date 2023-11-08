@@ -1,18 +1,20 @@
 function Spikingcorrelations(typecor)
 %typecor - 'noise','stim'
+%spike timing correlations
 
 sp=loadSpikes;
 %%
-read_Intan_RHS2000_file;
+ [amplifier_channels,frequency_parameters]=read_Intan_RHS2000_file;
 nChn=size(amplifier_channels,2);
 FS=frequency_parameters.amplifier_sample_rate;
 
 order=Depth(1);
 chnavg=zeros(nChn,nChn);
+chnpos=zeros(nChn,nChn);
 spsort=sp(order(1:nChn));
 if strcmp(typecor,'noise')
-    Timetoanalyse=20000;%20s for noise correlations - always 20s at start of file w/out stim
-    windowsize=100;%ms
+    Timetoanalyse=5000;%in ms %20s for noise correlations - always 20s at start of file w/out stim
+    windowsize=50;%ms
     for chnoverall=1:nChn
         spchn1=spsort{chnoverall};
         spchn1(:,1)=round(spchn1(:,1));
@@ -39,65 +41,65 @@ if strcmp(typecor,'noise')
                     %stem(lags,xc)
                     val(chns,lag)=max(xc);
                     if ~isnan(max(xc))
-                        pos(chns,lag)=find(xc==max(xc),1,'first');
+                        pos(chns,lag)=lags(find(xc==max(xc),1,'first'));
                     end
                 end
-            end
-            if sum(sum(val,1)~=0)>=trialnum(end)
-                break
-            end
+%             end
+%             if sum(sum(val,1)~=0)>=trialnum(end)
+%                 break
+%             end
         end
         pos(:,sum(val,1)==0)=[];
         val(:,sum(val,1)==0)=[];
-
+        chnpos(chnoverall,:)=mean(pos,2);
         chnavg(chnoverall,:)=mean(val,2);
     end
 
 
 end
-%%
-trialnum=1:25;
-
-%%
-for chnoverall=1:nChn
-spchn1=spsort{chnoverall};
-spchn1(:,1)=round(spchn1(:,1));
-val=zeros(nChn,20000/100);
-pos=zeros(nChn,20000/100);
-for lag=1:20000/100
-    spind1=zeros(100,1);
-    if lag~=1
-        spind1(round(spchn1(spchn1(:,1)>(lag-1)*100 & spchn1(:,1)<=lag*100,1),0)-((lag-1)*100))=1;
-    else
-        spind1(round(spchn1(spchn1(:,1)>(lag-1)*100 & spchn1(:,1)<lag*100,1),0))=1;
-    end
-    for chns=1:nChn
-        spind2=zeros(100,1);
-        spchn2=spsort{chns};
-        spchn2(:,1)=round(spchn2(:,1));
-        if lag~=1
-            spind2(round(spchn2(spchn2(:,1)>(lag-1)*100 & spchn2(:,1)<=lag*100,1),0)-((lag-1)*100))=1;
-        else
-            spind2(round(spchn2(spchn2(:,1)>(lag-1)*100 & spchn2(:,1)<lag*100,1),0))=1;
-        end
-        if sum(spind1)~=0 && sum(spind2)~=0
-            [xc,lags] = xcorr(spind1,spind2,'coeff');
-            %stem(lags,xc)
-            val(chns,lag)=max(xc);
-            if ~isnan(max(xc))
-                pos(chns,lag)=find(xc==max(xc),1,'first');
-            end
-        end
-    end
-    if sum(sum(val,1)~=0)>=trialnum(end)
-        break
-    end
-end
-pos(:,sum(val,1)==0)=[];
-val(:,sum(val,1)==0)=[];
-
-chnavg(chnoverall,:)=mean(val,2);
-end
+% %%
+% trialnum=1:25;
+% 
+% %%
+% for chnoverall=1:nChn
+% spchn1=spsort{chnoverall};
+% spchn1(:,1)=round(spchn1(:,1));
+% val=zeros(nChn,20000/100);
+% pos=zeros(nChn,20000/100);
+% for lag=1:20000/100
+%     spind1=zeros(100,1);
+%     if lag~=1
+%         spind1(round(spchn1(spchn1(:,1)>(lag-1)*100 & spchn1(:,1)<=lag*100,1),0)-((lag-1)*100))=1;
+%     else
+%         spind1(round(spchn1(spchn1(:,1)>(lag-1)*100 & spchn1(:,1)<lag*100,1),0))=1;
+%     end
+%     for chns=1:nChn
+%         spind2=zeros(100,1);
+%         spchn2=spsort{chns};
+%         spchn2(:,1)=round(spchn2(:,1));
+%         if lag~=1
+%             spind2(round(spchn2(spchn2(:,1)>(lag-1)*100 & spchn2(:,1)<=lag*100,1),0)-((lag-1)*100))=1;
+%         else
+%             spind2(round(spchn2(spchn2(:,1)>(lag-1)*100 & spchn2(:,1)<lag*100,1),0))=1;
+%         end
+%         if sum(spind1)~=0 && sum(spind2)~=0
+%             [xc,lags] = xcorr(spind1,spind2,'coeff');
+%             %stem(lags,xc)
+%             val(chns,lag)=max(xc);
+%             if ~isnan(max(xc))
+%                 pos(chns,lag)=find(xc==max(xc),1,'first');
+%             end
+%         end
+%     end
+%     if sum(sum(val,1)~=0)>=trialnum(end)
+%         break
+%     end
+% end
+% pos(:,sum(val,1)==0)=[];
+% val(:,sum(val,1)==0)=[];
+% 
+% chnavg(chnoverall,:)=mean(val,2);
+% end
 %% artificial matrix
 chnavg_artificial=zeros(nChn,nChn);
 for i=1:16%17:32
@@ -172,16 +174,16 @@ end
 %%
 %load("ElectLayerClass.mat")
 %ElectLayerClass(chnavg)
-figure; surf(1:16,1:16,chnavg(1:16,1:16))
-ylim([1 16])
-xlim([1 16])
+figure; surf(1:128,1:128,chnavg(1:128,1:128))
+ylim([1 128])
+xlim([1 128])
 view(0,90)
 xlabel('channel #')
 ylabel('channel #')
-yline(6,'r',LineWidth=2)
-xline(6,'r',LineWidth=2)
-yline(10,'r',LineWidth=2)
-xline(10,'r',LineWidth=2)
+for i=1:8
+yline(16*i,'r')
+xline(16*i,'r')
+end
 axis square
 colorbar
 

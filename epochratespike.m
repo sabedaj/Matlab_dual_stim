@@ -1,7 +1,7 @@
 function alldata=epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
 %% epoch has to be increasing with current once significant
 % trial avg single elect - - standard deviation -  bins all electrodes based on thresh
-cd('E:\DATA\CJ_V1sigmoid')
+cd('E:\DATA\CJ247')%E:\DATA\CJ_V1sigmoid
 if normalisedat==1
     multiplyspk=1;
 else
@@ -19,10 +19,11 @@ filmatch=find(contains({D_data.name},savefilename{folderint}{5}));
 cd([D_data(filmatch).folder filesep D_data(filmatch).name;])
 AMPchosen=[2 5 6 8 10];
 
-
+smth=2;
 ratio=nan(1000,1);
 E_MAP=Depth(1);
 centredstimchn=cell(5,1);
+simchncount=cell(5,1);
 stimchnsave=cell(5,1);
 foldercheck=cell(5,1);
 ordershapearray=reshape(E_MAP,16,8);
@@ -52,6 +53,7 @@ iteratealldat=1;
     alldata_stim{ampit}=nan(108000,181);
     alldata{ampit}=nan(1800,181);
     centredstimchn{ampit}=nan(31,7,500);
+    simchncount{ampit}=nan(31,7,500);
     heatmap_centroid{ampit}=nan(31,7,500);
 ampinterest=AMPchosen(ampit);
 V2ELresp{ampit}=cell(3,1);
@@ -190,6 +192,7 @@ CatergoriesEBL=cell(size(sig,3),1);
                     
                      [r,c]=find(stimchnarray==(simchnall(stimchn)-64));
                      centredstimchn{ampit}(17-r+(rchn-1),5-c+(cchn-1),stimchncount+stimchn)=squeeze(mean(rateAMPua(chn,92:102,stimchn),2));
+                     simchncount{ampit}(17-r:17-r+15,5-c:5-c+3,stimchncount+stimchn)=1;
 %                     V1stimelectposRC{ampit}(stimchn,:)=simchnall
 %                     V1arraysorted=reshape(V1array(E_MAP(1:64),:),[16,4,size(V1array,2)]);
 %                     V1arraysorted=V1arraysorted(:,[1 3 4 2],:);
@@ -377,7 +380,7 @@ end
 color1 = linspace(0,1,5);
 newcolors = [flipud(color1') zeros(length(color1),1) (color1')];
 colororder(newcolors);
-[lineOut, fillOut] = stdshade(alldata{ampit}.*multiplyspk,0.1,newcolors(ampit,:),[-90:90],1,ax);
+[lineOut, fillOut] = stdshade(alldata{ampit}.*multiplyspk,0.1,newcolors(ampit,:),[-90:90],smth,ax);
 leg=legend('2','6','10');
 title(leg,'Current(uA)')
 xlim([-50 85])
@@ -638,13 +641,13 @@ ax=axes;
 hold on
 baselineS=mean(alldata{ampit}(sorted_indices(1:halflength),1:89),2,'omitnan');
 baselineL=mean(alldata{ampit}(sorted_indices(halflength+1:end),1:89),2,'omitnan');
-stdshade((alldata{ampit}(sorted_indices(1:halflength),:)-baselineS).*multiplyspk,0.2,'b',[-90:90],1,ax);
+stdshade((alldata{ampit}(sorted_indices(1:halflength),:)-baselineS).*multiplyspk,0.2,'b',[-90:90],smth,ax);
 xlabel('Time(ms)')
 ylabel('FR (sp/s)')
 title('V2')
  xlim([-50,89])
 set(gca,'TickDir','out');
-stdshade((alldata{ampit}(sorted_indices(halflength+1:end),:)-baselineL).*multiplyspk,0.2,'r',[-90:90],1,ax);
+stdshade((alldata{ampit}(sorted_indices(halflength+1:end),:)-baselineL).*multiplyspk,0.2,'r',[-90:90],smth,ax);
 text(-40,3.5,['N=',num2str(halflength),'electrodes'],'Color','red')
 text(-40,3.2,['N=',num2str(length(alldata{ampit}(sorted_indices(halflength+1:end),1))),'electrodes'],'Color','blue')
 legend('Bottom 1/2','Top 1/2')
@@ -654,8 +657,8 @@ hold on
 
 baselineL=mean(HLB_data{ampit}{1}(:,1:89),2,'omitnan');
 baselineS=mean(HLB_data{ampit}{2}(:,1:89),2,'omitnan');
-stdshade((HLB_data{ampit}{1}-baselineL).*multiplyspk,0.2,'r',[-90:90],1,ax);
-stdshade((HLB_data{ampit}{2}-baselineS).*multiplyspk,0.2,'b',[-90:90],1,ax);
+stdshade((HLB_data{ampit}{1}-baselineL).*multiplyspk,0.2,'r',[-90:90],smth,ax);
+stdshade((HLB_data{ampit}{2}-baselineS).*multiplyspk,0.2,'b',[-90:90],smth,ax);
 %plot(-90:90,mean(HLB_data{3}.*multiplyspk,'omitnan'))
 text(-40,20,['N=',num2str(size(HLB_data{ampit}{1},1)),'electrodes'],'Color','red')
 text(-40,18,['N=',num2str(size(HLB_data{ampit}{2},1)),'electrodes'],'Color','blue')
@@ -672,8 +675,8 @@ ax=axes;
 hold on
 baselineE=mean(DataEarlyV2{5}(:,1:89),2);
 baselineL=mean(DataLateV2{5}(:,1:89),2);
-stdshade((DataEarlyV2{5}-baselineE),0.2,'r',[-90:90],1,ax);
-stdshade((DataLateV2{5}-baselineL),0.2,'b',[-90:90],1,ax);
+stdshade((DataEarlyV2{5}-baselineE),0.2,'r',[-90:90],smth,ax);
+stdshade((DataLateV2{5}-baselineL),0.2,'b',[-90:90],smth,ax);
 % plot(mean(DataEarlyV2{5}),'r')
 % plot(mean(DataLateV2{5}),'b')
 title('V2')
@@ -743,8 +746,8 @@ ax=axes;
 hold on
 baselineE=mean(dataE(:,1:89),2,'omitnan');
 baselineL=mean(dataL(:,1:89),2,'omitnan');
-stdshade((dataE-baselineE),0.2,'r',[-90:90],1,ax);
-stdshade((dataL-baselineL),0.2,'b',[-90:90],1,ax);
+stdshade((dataE-baselineE),0.2,'r',[-90:90],smth,ax);
+stdshade((dataL-baselineL),0.2,'b',[-90:90],smth,ax);
 % plot(mean(dataE,'omitnan'),'r')
 % plot(mean(dataL,'omitnan'),'b')
 title('V1')
@@ -817,8 +820,8 @@ figure;
 ax=axes;
 hold on
 
-stdshade((DataLateV1low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
-stdshade((DataLateV1high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
+stdshade((DataLateV1low{ampit}-baselineL),0.2,'b',[-90:90],smth,ax);
+stdshade((DataLateV1high{ampit}-baselineS),0.2,'r',[-90:90],smth,ax);
 
 text(-40,20,['N=',num2str(size(DataLateV1low{ampit},1)),'electrodes'],'Color','blue')
 text(-40,18,['N=',num2str(size(DataLateV1high{ampit},1)),'electrodes'],'Color','red')
@@ -831,7 +834,7 @@ title('V1-Late')
 set(gca,'TickDir','out');
 beautifyPlot;
 end
-timeV1=92:95;
+timeV1=92:122;
 catLatEarlyhighlow{1}(ampit+1,3)=mean((DataLateV1low{ampit}(:,timeV1)-baselineL),'all','omitnan');%-baselineL
 catLatEarlyhighlow{2}(ampit+1,3)=SEM((DataLateV1low{ampit}(:,timeV1)-baselineL),0);%-baselineL
 catLatEarlyhighlow{1}(ampit+1,4)=mean((DataLateV1high{ampit}(:,timeV1)-baselineS),'all','omitnan');
@@ -875,8 +878,8 @@ baselineS=mean(DataLateV2high{ampit}(:,subselectbaseline),2,'omitnan');
 figure
 ax=axes;
 hold on
-stdshade((DataLateV2low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
-stdshade((DataLateV2high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
+stdshade((DataLateV2low{ampit}-baselineL),0.2,'b',[-90:90],smth,ax);
+stdshade((DataLateV2high{ampit}-baselineS),0.2,'r',[-90:90],smth,ax);
 text(-40,20,['N=',num2str(size(DataLateV1low{ampit},1)),'electrodes'],'Color','blue')
 text(-40,18,['N=',num2str(size(DataLateV1high{ampit},1)),'electrodes'],'Color','red')
 xlabel('Time (ms)')
@@ -893,8 +896,8 @@ hold on
 
 baselineL=mean(DataEarlyV2low{ampit}(:,subselectbaseline),2,'omitnan');
 baselineS=mean(DataEarlyV2high{ampit}(:,subselectbaseline),2,'omitnan');
-stdshade((DataEarlyV2low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
-stdshade((DataEarlyV2high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
+stdshade((DataEarlyV2low{ampit}-baselineL),0.2,'b',[-90:90],smth,ax);
+stdshade((DataEarlyV2high{ampit}-baselineS),0.2,'r',[-90:90],smth,ax);
 
 text(-40,20,['N=',num2str(size(DataEarlyV2low{ampit},1)),'electrodes'],'Color','blue')
 text(-40,18,['N=',num2str(size(DataEarlyV2high{ampit},1)),'electrodes'],'Color','red')
@@ -915,8 +918,8 @@ if ampit==5
 figure;
 ax=axes;
 hold on
-stdshade((DataEarlyV1low{ampit}-baselineL),0.2,'b',[-90:90],1,ax);
-stdshade((DataEarlyV1high{ampit}-baselineS),0.2,'r',[-90:90],1,ax);
+stdshade((DataEarlyV1low{ampit}-baselineL),0.2,'b',[-90:90],smth,ax);
+stdshade((DataEarlyV1high{ampit}-baselineS),0.2,'r',[-90:90],smth,ax);
 
 text(-40,20,['N=',num2str(size(DataEarlyV1low{ampit},1)),'electrodes'],'Color','blue')
 text(-40,18,['N=',num2str(size(DataEarlyV1high{ampit},1)),'electrodes'],'Color','red')
@@ -934,10 +937,10 @@ catLatEarlyhighlow{2}(ampit+1,1)=SEM((DataEarlyV1low{ampit}(:,timeV1)-baselineL)
 catLatEarlyhighlow{1}(ampit+1,2)=mean((DataEarlyV1high{ampit}(:,timeV1)-baselineS),'all','omitnan');
 catLatEarlyhighlow{2}(ampit+1,2)=SEM((DataEarlyV1high{ampit}(:,timeV1)-baselineS),0);
 
-catLatEarlyhighlow{1}(1,1)=mean((DataEarlyV1low{ampit}(:,subselectbaseline)-baselineL),'all','omitnan');
-catLatEarlyhighlow{2}(1,1)=SEM((DataEarlyV1low{ampit}(:,subselectbaseline)-baselineL),0);
-catLatEarlyhighlow{1}(1,2)=mean((DataEarlyV1high{ampit}(:,subselectbaseline)-baselineS),'all','omitnan');
-catLatEarlyhighlow{2}(1,2)=SEM((DataEarlyV1high{ampit}(:,subselectbaseline)-baselineS),0);
+catLatEarlyhighlow{1}(1,1)=mean((DataEarlyV1low{ampit}(:,BLtime)-baselineL),'all','omitnan');
+catLatEarlyhighlow{2}(1,1)=SEM((DataEarlyV1low{ampit}(:,BLtime)-baselineL),0);
+catLatEarlyhighlow{1}(1,2)=mean((DataEarlyV1high{ampit}(:,BLtime)-baselineS),'all','omitnan');
+catLatEarlyhighlow{2}(1,2)=SEM((DataEarlyV1high{ampit}(:,BLtime)-baselineS),0);
 
 % figure;
 % hold on
@@ -1157,7 +1160,7 @@ errorheatmap=std(repelem(distanceArray(:),dataheatmap(:)),0,'all');%repeats the 
 end
 
 %stimchn only
-dataheatmap=sum(centredstimchn{5}>0,3);
+dataheatmap=sum(centredstimchn{5}>0,3)./sum(simchncount{5}>0,3);
 figure; heatmap(dataheatmap,'CellLabelColor','none','GridVisible','off');set(gca,'ColorScaling','log')
 errorheatmap=std(repelem(distanceArray(:),dataheatmap(:)),0,'all');%repeats the number of elements in distance for the number of electrodes at each position
 
@@ -1179,16 +1182,17 @@ elseif all(chnrange<65)
     xlabel('Distance from centroid(\mum)')
 end
     
-for current=1:5
+for current=1:2:5
     dataheatmap=sum(dataplot{current}>0,3,'omitnan');
+    datcounttotal=sum(simchncount{5}>0,3);
 for i=step:step:maxnum-step
-    splitdist{current}(i/step)=mean(dataheatmap(distanceArray>=i-step & distanceArray<i));
+    splitdist{current}(i/step)=mean(dataheatmap(distanceArray>=i-step & distanceArray<i));%./datcounttotal(distanceArray>=i-step & distanceArray<i)
     stdsplitdist{current}(i/step)=std(dataheatmap(distanceArray>=i-step & distanceArray<i));
     countsplidist{current}(i/step)=sum(dataheatmap(distanceArray>=i-step & distanceArray<i));
    %sigdatdist{current,i/step}=(dataheatmap(distanceArray>=i-step &
    %distanceArray<i));%used splitdist with anova
 end
- errorbar(step:step:maxnum,splitdist{current},stdsplitdist{current})
+ errorbar(step:step:maxnum,splitdist{current},stdsplitdist{current})%maybe think about normalising? does that make sense? ./countsplidist{current}
 end
 color1 = linspace(0,1,3);
 newcolors = [flipud(color1') zeros(length(color1),1) (color1')];

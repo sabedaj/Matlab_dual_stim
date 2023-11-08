@@ -1,6 +1,7 @@
 function [spk_all,rate_all,Peak_latency_all]=SigmoidGenerator(chnnum,Spk_array,timestart,timeend)
+plotsigmoid=1
 trig=loadTrig(0);
-avgtimebs=10;%10x longer in baseline
+avgtimebs=5;%10x longer in baseline
 [Spike_trialstruct,baslinespike_trialstruct,latency_trialstruct] = OnlinesortTrials(trig,Spk_array,chnnum,timestart,timeend,avgtimebs);
 loadAMP_all;
 trialinfo=loadTrialInfo;
@@ -51,8 +52,8 @@ for recordchn=1:length(chnnum)
                 timespikes=[timespikes; latency_trialstruct.(chnname).(t).(t2)];
             end
             
-            checkbasesp(1:40,ID)=basespikecount;
-            checkspkcount(1:40,ID)=spkcount;
+            checkbasesp(1:60,ID)=basespikecount;
+            checkspkcount(1:60,ID)=spkcount;
             if IDs{stimchn}(ID,2)==maxID
             p=ranksum(checkbasesp(:),checkspkcount(:),'tail','left');
             end
@@ -77,6 +78,21 @@ for recordchn=1:length(chnnum)
             %                     spk_all.(['Chn_' num2str(chnnum(recordchn))]).(['stimchn_' num2str(chn(stimchn))])(1:size(IDs{stimchn},1))=nan(1,size(IDs{stimchn},1));
             %                 end
             %             end
+        end
+        if plotsigmoid==1 %&& all(diff(spk_all.(chnname).(stimchnname))>-2) && sum(diff(spk_all.(chnname).(stimchnname)))>0.5
+            E_MAP=Depth(1);
+            arrayshape=reshape(E_MAP,16,8);
+            arrayshape=arrayshape(:,[1 3 4 2 5 7 8 6]);
+            arrayshape=flipud(arrayshape);
+            
+            figure(8);
+            hold on
+
+            [r,c]=find(arrayshape==chnnum(recordchn));
+            subplot(16,8, (r - 1) * 8 + c);
+                        
+            plot(IDs{1}(:,1),spk_all.(chnname).(stimchnname)(1:length(IDs{1}(:,1))))
+            title(chnname)
         end
     end
 end

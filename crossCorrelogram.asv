@@ -1,0 +1,40 @@
+function [xcorr, lags] = crossCorrelogram(spikeTrain1, spikeTrain2, binSizeMs, maxLagMs)
+   % Compute the cross-correlogram of two spike trains in milliseconds
+    
+    % Input:
+    % - spikeTrain1: A vector of spike times for neuron 1 (sorted) in milliseconds
+    % - spikeTrain2: A vector of spike times for neuron 2 (sorted) in milliseconds
+    % - binSizeMs: The size of each time bin (in milliseconds)
+    % - maxLagMs: The maximum lag to consider (in milliseconds)
+    
+    % Output:
+    % - xcorr: The cross-correlogram values
+    % - lags: The corresponding time lags (in milliseconds)
+    
+    % Convert time units to indices
+    binSizeInIndices = round(binSizeMs / mean(diff(spikeTrain1)));
+    maxLagInIndices = round(maxLagMs / mean(diff(spikeTrain1)));
+    
+    % Initialize the cross-correlogram and lags
+    xcorr = zeros(1, 2 * maxLagInIndices + 1);
+    lags = (-maxLagInIndices:maxLagInIndices) * binSizeInIndices;
+    
+    % Iterate over spike times in the first spike train
+    for i = 1:length(spikeTrain1)
+        % Calculate the time differences between spikes in the two spike trains
+        timeDiffs = spikeTrain2 - spikeTrain1(i);
+        
+        % Filter time differences within the specified range
+        validDiffs = timeDiffs(timeDiffs >= -maxLagMs & timeDiffs <= maxLagMs);
+        
+        % Convert valid time differences to bin indices
+        binIndices = round(validDiffs / binSizeMs);
+        
+        % Update the cross-correlogram
+        xcorr(lags == 0) = xcorr(lags == 0) + 1; % Autocorrelation
+        xcorr = xcorr + hist(binIndices, lags);
+    end
+    
+    % Normalize the cross-correlogram by the number of spikes and bin size
+    xcorr = xcorr / (length(spikeTrain1) * binSizeMs);
+end

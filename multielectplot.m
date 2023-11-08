@@ -1,5 +1,5 @@
 function V2respcomb=multielectplot(ratestruct,savefilename,chnrange,excitesupress, chnexclude)
-ampinterest=6;
+ampinterest=10;
 
  s = RandStream('mt19937ar','Seed',296);
 % pre-processing
@@ -194,7 +194,7 @@ for numerfolders=1:numfolderstotal
         V2E1=mean(ratespiking{numerfolders}(chns,timetolook,trialE1)-mean(ratespiking{numerfolders}(chns,subselectbaseline,trial),2,'omitnan'),2,'omitnan');
         V2E2=mean(ratespiking{numerfolders}(chns,timetolook,trialE2)-mean(ratespiking{numerfolders}(chns,subselectbaseline,trial),2,'omitnan'),2,'omitnan');
 
-
+%% old
             [centV2rdual,centV2cdual]=centroidpos(V2dual(emap_shaped(:,1:4)));
             [centV2rE1,centV2cE1]=centroidpos(V2E1(emap_shaped(:,1:4)));
             [centV2rE2,centV2cE2]=centroidpos(V2E2(emap_shaped(:,1:4)));
@@ -215,6 +215,37 @@ for numerfolders=1:numfolderstotal
              rdistV1=abs(r1-r2);
              cdistV1=abs(c1-c2);
             V2resp_centroid{2}=cat(1,V2resp_centroid{2},[rdistV1,cdistV1]);
+            %% new
+            %dist between stim elect
+%             E1num=savefilename{numerfolders}{1, 4}(trialE1,3);
+%             E2num=savefilename{numerfolders}{1, 4}(trialE2,3);
+%             [r1,c1]=find(stimarray==E1num);
+%             [r2,c2]=find(stimarray==E2num);
+%             rdistV1=abs(r1-r2);
+%             cdistV1=abs(c1-c2);
+%             V2resp_centroid{2}=cat(1,V2resp_centroid{2},[rdistV1,cdistV1]);
+%                  
+%             %calc centroid positions
+%                          [centV2rdual,centV2cdual]=centroidpos(V2dual(emap_shaped(:,1:4)));
+%             [centV2rE1,centV2cE1]=centroidpos(V2E1(emap_shaped(:,1:4)));
+%             [centV2rE2,centV2cE2]=centroidpos(V2E2(emap_shaped(:,1:4)));
+%              if r1>r2
+%                   rdist=((centV2rE1-centV2rdual)+(centV2rdual-centV2rE2));
+%              elseif r1<r2
+%                  rdist=((centV2rdual-centV2rE1)+(centV2rE2-centV2rdual));
+%              else
+%                  rdist=((centV2rdual-centV2rE1)+(centV2rdual-centV2rE2));
+%              end
+%                    
+%              if c1>c2
+%                   cdist=((centV2cE1-centV2cdual)+(centV2cdual-centV2cE2));
+%              elseif c1<c2
+%                  cdist=((centV2cdual-centV2cE1)+(centV2cE2-centV2cdual));
+%              else
+%                  cdist=((centV2cdual-centV2cE1)+(centV2cdual-centV2cE2));
+%              end
+%             V2resp_centroid{6}=cat(1,V2resp_centroid{6},[rdist,cdist]);
+            %%
             %for num elect
             V2resp_centroid{1}=cat(1,V2resp_centroid{1},sum(V2dual>0));%%
             %for num elect single
@@ -228,6 +259,7 @@ end
 
 ElectdistV1=sqrt((V2resp_centroid{2}(:,1).*50).^2+(V2resp_centroid{2}(:,2).*200).^2);
 centshiftV2=sqrt((V2resp_centroid{6}(:,1).*50).^2+(V2resp_centroid{6}(:,2).*200).^2);
+%centshiftV2=(V2resp_centroid{6}(:,1).*50)+(V2resp_centroid{6}(:,2).*200);
 
 %roundedV1=round(ElectdistV1,-2);%nearest 100
 roundedV1=round(ElectdistV1./2,-2).*2;%nearest 200
