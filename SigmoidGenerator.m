@@ -1,5 +1,5 @@
 function [spk_all,rate_all,Peak_latency_all]=SigmoidGenerator(chnnum,Spk_array,timestart,timeend)
-plotsigmoid=1
+plotsigmoid=1;
 trig=loadTrig(0);
 avgtimebs=5;%10x longer in baseline
 [Spike_trialstruct,baslinespike_trialstruct,latency_trialstruct] = OnlinesortTrials(trig,Spk_array,chnnum,timestart,timeend,avgtimebs);
@@ -12,7 +12,7 @@ chn(chn==0)=[];
 count=0;
 allsingletrialIDs=[];
 IDs=cell(length(chn),1);
-
+nChn=length(Spk_array);
 
 for trialloop=1:numsim_elect:length(trialinfo(:,2))
     if sum(trialinfo(trialloop:trialloop+numsim_elect-1,2)==0)==numsim_elect-1
@@ -52,8 +52,8 @@ for recordchn=1:length(chnnum)
                 timespikes=[timespikes; latency_trialstruct.(chnname).(t).(t2)];
             end
             
-            checkbasesp(1:60,ID)=basespikecount;
-            checkspkcount(1:60,ID)=spkcount;
+            checkbasesp(1:nT,ID)=basespikecount;
+            checkspkcount(1:nT,ID)=spkcount;
             if IDs{stimchn}(ID,2)==maxID
             p=ranksum(checkbasesp(:),checkspkcount(:),'tail','left');
             end
@@ -81,17 +81,22 @@ for recordchn=1:length(chnnum)
         end
         if plotsigmoid==1 %&& all(diff(spk_all.(chnname).(stimchnname))>-2) && sum(diff(spk_all.(chnname).(stimchnname)))>0.5
             E_MAP=Depth(1);
-            arrayshape=reshape(E_MAP,16,8);
-            arrayshape=arrayshape(:,[1 3 4 2 5 7 8 6]);
-            arrayshape=flipud(arrayshape);
-            
             figure(8);
             hold on
-
+            %if nChn==128
+            arrayshape=reshape(E_MAP,16,6);%arrayshape=reshape(E_MAP,16,8);
+            arrayshape=arrayshape(:,[1 3 4 2 5 6]);%arrayshape=arrayshape(:,[1 3 4 2 5 7 8 6]);
+            arrayshape=flipud(arrayshape);
             [r,c]=find(arrayshape==chnnum(recordchn));
-            subplot(16,8, (r - 1) * 8 + c);
+            subplot(16,6, (r - 1) * 6 + c);% subplot(16,8, (r - 1) * 8 + c);
+            %else
+%                 if length(chnnum)>1
+%                     subplot(1,nChn, chnnum);
+%                 end
+%             end
+            
                         
-            plot(IDs{1}(:,1),spk_all.(chnname).(stimchnname)(1:length(IDs{1}(:,1))))
+            plot(IDs{2}(:,1),spk_all.(chnname).(stimchnname)(1:length(IDs{2}(:,1))))
             title(chnname)
         end
     end

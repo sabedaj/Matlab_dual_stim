@@ -1,7 +1,7 @@
 function alldata=epochratespike(ratestruct,savefilename,chnrange,excitesupress, chnexclude,normalisedat)
 %% epoch has to be increasing with current once significant
 % trial avg single elect - - standard deviation -  bins all electrodes based on thresh
-cd('E:\DATA\CJ247')%E:\DATA\CJ_V1sigmoid
+cd('E:\DATA\CJ_V1sigmoid')%E:\DATA\CJ_V1sigmoid
 if normalisedat==1
     multiplyspk=1;
 else

@@ -9,20 +9,22 @@ function [Spike_trialstruct,baslinespike_trialstruct,latency_trialstruct] = Onli
 %(startpointms) in ms, end point after trigger to stop counting spikes
 %(mstoanalyse) in ms, trigger information (trig)
 FS=30000;
+nstage=round(length(sp)./32);
+nChn=length(sp);
 TrialParams = loadTrialParams;
 TrialParams=cell2mat(TrialParams);
 maxtid=max(TrialParams(:,2));
 nospI=[];
 Spike_trialstruct=[];
 baslinespike_trialstruct=[];
-for headstage=0:3
+for headstage=0:nstage-1
     C1 = intersect(sp{1+(headstage*32)}(:,1),sp{2+(headstage*32)}(:,1));%checks later electrodes
     C2 = intersect(sp{24+(headstage*32)}(:,1),sp{6+(headstage*32)}(:,1)); %early electrodes
     C3 = intersect(sp{21+(headstage*32)}(:,1),sp{5+(headstage*32)}(:,1)); %middle electrodes
     test1= intersect(C1,C2);
     test2= intersect(C2,C3);
     check=intersect(test1,test2);
-    for chncount=1:128
+    for chncount=1:nChn
         [~,r,~]=(intersect(sp{chncount}(:,1),check));
         sp{chncount}(r,:)=[];
     end

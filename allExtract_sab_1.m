@@ -50,7 +50,7 @@ LfpNf = length(Lfpfilt);
 MuNf = length(Mufilt);
 NotchNf = length(NOTCHfilt);
 %% Calculate thresholds
-%if isempty(dir('*.sp.mat'))
+if isempty(dir('*.sp.mat'))
     dispstat('','init');
     dispstat(sprintf('Processing thresholds . . .'),'keepthis','n');
     for iChn = 1:nChn
@@ -99,7 +99,7 @@ NotchNf = length(NOTCHfilt);
     disp(['Total recording time: ' num2str(nSam / FS) ' seconds.']);
     disp(['Time analysed per loop: ' num2str(T) ' seconds.']);
     fseek(v_fid,0,'bof'); % Returns the data pointer to the beginning of the file
-%end
+end
 %% Loop through the data
 if (justMu)
     mu_fid = fopen([name '.mu_sab.dat'],'W');
@@ -157,12 +157,16 @@ if (justMu)
     clear data mu mu2 tmp flip_data
 end
 %% Detrend local around stimulation
-if isempty(dir('*_DT.mu.dat'))
+if isempty(dir('*_DT.mu.dat')) && ~isempty(dir('*exp_datafile_*'))
 detrendStimImpulse(filepath,dName,T,par)
 end
 %% Calculate SP
 if isempty(dir('*.sp.mat'))
-    m_fid = fopen([name '_DT.mu.dat'],'r');
+    if ~isempty(dir('*_DT.mu.dat'))
+        m_fid = fopen([name '_DT.mu.dat'],'r');
+    else
+        m_fid = fopen([name '.mu_sab.dat'],'r');
+    end
     dispstat('','init');
     dispstat(sprintf('Processing SP . . .'),'keepthis','n');
     chk = 1; N = 0; time = 0;
@@ -235,7 +239,6 @@ if isempty(dir('*.sp.mat'))
             sp{iChn} = sp{iChn}(1:NSp(iChn),:);
         end
         sp=intersect_hist_tolerance(sp);%remove spikes that are common
-        
         save([name '.sp.mat'],'sp','thresh','threshfac','template','r2t','-v7.3');
     else
         disp('Saving spikes');
