@@ -11,7 +11,7 @@ function [V1_trialaverage,V2_trialaverage]=Ratesupression(ratestruct,savefilenam
 uniquecurrents=unique(savefilename{1,1}{1,4}(:,2));%unique currents is a list of the unique currents used in the experiment
 RS=cell(length(uniquecurrents),2);%RS stores averages for each unique current for the two areas
 baseline=1:89;%baseline is the time point at which the average is calculated from
-response_time=92:102;%response time is the time point at which the average is calculated from
+response_time=90+25:180;%response time is the time point at which the average is calculated from
 for folder=1:length(ratestruct)
   
 for trial=1:length(savefilename{folder}{1,4}(:,2))
@@ -29,9 +29,9 @@ for trial=1:length(savefilename{folder}{1,4}(:,2))
 
 
     Thresh_nobaseV1=mean(temp1(:,response_time),2)-(mean(temp1(:,baseline),2));%-1.*std(temp1(:,baseline),0,2));
-    temp1(Thresh_nobaseV1>0,:)=NaN;%work out which are 4*sd supressed
-    Thresh_nobaseV2=mean(temp2(:,response_time),2)-(mean(temp2(:,baseline),2)-1.*std(temp2(:,baseline),0,2));
-    temp2(Thresh_nobaseV2>0,:)=NaN;%work out which are 4*sd supressed
+    temp1(Thresh_nobaseV1>0,:)=NaN;%work out which are supressed
+    Thresh_nobaseV2=mean(temp2(:,response_time),2)-(mean(temp2(:,baseline),2));%-1.*std(temp2(:,baseline),0,2));
+    temp2(Thresh_nobaseV2>0,:)=NaN;%work out which are supressed
     RS{uniquecurrents==currentOfTrial,1}=[RS{uniquecurrents==currentOfTrial,1}; mean(temp1-(mean(temp1(:,baseline),2,'omitnan')),1,'omitnan').*1000];%V1 average
     RS{uniquecurrents==currentOfTrial,2}=[RS{uniquecurrents==currentOfTrial,2}; mean(temp2-(mean(temp2(:,baseline),2,'omitnan')),1,'omitnan').*1000];%V2 average
 

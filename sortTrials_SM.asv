@@ -71,8 +71,7 @@ for tID=starttrial:trialjump:endtrial
         TrialParamstID=TrialParamstID./numelect;
         %TrialParamstID(TrialParamstID==2320)=[];
         if any(TrialParamstID>length(trig))
-            warning('Triggers are missing')
-            TrialParamstID(TrialParamstID>length(trig))=[];
+            warning
         end
         trigtID = trig(TrialParamstID)./(FS/1000);
         trigtID(trigtID==-500/(FS/1000))=[];

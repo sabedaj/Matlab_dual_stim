@@ -140,7 +140,7 @@ for sepdist=5:2:9
      Npairs.(sepcheck)=0;
 end
 savalllayers=[];
-for ratN=[6 9 12 13 21:23]%14:20%[6 9 12 13 21:23]%loop through animals 14:20%[6 9 12 13 21:23] %23%
+for ratN=14:20%[6 9 12 13 21:23]%loop through animals 14:20%[6 9 12 13 21:23] %23%
     %load data
     if ratN<10
         Ratnum=['Rat_00' num2str(ratN)];
@@ -214,10 +214,10 @@ for ratN=[6 9 12 13 21:23]%14:20%[6 9 12 13 21:23]%loop through animals 14:20%[6
                 currcheck=['C' num2str(AMP(current))];
                 stimpos_layer=find(~isnan(Csplit_depthsep.(currcheck).T1.D0),stimChn_NS(1),'first');
                 pos=['P' num2str(stimpos_layer(stimChn_NS(1)))];
-                if AMP(current)~=0
-                    psingle=SinglePairWErrorBars(AMP(current),0);
-                    psingletrials.(sepcheck).(currcheck)=[psingletrials.(sepcheck).(currcheck) psingle];
-                end
+%                 if AMP(current)~=0
+%                     psingle=SinglePairWErrorBars(AMP(current),0);
+%                     psingletrials.(sepcheck).(currcheck)=[psingletrials.(sepcheck).(currcheck) psingle];
+%                 end
                 
                 for trial=1:5
                     trialcheck=['T' num2str(trial)];

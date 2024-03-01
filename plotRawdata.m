@@ -3,7 +3,7 @@ function plotRawdata(chsp,tID,DataType,plotspktime)
 %plotspktime= 1 to plot spikes
 %chsp is unsorted channel
 %tID= trial ID
-nChn=96;
+nChn=128;
 FS=30000;
 timebefore=0.09;%in seconds 0.09
 timeafter=0.09;%in seconds0.09

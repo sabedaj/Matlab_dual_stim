@@ -96,7 +96,7 @@ for recordchn=1:length(chnnum)
 %             end
             
                         
-            plot(IDs{1}(:,1),spk_all.(chnname).(stimchnname)(1:length(IDs{1}(:,1))))
+            plot(IDs{1}(:,1),spk_all.(chnname).(stimchnname)(1:length(IDs{}(:,1))))
             title(chnname)
         end
     end

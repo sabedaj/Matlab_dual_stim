@@ -7,7 +7,7 @@ namedat={D_data.name};
 checkfolder=false(length(D_data),1);
 IDstructsave=cell(length(D_data),1);
 savefilename=cell(length(D_data),1);
-parfor k = 3:length(D_data) % loop through the stimulation pairs. Avoid using the first ones
+for k = 3:length(D_data) % loop through the stimulation pairs. Avoid using the first ones
     currD = D_data(k).name; % Get the current subdirectory name
     try
         cd([D_data(k).folder filesep currD])
@@ -76,8 +76,8 @@ parfor k = 3:length(D_data) % loop through the stimulation pairs. Avoid using th
         TrialsSingleElect=transpose(1:size(ti,1)-1);
         ampsingle=cell2mat(ti(2:end,18));
         chnsingle=cell2mat(ti(2:end,2));
-        pulsescountsingle=cell2mat(ti(2:end,10));
-        freqsingle=cell2mat(ti(2:end,11));
+         pulsescountsingle(i)=cell2mat(ti(2:end,10));
+            freqsingle(i)=cell2mat(ti(2:end,11));
     end
     savefilename{k}=[{str2double(stimfilename.name(end-6:end-4))} {stimVar} {stimfilename.folder(end-12:end-7)} {[TrialsSingleElect ampsingle chnsingle pulsescountsingle freqsingle]} {stimfilename.folder(end-12:end)}];
     

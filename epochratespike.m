@@ -90,7 +90,7 @@ for numerfolders=1:numfolderstotal
            ampinterest1=AMPchosen(ampit1);
            [m,i]=min(abs(savefilename{numerfolders}{4}(:,2)-ampinterest1)); ampinterest1=savefilename{numerfolders}{4}(i,2);%nearest neighbour amp
            
-           rateAMPua=ratespiking{numerfolders}(:,:,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest1),1));
+           rateAMPua=ratespiking{numerfolders}(:,1:181,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest1),1));
            rateepochcurrent(1:size(rateAMPua,1),:,:,ampit1)=cat(2,mean(rateAMPua(:,92:101,:),2),mean(rateAMPua(:,102:111,:),2),mean(rateAMPua(:,112:121,:),2),mean(rateAMPua(:,122:131,:),2),mean(rateAMPua(:,132:141,:),2),mean(rateAMPua(:,142:151,:),2),mean(rateAMPua(:,152:161,:),2),mean(rateAMPua(:,162:171,:),2),mean(rateAMPua(:,172:181,:),2));
            rateELcurrent(1:size(rateAMPua,1),:,:,ampit1)=cat(2,mean(rateAMPua(:,92:136,:),2),mean(rateAMPua(:,137:181,:),2));
            rateecurrent(1:size(rateAMPua,1),:,ampit1)=mean(rateAMPua(:,92:181,:),2);
@@ -101,7 +101,7 @@ for numerfolders=1:numfolderstotal
        validchannelsingle=sum(diff(rateecurrent,[],3),3,'omitnan')>0;
 
    end
-   rateAMPua=ratespiking{numerfolders}(:,:,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1));
+   rateAMPua=ratespiking{numerfolders}(:,1:181,savefilename{numerfolders}{4}((savefilename{numerfolders}{4}(:,2)==ampinterest),1));
    rateAMPua(chnexclude,:,:)=nan;
    if normalisedat==1
    rateAMPua=rateAMPua./max(squeeze(max(rateAMPua,[],2)),[],2);
@@ -504,6 +504,8 @@ stdrespLV2=baslineSV2;
 DataLateV2=cell(5,1);
 DataEarlyV2=cell(5,1);
 DataLateV1=cell(5,1);
+DE_cor=zeros(5,1);
+DL_cor=zeros(5,1);
 DataEarlyV1=cell(5,1);
 sorted_indices_save=cell(5,1);
 for ampit=1:5
@@ -524,6 +526,8 @@ DataEarlyV2{ampit}=alldata{ampit}(~sortLate,:).*multiplyspk;
 sortLateV1=repelem(sortLate,64);
 DataLateV1{ampit}=alldata_stim{ampit}(sortLateV1,:).*multiplyspk;
 DataEarlyV1{ampit}=alldata_stim{ampit}(~sortLateV1,:).*multiplyspk;
+DE_cor(ampit)=spike_count_corr(DataEarlyV1{ampit},DataEarlyV2{ampit},102:112,92:136);
+DL_cor(ampit)=spike_count_corr(DataLateV1{ampit},DataLateV2{ampit},102:112,137:180);
 ttest(mean(DataLateV2{ampit}(:,92:181)-mean(DataLateV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV2{ampit}(:,92:181)-mean(DataEarlyV2{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
 ttest(mean(DataLateV1{ampit}(:,92:112)-mean(DataLateV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'),mean(DataEarlyV1{ampit}(:,92:112)-mean(DataEarlyV1{ampit}(:,baselinetime),2,'omitnan'),'omitnan'))
 
