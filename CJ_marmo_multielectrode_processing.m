@@ -96,17 +96,19 @@ BaselineIDstructcompiled=cell(length(IDstructsave),1);
 ratesructcompiled=cell(length(IDstructsave),1);
 storefilechn=zeros(length(IDstructsave),24);
 storefileamp=zeros(length(IDstructsave),2040);
+storefilepulse=zeros(length(IDstructsave),500);
 storefiledate=zeros(length(IDstructsave),1);
 savefilenamecompiled=cell(length(IDstructsave),1);
 uniqueamp=0;
 for loop=1:length(IDstructsave)% loop through the stimulation pairs. Avoid using the first ones
     trialend=length(fieldnames(IDstructsave{loop}{1}));
     filessame=all(storefilechn(:,1:length(savefilename{loop}{2}.CHN(:)))==savefilename{loop}{2}.CHN(:)',2) & all(storefileamp(:,1:length(savefilename{loop}{2}.AMP(:)))==savefilename{loop}{2}.AMP(:)',2)...
-        & (storefiledate+1)>=(str2double(savefilename{loop}{3})) & (storefiledate-1)<=(str2double(savefilename{loop}{3}));
+        & all(storefilepulse(:,1:length(savefilename{loop}{1,4}(:,4)))==savefilename{loop}{1,4}(:,4)',2) & (storefiledate+1)>=(str2double(savefilename{loop}{3})) & (storefiledate-1)<=(str2double(savefilename{loop}{3}));
     if ~any(filessame)
         uniqueamp=uniqueamp+1;
         storefileamp(uniqueamp,1:length(savefilename{loop}{2}.AMP(:)))=savefilename{loop}{2}.AMP(:)';
         storefilechn(uniqueamp,1:length(savefilename{loop}{2}.CHN(:)))=savefilename{loop}{2}.CHN(:)';
+        storefilepulse(uniqueamp,1:length(savefilename{loop}{1,4}(:,4)))=savefilename{loop}{1,4}(:,4)';
         storefiledate(uniqueamp,:)=str2double(savefilename{loop}{3});
         for trial=1:trialend
             tnum=['T', num2str(trial)];

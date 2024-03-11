@@ -13,7 +13,9 @@ end
 if ~isempty(dir('*.sp.mat'))
     delete *.sp.mat
 end
-
+if ~isempty(dir('*_DT.mu.dat'))
+    delete *_DT.mu.dat
+end
 if ~isempty(dir('*trig.dat'))
     delete *trig.dat
 end
