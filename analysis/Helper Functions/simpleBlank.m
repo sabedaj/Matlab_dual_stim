@@ -2,50 +2,68 @@ function data = simpleBlank(data,N,T,trig,mode)
 TrialParams = loadTrialParams;
 
 TrialParams = cell2mat(TrialParams(:,2))';
+loadStimParams;
+numPulses_period = cell2mat(StimParams(2:end,8:9));
 nChn = size(data,1); FS = 30000;
 if mode == 1 % for HPF
     BIN_b = -30; % Amount to blank in samples
     missed_trials = TrialParams(trig > ((N-1)*T*FS)-3000 & trig < ((N-1)*T*FS)+3000);
     missed_trig = trig(trig > ((N-1)*T*FS)-3000 & trig < ((N-1)*T*FS)+3000);
+    missednumpulsesperiod = numPulses_period(trig > ((N-1)*T*FS)-3000 & trig < ((N-1)*T*FS)+3000,:);
     missed_trials((missed_trig==-500))=[];
     missed_trig((missed_trig==-500))=[];
     
     trials = TrialParams(trig >= ((N-1)*T*FS)+3000 & trig <= (N*T*FS)-3000);
+    numPulsesPeriod_trials = numPulses_period(trig >= ((N-1)*T*FS)+3000 & trig <= (N*T*FS)-3000,:);
     trig = trig(trig >= ((N-1)*T*FS)+3000 & trig <= (N*T*FS)-3000);
     if ~isempty(missed_trig)
         trials = [missed_trials trials];
         trig = [missed_trig trig];
+        numPulsesPeriod_trials = [missednumpulsesperiod; numPulsesPeriod_trials];
     end
     if (N == 1)
         trig = trig - ((N-1)*T*FS);
     else
         trig = trig - ((N-1)*T*FS) + FS;
     end
+    %deal with potential multipulse data
+%     if any(numPulsesPeriod_trials(:,1)>1)
+     numPulsesPeriod_trials(:,2)=numPulsesPeriod_trials(:,2)*FS/1e6;%convert period into num samples between trigs for multipulse
+%     
+%     pulsetraintrig=[];
+%     for i=1:length(trig)
+%         repeattimepoint= repmat(trig(i),1,numPulsesPeriod_trials(i,1));
+%         repeattimepoint = repeattimepoint + 100.*(0:numPulsesPeriod_trials(i,1)-1);
+%         pulsetraintrig=[pulsetraintrig,repeattimepoint];
+%     end
+%         trig=pulsetraintrig;
+%     end
+    
     for t = 1:length(trig) %used to go from 1
         % Don't blank zero trials
 %         if trials(t) == 1
 %             continue;
 %         end
 
-
-        if trials(t) == 5
-            pause(0.01);
-        end
+% 
+%         if trials(t) == 5
+%             pause(0.01);
+%         end
         thisTrig = trig(t);
         for c = 1:nChn
             % Find the appropriate range
-            ra = [1 60];%46
+            ra = [1 60+(numPulsesPeriod_trials(t,1)-1)*numPulsesPeriod_trials(t,2)];%46
             range_max = 100;%150
             while range(data(c,thisTrig+ra(1):thisTrig+ra(2))) > range_max% || abs(data(c,thisTrig+BIN_b)-data(c,thisTrig+ra(1)))>range_max
                 ra = ra + 1;
-                if ra(1) > 180
-                    ra(1) = 180;
+                if ra(1) > 180+(numPulsesPeriod_trials(t,1)-1)*numPulsesPeriod_trials(t,2)
+                    ra(1) = 180+(numPulsesPeriod_trials(t,1)-1)*numPulsesPeriod_trials(t,2);
                     break;
                 end
             end
             ra(1) = ra(1) + 10;
-            if ra(1) > 180
-                ra(1) = 180;
+            if ra(1) > 180+(numPulsesPeriod_trials(t,1)-1)*numPulsesPeriod_trials(t,2)
+                ra(1) = 180+(numPulsesPeriod_trials(t,1)-1)*numPulsesPeriod_trials(t,2);
             end
             % Shift the entire data array to minimize artefact. Convenient
 

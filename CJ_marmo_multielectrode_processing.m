@@ -215,6 +215,9 @@ for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using t
     end
 end
 %% remove bursty channels
+timebefore=0.09;%in seconds 0.09
+timeafter=0.09;%in seconds0.09
+FS=30000;
 numfolderstotal=size(IDstructsavecompiled,1)-sum(cellfun(@isempty, IDstructsavecompiled));
 for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using the first ones
     for trial=1:length(fieldnames(IDstructsavecompiled{loop,3}))
@@ -224,7 +227,7 @@ for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using t
             removetrial=[];
             if any(data>2,'all')
                 dat=movmean(data,3,1);
-                thresh=mean(dat,2)+std(dat,[],2).*3;
+                thresh=mean(dat,2,'omitnan')+std(dat,[],2,'omitnan').*3;
                 checkdat=dat>thresh;
 
                 for trialsnum=1:size(checkdat,2)
@@ -235,6 +238,31 @@ for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using t
                         removetrial=[removetrial trialsnum];
                     end
                 end
+                datsummed=sum(dat,2);
+                if any(datsummed(112:118)>15)
+                    %remove channels with bad artifact
+                    fold_int=dir(['*' savefilenamecompiled{loop}{5}]);
+                    cd(fold_int.name)
+                    sp=load([fold_int.name(1:end-14) '.sp.mat'],'sp');
+                    sp=sp.sp{chn};
+                    trig=loadTrig;
+                    TrialParams=loadTrialParams;
+                    numelect=find(diff(cell2mat(TrialParams(:,1)))~=0,1,'first');
+                    TrialParamstID = find(cell2mat(TrialParams(1:numelect:end,2)) == trial); %identifies trial row matching trial ID
+                    trigtID = trig(TrialParamstID);
+                    trigtID(trigtID==-500)=[];
+                    number_artifacts=0;
+                    for indT=1:length(trigtID)
+                        offsetspk=trigtID(indT)*1000./FS;
+                        spktimes=sp(((sp(:,1)>(offsetspk-timebefore*1000))&(sp(:,1)<(offsetspk+timeafter*1000))),:);
+                        number_artifacts=number_artifacts+sum(spktimes(:,2:end)<-200,'all');
+                        if number_artifacts>10
+                            removetrial=[removetrial trialsnum];
+                            break
+                        end
+                    end
+                    cd(fold_int.folder)
+                end
             end
             if ~isempty(removetrial)
             IDstructsavecompiled{loop,3}.(tnum)(chn,:,removetrial)=nan;
@@ -244,7 +272,14 @@ for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using t
         end
     end
 end
-
+%% for multipulse
+%remove chn 108 in  C:\data\multipulse\PEN3_V1stim_2pulse_221123_074018
+for trial=1:81
+    tnum=['T' num2str(trial)];
+IDstructsavecompiled{7,1}.(tnum)(108,:,:)=nan;
+IDstructsavecompiled{8,1}.(tnum)(111,:,:)=nan;
+end
+multipulseplotdata(IDstructsavecompiled(:,3),savefilenamecompiled,'v1')
 %% plot spiking rate epoch
 
 excitesupress=1;%1 for excite, 0 for supress - lower threshold for supress(see below)
