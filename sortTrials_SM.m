@@ -31,6 +31,7 @@ filepath=pwd;
 [filepathm,name,ext] = fileparts(filepath);
 name = name(1:end-14);
 load([name '.sp.mat'])
+
 maxtid=max(cell2mat(TrialParams(:,2)));
 nospI=[];
 baslinespikestruct=[];
@@ -58,6 +59,11 @@ if nargin==8
 else
     chnrange=1:nChn;
 end
+% %remove bad artifacts
+% for chn=chnrange
+%     sp{chn}=removeArtifactSpikes(sp{chn});
+% end
+
 dispstat('','init');
 dispstat(sprintf('Working through trial: '),'keepthis','n');
 % Sort into trial IDs and plot spikes for trial 1
@@ -80,6 +86,7 @@ for tID=starttrial:trialjump:endtrial
         for indT=1:nTrig
             for chsp=chnrange
                 v = sp{chsp};
+              
                 spikedetailstrig=v(((v(:,1)>(trigtID(indT)+startpointms))&(v(:,1)<(trigtID(indT)+mstoanalyse))),:); %v(((v(:,1)>0)&(v(:,1)<20000)),:);
                 %spikedetailstrig=v(((v(:,1)>0)&(v(:,1)<20000)),:);
                 timems=mstoanalyse-startpointms;

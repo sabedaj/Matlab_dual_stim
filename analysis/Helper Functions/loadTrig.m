@@ -1,4 +1,4 @@
-% Helper script for loading in lfp data from the current filepath
+% Helper script for loading trigger times
 function trig = loadTrig(chk)
 if ~nargin
     chk = 0;
@@ -9,7 +9,7 @@ if ~isempty(tmp)
     sz = tmp.bytes/2;
     tmp = [filepath filesep tmp.name];
     t_fid = fopen(tmp,'r');
- trig = fread(t_fid,[1, sz],'double');% something wrong with trig size  - told to read a 1 by 884 and only got 221
+ trig = fread(t_fid,[1, sz],'double');
     fclose(t_fid);
 else    
     return;

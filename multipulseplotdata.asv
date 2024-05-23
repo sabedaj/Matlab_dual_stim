@@ -58,8 +58,8 @@ for numerfolders=1:numfolderstotal
             Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(:,91+ceil(windowsize*(Pulse-1)):391)=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,91+ceil(windowsize*(Pulse-1)):391,:).*1000,3);
         end
         datatoinclude=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,:,:).*1000,3);%-mean(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:90,:).*1000,3),2);
-        datatoinclude=datatoinclude./max(datatoinclude(:,1:181),[],2);%-nanmean(datatoinclude(:,1:90),2))./std(datatoinclude(:,1:90),[],2);%z-score
-        datatoinclude(isinf(datatoinclude))=nan;
+        datatoinclude=datatoinclude./max(datatoinclude(:,1:90),[],2);%-nanmean(datatoinclude(:,1:90),2))./std(datatoinclude(:,1:90),[],2);%z-score
+        %datatoinclude(isinf(datatoinclude))=nan;
         if isfield(ratespiking,(AMPcheck)) && isfield(ratespiking.(AMPcheck),(Pulsecheck))
             ratespiking.(AMPcheck).(Pulsecheck)=cat(1,ratespiking.(AMPcheck).(Pulsecheck),datatoinclude);%-nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,baselinetime,:).*1000,[2 3]));
             flnm.(AMPcheck).(Pulsecheck)=[flnm.(AMPcheck).(Pulsecheck);savefilename{numerfolders}{5}];%-nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,baselinetime,:).*1000,[2 3]));

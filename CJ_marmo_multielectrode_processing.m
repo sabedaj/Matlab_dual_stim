@@ -188,16 +188,16 @@ for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using t
                 %also bad from same channels but it happens after baseline
                 %so hard to reject singularly
                 chnstoremove=[chnstoremove chn];
-                  IDstructsavecompiled{loop,3}.(tnum)(chn,:,1:numtrials)=nan;
-                    IDstructsavecompiled{loop,2}.(tnum)(chn,1:numtrials)=nan;
-                    IDstructsavecompiled{loop,1}.(tnum)(chn,1:numtrials)=nan;
-%                 for ttemp=1:length(fieldnames(IDstructsavecompiled{loop,3}))
-%                     
-% %                     tnumtemp=['T' num2str(ttemp)];
-% %                     IDstructsavecompiled{loop,3}.(tnumtemp)(chn,:,1:numtrials)=nan;
-% %                     IDstructsavecompiled{loop,2}.(tnumtemp)(chn,1:numtrials)=nan;
-% %                     IDstructsavecompiled{loop,1}.(tnumtemp)(chn,1:numtrials)=nan;
-%                 end
+                IDstructsavecompiled{loop,3}.(tnum)(chn,:,1:numtrials)=nan;
+                IDstructsavecompiled{loop,2}.(tnum)(chn,1:numtrials)=nan;
+                IDstructsavecompiled{loop,1}.(tnum)(chn,1:numtrials)=nan;
+                %                 for ttemp=1:length(fieldnames(IDstructsavecompiled{loop,3}))
+                %
+                % %                     tnumtemp=['T' num2str(ttemp)];
+                % %                     IDstructsavecompiled{loop,3}.(tnumtemp)(chn,:,1:numtrials)=nan;
+                % %                     IDstructsavecompiled{loop,2}.(tnumtemp)(chn,1:numtrials)=nan;
+                % %                     IDstructsavecompiled{loop,1}.(tnumtemp)(chn,1:numtrials)=nan;
+                %                 end
             end
             dat2=dat>0;
             periodic50hz=20;%1 every 20ms
@@ -206,9 +206,9 @@ for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using t
                 check2=i+periodic50hz/2:periodic50hz:85;
                 removetrials=all(dat2(check,:)==1) & all(dat2(check2,:)==0);
                 if sum(removetrials==1)>2%its more likely to have multiple trials if periodic
-                IDstructsavecompiled{loop,3}.(tnum)(chn,:,1:numtrials)=nan;
-                IDstructsavecompiled{loop,2}.(tnum)(chn,1:numtrials)=nan;
-                IDstructsavecompiled{loop,1}.(tnum)(chn,1:numtrials)=nan;
+                    IDstructsavecompiled{loop,3}.(tnum)(chn,:,1:numtrials)=nan;
+                    IDstructsavecompiled{loop,2}.(tnum)(chn,1:numtrials)=nan;
+                    IDstructsavecompiled{loop,1}.(tnum)(chn,1:numtrials)=nan;
                 end
             end
         end
@@ -220,64 +220,100 @@ timeafter=0.09;%in seconds0.09
 FS=30000;
 numfolderstotal=size(IDstructsavecompiled,1)-sum(cellfun(@isempty, IDstructsavecompiled));
 for loop=1:numfolderstotal(1)% loop through the stimulation pairs. Avoid using the first ones
-    for trial=1:length(fieldnames(IDstructsavecompiled{loop,3}))
-        tnum=['T' num2str(trial)];
-        for chn=1:128
-            data=squeeze(IDstructsavecompiled{loop,3}.(tnum)(chn,:,:));
+    fold_int=dir(['*' savefilenamecompiled{loop}{5}]);
+    cd(fold_int.name)
+    spall=load([fold_int.name(1:end-14) '.sp.mat'],'sp');
+    trig=loadTrig;
+    TrialParams=loadTrialParams;
+    numelect=find(diff(cell2mat(TrialParams(:,1)))~=0,1,'first');
+    for chn=1:128
+        sp=spall.sp{chn};
+        wsp=removeArtifactSpikes(sp);
+        for trial=1:length(fieldnames(IDstructsavecompiled{loop,3}))
+            tnum=['T' num2str(trial)];
+            TrialParamstID = find(cell2mat(TrialParams(1:numelect:end,2)) == trial); %identifies trial row matching trial ID
+            trigtID = trig(TrialParamstID);
+            trigtID(trigtID==-500)=[];
+            
+            data=squeeze(IDstructsavecompiled{loop,3}.(tnum)(chn,1:180,:));
             removetrial=[];
+            
+            
             if any(data>2,'all')
                 dat=movmean(data,3,1);
                 thresh=mean(dat,2,'omitnan')+std(dat,[],2,'omitnan').*3;
                 checkdat=dat>thresh;
-
+                
                 for trialsnum=1:size(checkdat,2)
                     f = find(diff([0,checkdat(:,trialsnum)',0]==1));
                     p = f(1:2:end-1);  % Start indices
                     numconsec = f(2:2:end)-p;  % Consecutive ones’ counts
-                    if any(numconsec>15)
+                    if any(numconsec>15) || any(numconsec>10 & p>90+10 & chn>64)
                         removetrial=[removetrial trialsnum];
                     end
                 end
-                datsummed=sum(dat,2);
-                if any(datsummed(112:118)>15)
-                    %remove channels with bad artifact
-                    fold_int=dir(['*' savefilenamecompiled{loop}{5}]);
-                    cd(fold_int.name)
-                    sp=load([fold_int.name(1:end-14) '.sp.mat'],'sp');
-                    sp=sp.sp{chn};
-                    trig=loadTrig;
-                    TrialParams=loadTrialParams;
-                    numelect=find(diff(cell2mat(TrialParams(:,1)))~=0,1,'first');
-                    TrialParamstID = find(cell2mat(TrialParams(1:numelect:end,2)) == trial); %identifies trial row matching trial ID
-                    trigtID = trig(TrialParamstID);
-                    trigtID(trigtID==-500)=[];
-                    number_artifacts=0;
-                    for indT=1:length(trigtID)
-                        offsetspk=trigtID(indT)*1000./FS;
-                        spktimes=sp(((sp(:,1)>(offsetspk-timebefore*1000))&(sp(:,1)<(offsetspk+timeafter*1000))),:);
-                        number_artifacts=number_artifacts+sum(spktimes(:,2:end)<-200,'all');
-                        if number_artifacts>10
-                            removetrial=[removetrial trialsnum];
-                            break
+                datsummed=sum(dat,2,'omitnan');
+                ds_raw=sum(data,2,'omitnan');
+                if (sum(datsummed(1:90))<5 && sum(datsummed(91:180))>500 && all(datsummed(91:180)<30))
+                    %if very bad remove that channel from all folders will likely cause problems throughout dataset -
+                    %should be 109 and 108
+                    for loopfold=1:numfolderstotal(1)
+                        if savefilenamecompiled{loopfold}{3}(1:4)==savefilenamecompiled{loop}{3}(1:4)
+                            for ittrial=1:length(fieldnames(IDstructsavecompiled{loopfold,3}))
+                                trialnum=['T' num2str(ittrial)];
+                                IDstructsavecompiled{loopfold,3}.(trialnum)(chn,:,:)=nan;
+                                IDstructsavecompiled{loopfold,2}.(trialnum)(chn,:)=nan;
+                                IDstructsavecompiled{loopfold,1}.(trialnum)(chn,:)=nan;
+                            end
                         end
                     end
-                    cd(fold_int.folder)
+                    break;
+                end
+                
+                
+                %remove channels with bad artifact
+                number_artifacts=0;
+                number_artifacts_2=0;
+                for indT=1:length(trigtID)
+                    offsetspk=trigtID(indT)*1000./FS;
+                    spktimes=sp(((sp(:,1)>(offsetspk-timebefore*1000))&(sp(:,1)<(offsetspk+timeafter*1000))),:);
+                    number_artifacts=number_artifacts+sum(spktimes(:,2:end)<-200,'all')+sum(spktimes(:,2:end)>200,'all');
+                    spktimes_2=sp(((sp(:,1)>(offsetspk))&(sp(:,1)<(offsetspk+0.02*1000))),:);
+                    number_artifacts_2=number_artifacts_2+sum(spktimes_2(:,2:6)>50,'all');
+                    if (number_artifacts>5 || number_artifacts_2>5) && (any(datsummed(112:118)>15)|| any(datsummed(150:155)>15) || any(ds_raw(90:110)>9 & sum(ds_raw(1:89))<6) || any(ds_raw(90:110)>sum(ds_raw(1:89))*3)||any(ds_raw(140:150)>sum(ds_raw(1:89))))
+                        removetrial=1:size(checkdat,2);
+                        %                             figure
+                        %                             plot(1*1000/FS:1000/FS:49*1000/FS,spktimes(:,2:end)')
+                        %                             xlabel('Time (ms)')
+                        %                             ylabel('Spike amplitude (uV)')
+                        %                             title(['fold ' num2str(loop) ' chn ' num2str(chn) ' trial ' num2str(trial)])
+                        break
+                    end
+                    spktimes=wsp(((wsp>(offsetspk-timebefore*1000))&(wsp<(offsetspk+timeafter*1000))),:)-offsetspk;
+                    if ~isempty(spktimes)
+                        rate_wsp=hist(spktimes,-timebefore*1000:timeafter*1000);
+                        IDstructsavecompiled{loop,3}.(tnum)(chn,1:timeafter*1000+timebefore*1000+1,indT)=squeeze(IDstructsavecompiled{loop,3}.(tnum)(chn,1:timeafter*1000+timebefore*1000+1,indT))-rate_wsp;
+                    end
                 end
             end
+            
+            
             if ~isempty(removetrial)
-            IDstructsavecompiled{loop,3}.(tnum)(chn,:,removetrial)=nan;
-            IDstructsavecompiled{loop,2}.(tnum)(chn,removetrial)=nan;
-            IDstructsavecompiled{loop,1}.(tnum)(chn,removetrial)=nan;
+                IDstructsavecompiled{loop,3}.(tnum)(chn,:,removetrial)=nan;
+                IDstructsavecompiled{loop,2}.(tnum)(chn,removetrial)=nan;
+                IDstructsavecompiled{loop,1}.(tnum)(chn,removetrial)=nan;
             end
+          
         end
     end
+    cd(fold_int.folder)
 end
 %% for multipulse
 %remove chn 108 in  C:\data\multipulse\PEN3_V1stim_2pulse_221123_074018
 for trial=1:81
     tnum=['T' num2str(trial)];
-IDstructsavecompiled{7,1}.(tnum)(108,:,:)=nan;
-IDstructsavecompiled{8,1}.(tnum)(111,:,:)=nan;
+    IDstructsavecompiled{7,1}.(tnum)(108,:,:)=nan;
+    IDstructsavecompiled{8,1}.(tnum)(111,:,:)=nan;
 end
 multipulseplotdata(IDstructsavecompiled(:,3),savefilenamecompiled,'v1')
 %% plot spiking rate epoch

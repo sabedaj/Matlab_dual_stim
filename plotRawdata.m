@@ -63,7 +63,7 @@ for indT=1:length(trigtID)
     figure
     hold on
     plot (-timebefore*1000:1000/FS:timeafter*1000-1000/FS,vblankmu(chsp,:))
-    title(['Channel ' num2str(chsp)])
+    title(['Channel ' num2str(chsp) ', Trig ' num2str(indT)])
     xlabel('Time (ms)')
     ylabel('Voltage (uV)')
     if plotspktime==1
