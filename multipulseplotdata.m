@@ -24,6 +24,19 @@ end
 for numerfolders=1:numfolderstotal
     trialend=size(savefilename{numerfolders}{4},1);
     yrmnth=['YM' savefilename{numerfolders}{3}(1:6)];
+  %need to loop through and find the maximum response of any trial for each channel
+  maxdatchn=zeros(64,1);
+  for trial=1:trialend
+      trialcheck=['T', num2str(trial)];
+    dat=max(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:181,:).*1000,3)-mean(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:90,:).*1000,3),2));
+    for chn=1:64
+        if dat(chn)>maxdatchn(chn)
+            maxdatchn(chn)=dat(chn);
+        end
+    end
+  end
+
+
     for trial=1:trialend
         trialcheck=['T', num2str(trial)];
         stimchncheck=['SChn', num2str(savefilename{numerfolders}{4}(trial,3))];
@@ -34,12 +47,14 @@ for numerfolders=1:numfolderstotal
         Pulse=savefilename{numerfolders}{4}(trial,4);
         Pulsecheck=['P' num2str(Pulse)];
         fold_int=dir(['*' savefilename{numerfolders}{5}]);
-        if strcmp(savefilename{numerfolders}{5},'220907_235749')
-            %make first plot showing individual responses to stim
-            cd(fold_int.name);
-            plotstackedtrigs(70, trial, (1:40), 'DT')
-            cd(fold_int.folder);
-        end
+        %C:\data\multipulse\PEN3_V1stim_221122_222759 chn=28+64, trial 14
+        %no longer the one below
+%         if strcmp(savefilename{numerfolders}{5},'220907_235749') && trial==15
+%             %make first plot showing individual responses to stim
+%             cd(fold_int.name);
+%             plotstackedtrigs(70, trial, (1:40), 'DT')
+%             cd(fold_int.folder);
+%         end
         %stitching
         
         chnstitch=['Chn' num2str(savefilename{numerfolders}{4}(trial,3))];
@@ -57,8 +72,10 @@ for numerfolders=1:numfolderstotal
         else
             Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(:,91+ceil(windowsize*(Pulse-1)):391)=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,91+ceil(windowsize*(Pulse-1)):391,:).*1000,3);
         end
-        datatoinclude=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,:,:).*1000,3);%-mean(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:90,:).*1000,3),2);
-        datatoinclude=datatoinclude./max(datatoinclude(:,1:181),[],2);%-nanmean(datatoinclude(:,1:90),2))./std(datatoinclude(:,1:90),[],2);%z-score
+        datatoinclude=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,:,:).*1000,3)-mean(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:90,:).*1000,3),2);
+          %datatoinclude=datatoinclude./maxdatchn;
+    
+        %datatoinclude=datatoinclude./max(datatoinclude(:,1:181),[],2);%-nanmean(datatoinclude(:,1:90),2))./std(datatoinclude(:,1:90),[],2);%z-score
         datatoinclude(isinf(datatoinclude))=nan;
         if isfield(ratespiking,(AMPcheck)) && isfield(ratespiking.(AMPcheck),(Pulsecheck))
             ratespiking.(AMPcheck).(Pulsecheck)=cat(1,ratespiking.(AMPcheck).(Pulsecheck),datatoinclude);%-nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,baselinetime,:).*1000,[2 3]));
@@ -129,20 +146,22 @@ for AMP=1:length(AMPall)
         ratespiking.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
         numsig(AMP,Pulse)=sum(~notsigsingle);
         %ratespiking.(AMPcheck).(Pulsecheck)= ratespiking.(AMPcheck).(Pulsecheck)-squeeze(mean(ratespiking.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2));
-        
-        numelect(AMP+1,Pulse+1)= sum(~isnan(ratespiking.(AMPcheck).(Pulsecheck)(:,1)));
+        dat=ratespiking.(AMPcheck).(Pulsecheck);
+        numelect(AMP+1,Pulse+1)= sum(~isnan(dat(:,1)));
         % Reshape the array into a 2D matrix with 128 elements per column
-        reshapedArray = reshape(ratespiking.(AMPcheck).(Pulsecheck)(:,1), 64, []);
+        reshapedArray = reshape(dat(:,1), 64, []);
         % Count the number of non-NaN values in each column
         StimElectcount(AMP,Pulse) = sum(~isnan(sum(~isnan(reshapedArray))));
-        maxdat=max(ratespiking.(AMPcheck).(Pulsecheck)(:,round(90+Pulse*3.333):round(95+Pulse*3.333)),[],2);
-        ratespiking_mean(AMP,Pulse)=nanmean(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),'all');%mean(sum(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),2),'omitnan');%%nanmean(maxdat(maxdat~=0),'all');%nanmean(ratespiking.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
-        ratespiking_std(AMP,Pulse)=SEM(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),0);
+        %dat=dat./max(dat(:,1:181),[],2);
+        maxdat=max(dat(:,round(90+Pulse*3.333):round(95+Pulse*3.333)),[],2);
+        
+        ratespiking_mean(AMP,Pulse)=nanmean(dat(:,timepeak),'all');%mean(sum(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),2),'omitnan');%%nanmean(maxdat(maxdat~=0),'all');%nanmean(ratespiking.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
+        ratespiking_std(AMP,Pulse)=SEM(dat(:,timepeak),0);
         %peakvals
         ratepeak(AMP,Pulse)=mean(maxdat,'omitnan');
         ratepeakstd(AMP,Pulse)=SEM(maxdat,0);
        
-        stdshade(ratespiking.(AMPcheck).(Pulsecheck),0.2,[0 Pulse/length(Pulseall) 1/Pulse],[-90:300],1,ax)
+        stdshade(dat,0.2,[0 Pulse/length(Pulseall) 1/Pulse],[-90:300],1,ax)
         end
     end
     lgd=legend('1','2','3','4','5');
@@ -152,7 +171,7 @@ for AMP=1:length(AMPall)
     ylabel('Sp/s')
     xlabel('Time (ms)')
     set(gca,'TickDir','out');
-    ylim([0 5])
+    ylim([-0.5 1])
     for j = 2:size(numelect,2)
         text(j*10-80, 65, num2str(numelect(AMP+1,j)), 'HorizontalAlignment', 'center');
     end
@@ -666,6 +685,7 @@ dataforanova=[];
 dataforanovasup=[];
 F1=[];
 F2=[];
+numelect=nan(5,5);
 for AMP=1:length(AMPall)
     AMPcheck=['A' num2str(AMPall(AMP))];
 
@@ -686,6 +706,7 @@ for AMP=1:length(AMPall)
              dataforanovasup=[dataforanovasup, dat2];
              supspikecount(AMP,:)=mean(dat2,2,'omitnan');
               spikecountsemsup(AMP,:)=SEM(dat2,1);
+              numelect(AMP,:)=sum(~isnan(dat),2);
         end
 
 end
@@ -725,27 +746,98 @@ p(2,2).select();
     set(gca,'TickDir','out');
     lgd=legend('1','2','3','4','5');
     lgd.Title.String = '# Pulses';
-    
-    
-    
-    
-    figure;
-[p,tbl,stats]=anovan(dataforanova(:),{F1(:),F2(:)});
-[results,~,~,gnames] = multcompare(stats,"Dimension",[1 2]);
-title('1-30ms stitched data spike count')
+
+
+
+[p,tbl,stats]=anovan(dataforanova(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"]);
+[results,tbl,h,gnames] = multcompare(stats,"Dimension",[1 2]);
+title('4-30ms stitched data spike count')
+set(gca,'TickDir','out');
+x=categorical(gnames);
+x=reordercats(x,gnames);
+     bar_werror(x,spikcount(:),spikecountsem(:))
+     grid_significance(x,results)
+
 figure;
-[p,tbl,stats]=anovan(dataforanovasup(:),{F1(:),F2(:)});
+[p,tbl,stats]=anovan(dataforanovasup(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"]);
 [results,~,~,gnames] = multcompare(stats,"Dimension",[1 2]);
 title('30-75ms stitched data spike count')
+x=categorical(gnames);
+x=reordercats(x,gnames);
+        bar_werror(x,supspikecount(:),spikecountsemsup(:))
+    ylabel('Spike count 30-75ms after stimulus onset');
+    grid_significance(x,results)
+    %collapsed data
+    pulcol=nan(5,3);
+     curcol=nan(5,3);
+    for amp=1:length(AMPall)
+    curcol(amp,1)=mean(dataforanova(F1==AMPall(amp)),'omitnan');
+    curcol(amp,2)=SEM(dataforanova(F1==AMPall(amp)),0);
+     curcol(amp,3)=sum(~isnan(dataforanova(F1==AMPall(amp))));
+    pulcol(amp,1)=mean(dataforanova(F2==Pulseall(amp)),'omitnan');
+    pulcol(amp,2)=SEM(dataforanova(F2==Pulseall(amp)),0);
+     pulcol(amp,3)=sum(~isnan(dataforanova(F2==Pulseall(amp))));
+    end
+    figure
+     errorbar(AMPall,curcol(:,1),curcol(:,2),'b')
+     xlabel('Current (\muA)')
+     ylabel('Spike count 4-30ms')
+      set(gca,'TickDir','out');
+      text(3, 60, [num2str(min(curcol(:,3))) '-' num2str(max(curcol(:,3)))]) 
+     figure
+     errorbar(Pulseall,pulcol(:,1),pulcol(:,2),'b')
+      xlabel('# Pulses')
+       set(gca,'TickDir','out');
+     ylabel('Spike count 4-30ms')
+    text(1.5, 25, [num2str(min(pulcol(:,3))) '-' num2str(max(pulcol(:,3)))]) 
+    
+
     
 
     chargeinjection=AMPall.*Pulseall';
     figure;
     %make scatter plot with errorbars using SEM
-    errorbar(chargeinjection(:),spikcount(:),spikecountsem(:),'*')
+    x=chargeinjection(:);
+    [x, sortIdx] = sort(x, 'ascend');
+    y=spikcount(:);
+    y=y(sortIdx);
+  
+    errorbar(x,y,spikecountsem(:),'*')
+%       [uniqueVals, ~, idx] = unique(x);
+%       meanVals=zeros(length(uniqueVals),1);
+%       for i = 1:length(uniqueVals)
+%           meanVals(i) = mean(y(idx == i));
+%       end
+%     y=meanVals;
+%     x=uniqueVals;
+
+
+% Define the Naka-Rushton function
+nakaRushton = fittype('Rmax * (x^n) / (C^n + x^n)', ...
+                      'independent', 'x', ...
+                      'coefficients', {'Rmax', 'C', 'n'});
+
+% Set initial parameter estimates
+initialGuess = [max(y), mean(x), 2];
+
+% Fit the model
+[fitresult, gof] = fit(x, y, nakaRushton, 'StartPoint', initialGuess);
+
+% Generate fitted values
+x_fit = linspace(min(x), max(x), 100);
+y_fit = feval(fitresult, x_fit);
+% Plot the Naka-Rushton fit
+hold on
+plot(x_fit, y_fit, 'r-', 'LineWidth', 2);
+
+%     p = polyfit(x, y,3);
+%     y_fit = polyval(p, x);
+%     hold on;
+%     plot(x, y_fit, 'r-', 'LineWidth', 2);
     title('Select data Stitched data spike count (4-30ms)')
-    xlabel('Total charge injection (uA)')
+    xlabel('Total charge injection (\muA)')
     ylabel('Spike count')
+     set(gca,'TickDir','out');
 
 
 
@@ -807,6 +899,81 @@ for AMP=1:length(AMPall)
     xlabel('Time (ms)')
     set(gca,'TickDir','out');
 end
+% plot averaged stitched data using a heatmap with total charge injection on the y axis (current x pulses) and time on x axis from -90:90. Z axis is spiking rate
+figure
+iter=0;
+chargeinjection=nan(length(AMPall)*length(Pulseall)*size(avgstitchdata.A2.P1,1),1);
+datacharginjection=nan(391,length(AMPall)*length(Pulseall)*size(avgstitchdata.A2.P1,1));
+  
+for AMP=1:length(AMPall)
+    AMPcheck=['A' num2str(AMPall(AMP))];
+    for Pulse=1:5
+        Pulsecheck=['P' num2str(Pulse)];
+        iter=iter+1;
+       chargeinjection(iter)=AMPall(AMP)*Pulse;
+       datacharginjection(:,iter)=mean(avgstitchdata.(AMPcheck).(Pulsecheck),1,'omitnan');
+       
+
+    end
+end
+%then average all channels with same charge injection
+chargeinjectionu=unique(chargeinjection);
+chargeinjectionu(isnan(chargeinjectionu))=[];
+datacharginjectionmean=nan(391,length(chargeinjectionu)); 
+datasamechargeinjection=nan(391,5,length(AMPall)*length(Pulseall));   
+for i=1:length(chargeinjectionu)
+    if ~isnan(chargeinjectionu(i))
+        datacharginjectionmean(:,i)=mean(datacharginjection(:,chargeinjection==chargeinjectionu(i)),2);
+        %pull those with the same charge injection but different pulse and current values and plot them
+        datasamechargeinjection(:,1:sum(chargeinjection==chargeinjectionu(i)),i)=datacharginjection(:,chargeinjection==chargeinjectionu(i));
+    end
+end
+%plot the data
+figure
+chargey=repmat(chargeinjectionu',[181,1]);
+timex=repmat([-90:90]',[1,17]);
+surf(timex,chargey,datacharginjectionmean(1:181,:))    
+shading flat
+ylabel('Current (\muA)')
+xlabel('Time (ms)')
+zlabel('Sp/s')
+title('Select data Stitched data')
+%make axis tight and adjust to display in x and y with a colourbar
+axis tight
+view(2)
+c=colorbar;
+c.Label.String='Sp/s';
+
+%plot the data for each charge injection on a heatmap only if there is more than one column of data
+
+for i=1:length(chargeinjectionu)
+    if sum(~isnan(datasamechargeinjection(1,:,i)))>1
+        figure
+        surf(timex(:,1:5)',datasamechargeinjection(1:181,:,i)')
+        title(['Charge injection ' num2str(chargeinjectionu(i))])
+        xlabel('Time (ms)')
+        zlabel('Sp/s')
+        axis tight
+        view(2)
+        shading flat
+        colorbar
+        %y labels will be charge injection divided by AMPall and only those that are whole numbers <5 e.g. 40 is 5*8 and 4*10 so 5p8ua and 4p10ua will be labels
+        
+        possiblelabels=chargeinjectionu(i)./AMPall';
+        chargamp=AMPall(possiblelabels<=5);
+        possiblelabels=possiblelabels(possiblelabels<=5);
+        chargamp=chargamp(possiblelabels==round(possiblelabels));
+        possiblelabels=possiblelabels(possiblelabels==round(possiblelabels));
+        yticks(1.5:1:length(possiblelabels)+0.5)
+        yticklabels([strcat(num2str(possiblelabels),{'p'},num2str(chargamp'),{'\muA'})])
+        ylim([1 length(possiblelabels)+1])
+    end
+end
+
+
+
+
+
 
 %recovery time from 30ms for select data
 figure
@@ -814,6 +981,7 @@ xamp=repmat(AMPall',[1,5]);
 ypulse=repmat(Pulseall,[5,1]);
 zdat=mean(datatimerecove,3,'omitnan');
 surf(xamp,ypulse,zdat)%% this isn't working
+%pcolor(AMPall,Pulseall,zdat)
 xlabel('Current (\muA)')
 ylabel('# Pulses')
 c=colorbar;

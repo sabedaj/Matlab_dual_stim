@@ -1,4 +1,4 @@
-function [spk_all,rate_all,Peak_latency_all]=SigmoidGenerator(chnnum,Spk_array,timestart,timeend)
+function [spk_all,rate_all,Peak_latency_all]=SigmoidGenerator(chnnum,Spk_array,timestart,timeend,varargin)
 plotsigmoid=1;
 trig=loadTrig(0);
 avgtimebs=5;%10x longer in baseline
@@ -14,6 +14,7 @@ allsingletrialIDs=[];
 IDs=cell(length(chn),1);
 nChn=length(Spk_array);
 
+
 for trialloop=1:numsim_elect:length(trialinfo(:,2))
     if sum(trialinfo(trialloop:trialloop+numsim_elect-1,2)==0)==numsim_elect-1
         count=count+1;
@@ -25,6 +26,12 @@ for trialloop=1:numsim_elect:length(trialinfo(:,2))
         %allsingletrialIDs(count)=trialloop;%index   trialinfo(trialloop,1);
     end
 end
+if nargin==5
+    schninterest=varargin{1};
+    IDs=IDs(chn==schninterest);
+    chn=schninterest;
+end
+
 tparams = dir('*_exp_datafile_*.mat');
 tparams = tparams.name;
 load(tparams,'simultaneous_stim');
@@ -83,12 +90,13 @@ for recordchn=1:length(chnnum)
             E_MAP=Depth(1);
             figure(8);
             hold on
-            %if nChn==128
+            if length(chnnum)~=1
             arrayshape=reshape(E_MAP,16,8);
             arrayshape=arrayshape(:,[1 3 4 2 5 7 8 6]);
             arrayshape=flipud(arrayshape);
             [r,c]=find(arrayshape==chnnum(recordchn));
             subplot(16,8, (r - 1) * 8 + c);
+            end
             %else
 %                 if length(chnnum)>1
 %                     subplot(1,nChn, chnnum);

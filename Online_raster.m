@@ -9,7 +9,7 @@ theseTrig = trig(cell2mat(TP(1:numelect:end,2)) == ID)./30;
 nT=length(theseTrig);
 %% Set up the raster data structure
 BIN = [-200 200]; 
-SMOOTHING = 1; MAX = 150;
+SMOOTHING = 1; MAX = 700;
 xdata = [];
 ydata = [];
 
