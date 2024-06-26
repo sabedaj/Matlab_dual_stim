@@ -177,7 +177,7 @@ end
 centrecube = ceil(cube_size/2);
 
 stimchn1_current=10;%uA
-pulses=1;
+pulses=5;
 timebetweenpulse=1000/300;%ms
 
 %1. area activated % https://reader.elsevier.com/reader/sd/pii/0165027096000659?token=020F942506A1B062F58C5B4AA93E50E7C1A13CAF041088D85EC6EFDE6E6F19188ADAEF399D35974672C0963CACA62196&originRegion=us-east-1&originCreation=20211022041758
@@ -310,19 +310,22 @@ activeneurons_filtered=filtfilt(1/2*ones(2,1),1,activeneurons')';
 activeneurons_filtered=[activeneurons_filtered; nan(numel(cubic_array)-size(activeneurons_filtered,1),size(activeneurons_filtered,2))];
 %%
 %create a figure that iterates through time in the cube and shows the activated neurons
-filterSize = 3; % Size of the filter (e.g., 5x5)
+filterSize = 2; % Size of the filter (e.g., 5x5)
 sigma = 1.0;   % Standard deviation of the Gaussian function
-% Create the Gaussian filter using fspecial
-gaussianFilter = fspecial('gaussian', filterSize, sigma);
+electrodeposition=[centrecube,centrecube,centrecube];
+firing_rate=zeros(maxtime,1);
+% Create the 3D Gaussian filter
+gaussianFilter = fspecial3('gaussian', filterSize, sigma);
 for timeit=1:maxtime
     neuronstoplottime=activeneurons_filtered(:,timeit);
     neuronstoplottime=neuronstoplottime(cubic_array);
-    neuronstoplottime(neuronstoplottime==0)=nan;
-    [x, y, z] = ind2sub(size(neuronstoplottime), find(~isnan(neuronstoplottime)));
-    values = neuronstoplottime(~isnan(neuronstoplottime));
     % Apply the Gaussian filter to the data using imfilter
-filteredData = imfilter(values, gaussianFilter, 'symmetric');
-    %values=squeeze(mean(neuronstoplottime,1,'omitnan'));
+filteredData = imfilter(neuronstoplottime, gaussianFilter, 'symmetric');
+
+filteredData(filteredData==0)=nan;
+
+    [x, y, z] = ind2sub(size(filteredData), find(~isnan(filteredData)));
+    values = filteredData(~isnan(filteredData));
     figure(1);
     %imagesc(values)
     scatter3(x, y, z, 5, values);  % Use '100' to scale the marker size and 'values' to color the markers
@@ -334,16 +337,32 @@ filteredData = imfilter(values, gaussianFilter, 'symmetric');
     %zlim([15 30])
 
     figure(2)
-    values=squeeze(mean(neuronstoplottime,1,'omitnan'));
+    %values=squeeze(mean(neuronstoplottime,1,'omitnan'));
+    values=squeeze(neuronstoplottime(1:16,1:16,16));
     imagesc(values)
        colormap(parula); % Use a linear colormap
     colorbar;
     title(['Time: ' num2str(timeit) 'ms']);
     clim([-1 1]);
-    pause(0.7);
-    
+ 
+
+    %need to model an electrode that can record a 5x5x5 cube of neurons from the position specified in electrodeposition
+    excitedandinhibneurons=(neuronstoplottime<=-1).*-1;
+    excitedandinhibneurons=[excitedandinhibneurons+(neuronstoplottime>=1)];
+    firing_rate(timeit)=sum(excitedandinhibneurons(electrodeposition(1)-2:electrodeposition(1)+2,electrodeposition(2)-2:electrodeposition(2)+2,electrodeposition(3)-2:electrodeposition(3)+2),"all");
+   %pause(0.7);
    
 end
+    figure(3)
+    scatter(1:maxtime,firing_rate);
+    hold on
+    xlabel('Time (ms)');
+    ylabel('Firing rate (Hz)');
+    %fit line to data
+    p = polyfit(1:maxtime,firing_rate',2);
+    yfit = polyval(p,1:maxtime);
+    plot(1:maxtime,yfit,'r-');
+    
 %%
 %bursting activity due to extracellular stim https://www.sciencedirect.com/science/article/pii/S1935861X09000424#app1
 burstprob=1./8;%assume cell might fire twice in 8ms window and record for 6ms(2-8)
