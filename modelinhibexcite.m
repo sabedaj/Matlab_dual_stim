@@ -71,7 +71,12 @@ timeIEDF=zeros(2,2); % this is the time that the connection is active for inhibi
 totalIEDF=zeros(2,3); % this is the total number of connections for inhibitory and excitatory neurons, depressing and facilitating
 timedecay=zeros(2,3); % this is the time that it takes the post-synaptic potential to decay from peak to baseline
 timelatency=zeros(2,3); %the onset time measured as the difference between the time to peak of the presynaptic AP and time taken to reach 5% of peak PSP amplitude i.e. latency between pre and post synaptic neuron
-
+countsynapsetype.ID=0;
+countsynapsetype.ED=0;
+countsynapsetype.IF=0;
+countsynapsetype.EF=0;
+countsynapsetype.IP=0;
+countsynapsetype.EP=0;
 for neuronconnectiontypiteration=1:length(fn_L)
     connection_probability=data_L.(fn_L{neuronconnectiontypiteration}).connection_probability;
     presynaptic_neuron=fn_L{neuronconnectiontypiteration}(1:strfind(fn_L{neuronconnectiontypiteration},'___')-1);
@@ -147,7 +152,7 @@ for neuronconnectiontypiteration=1:length(fn_L)
     grouped_types = accumarray(pre_idx(:), (1:length(newsynapsetypes))', [], @(x) {newsynapsetypes(x)});
     grouped_types=[grouped_types; cell(length(Synapse_types_array)-length(grouped_types),1)];
     Synapse_types_array = cellfun(@(x, y) [x; y], Synapse_types_array, grouped_types, 'UniformOutput', false);
-    
+    countsynapsetype.(Stype)=countsynapsetype.(Stype)+length(newsynapsetypes);
     
 end
 
@@ -177,7 +182,7 @@ end
 centrecube = ceil(cube_size/2);
 
 stimchn1_current=10;%uA
-pulses=5;
+pulses=1;
 timebetweenpulse=1000/300;%ms
 
 %1. area activated % https://reader.elsevier.com/reader/sd/pii/0165027096000659?token=020F942506A1B062F58C5B4AA93E50E7C1A13CAF041088D85EC6EFDE6E6F19188ADAEF399D35974672C0963CACA62196&originRegion=us-east-1&originCreation=20211022041758
@@ -218,23 +223,40 @@ indextoremove=randsample(1:length(neuronindex),[numneuronsremove]);
 neuronindex(indextoremove)=[];
 
 %%
+% remove any duplicate connections, need to keep the same order of connections
+for i = 1:length(connection_array)
+    [connection_array{i},orderar] = unique(connection_array{i}, 'stable');
+    %fix Synapse_types_array too
+    Synapse_types_array{i} = Synapse_types_array{i}(orderar);
+end
+
 % Define the anonymous function to subtract 1 from elements greater than 1
 subtractFunc = @(x) x - (x > 1);
 pre_fd = connection_array; % this will hold the time for facilitation or depression in ms
 %set all values to 0 using logical indexing
 pre_fd = cellfun(@(x) zeros(size(x)), pre_fd, 'UniformOutput', false);
-maxtime=30;%ms
+maxtime=100;%ms
 %need to hold furture action potentials due to latency for max(timelatency) ms
 maxfuturefiring=repmat({zeros(1,round(max(timelatency(:))))},[length(connection_array),1]);%this will hold the future action potentials due to latency
 activeneurons=zeros(length(connection_array),maxtime); %this will be updated each iteration to show which neurons are activated
-
+refactorytimeNeuron=randi([1,3],[size(activeneurons,1),1]);
+lambdap = 10/1000; % Mean of the Poisson distribution
+n = size(activeneurons,1); % Number of random numbers to generate
+randomNumbers = poissrnd(lambdap, n, maxtime);
+randomNumbers(randomNumbers>1)=1;
+activeneurons=randomNumbers;
 %each action potential lasts 1ms, need to iterate through 100 ms time to see what happens in the network
 for timeiterate=1:maxtime-max(timelatency,[],'all')
     %need to work out if this is a stimulus time and add those neurons into the activated neurons    
     % absolute refactory period of 2ms means any stimulus that was positive in the last two ms cannot be positive again
-    if timeiterate>2
+    activeneurons(:,timeiterate)%%%%%% need to put in a poissson distribution of random neurons here for baseline
+    if timeiterate>3
         %activeneurons(activeneurons(:,timeiterate-2)>=1,timeiterate)=0;
-        activeneurons(activeneurons(:,timeiterate-1)>=1 & activeneurons(:,timeiterate)>=1,timeiterate)=0;
+        for neuronit=1:length(refactorytimeNeuron)
+            if any(activeneurons(neuronit,timeiterate-refactorytimeNeuron(neuronit):timeiterate-1)>=1) && activeneurons(neuronit,timeiterate)>=1
+                activeneurons(neuronit,timeiterate)=0;
+            end
+        end
     end
     if any(timeiterate==[1 round([1:pulses-1].*timebetweenpulse)]) && timeiterate<=timebetweenpulse*pulses
         activeneurons(neuronindex,timeiterate)=activeneurons(neuronindex,timeiterate)+1;
@@ -256,14 +278,20 @@ for timeiterate=1:maxtime-max(timelatency,[],'all')
                 pre_fd{index_time(activeneuronnum)}(individual_connection) = pre_fd{index_time(activeneuronnum)}(individual_connection)+timeIEDF(2,2);
                 latency = timelatency(2,2);
                 timetof=timeiterate + latency + timedecay(2,2);
+                lambda=0.02*300/timedecay(2,2);
                 activeneuronsadd=round(pre_fd{index_time(activeneuronnum)}(individual_connection)/timeIEDF(2,2)):-(round(pre_fd{index_time(activeneuronnum)}(individual_connection)/timeIEDF(2,2))/length(timeiterate + latency:timetof)):0;
+                timev=1:length(activeneuronsadd);
+                activeneuronsadd=max(activeneuronsadd).*exp(-lambda.*timev)./max(exp(-lambda.*timev));
                 timetof(timetof>maxtime)=maxtime;
                 activeneuronsadd(length(timeiterate + latency:timetof)+1:end)=[];
                 activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof) =  activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof)+activeneuronsadd;
             elseif contains(connection_type, 'E') && contains(connection_type, 'D')
                 latency = timelatency(2,1);
                 timetof=timeiterate + latency + timedecay(2,1);
+                lambda=0.02*300/timedecay(2,1);
                 activeneuronsadd=1:-1/length(timeiterate + latency:timetof):0;
+                timev=1:length(activeneuronsadd);
+                activeneuronsadd=exp(-lambda.*timev)./max(exp(-lambda.*timev));
                 timetof(timetof>maxtime)=maxtime;
                 activeneuronsadd(length(timeiterate + latency:timetof)+1:end)=[];
                 pre_fd{index_time(activeneuronnum)}(individual_connection) = pre_fd{index_time(activeneuronnum)}(individual_connection)+timeIEDF(2,1);
@@ -271,22 +299,31 @@ for timeiterate=1:maxtime-max(timelatency,[],'all')
             elseif contains(connection_type, 'E') && contains(connection_type, 'P')
                 latency = timelatency(2,3);
                 timetof=timeiterate + latency + timedecay(2,3);
+                lambda=0.02*300/timedecay(2,3);
                 activeneuronsadd=1:-1/length(timeiterate + latency:timetof):0;
+                 timev=1:length(activeneuronsadd);
+                activeneuronsadd=exp(-lambda.*timev)./max(exp(-lambda.*timev));
                 timetof(timetof>maxtime)=maxtime;
                 activeneuronsadd(length(timeiterate + latency:timetof)+1:end)=[];
                 activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof) =  activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof) + activeneuronsadd;
             elseif contains(connection_type, 'I') && contains(connection_type, 'F')
-                 latency = timelatency(1,2);
-              timetof=timeiterate + latency + timedecay(1,2);
-               pre_fd{index_time(activeneuronnum)}(individual_connection) = pre_fd{index_time(activeneuronnum)}(individual_connection)+timeIEDF(1,2);
+                latency = timelatency(1,2);
+                timetof=timeiterate + latency + timedecay(1,2);
+                lambda=0.02*300/timedecay(1,2);
+                pre_fd{index_time(activeneuronnum)}(individual_connection) = pre_fd{index_time(activeneuronnum)}(individual_connection)+timeIEDF(1,2);
                 activeneuronsadd=-round(pre_fd{index_time(activeneuronnum)}(individual_connection)/timeIEDF(1,2)):(round(pre_fd{index_time(activeneuronnum)}(individual_connection)/timeIEDF(1,2))/length(timeiterate + latency:timetof)):0;
-                    timetof(timetof>maxtime)=maxtime;
+                timev=1:length(activeneuronsadd);
+                activeneuronsadd=min(activeneuronsadd).*exp(-lambda.*timev)./max(exp(-lambda.*timev));
+                timetof(timetof>maxtime)=maxtime;
                 activeneuronsadd(length(timeiterate + latency:timetof)+1:end)=[];
                 activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof) =  activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof) + activeneuronsadd;
             elseif contains(connection_type, 'I') && contains(connection_type, 'D')
                 latency = timelatency(1,1);
                 timetof=timeiterate + latency + timedecay(1,1);
+                lambda=0.02*300/timedecay(1,1);
                 activeneuronsadd=-1:1/length(timeiterate + latency:timetof):0;
+                timev=1:length(activeneuronsadd);
+                activeneuronsadd=min(activeneuronsadd).*exp(-lambda.*timev)./max(exp(-lambda.*timev));
                 timetof(timetof>maxtime)=maxtime;
                 activeneuronsadd(length(timeiterate + latency:timetof)+1:end)=[];
                 pre_fd{index_time(activeneuronnum)}(individual_connection) = pre_fd{index_time(activeneuronnum)}(individual_connection)+timeIEDF(1,1);
@@ -294,7 +331,10 @@ for timeiterate=1:maxtime-max(timelatency,[],'all')
             elseif contains(connection_type, 'I') && contains(connection_type, 'P')
                 latency = timelatency(1,3);
                 timetof=timeiterate + latency + timedecay(1,3);
+                lambda=0.02*300/timedecay(1,3);
                 activeneuronsadd=-1:1/length(timeiterate + latency:timetof):0;
+                timev=1:length(activeneuronsadd);
+                activeneuronsadd=min(activeneuronsadd).*exp(-lambda.*timev)./max(exp(-lambda.*timev));
                 timetof(timetof>maxtime)=maxtime;
                 activeneuronsadd(length(timeiterate + latency:timetof)+1:end)=[];
                 activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof) =  activeneurons(active_connections{activeneuronnum}(individual_connection),timeiterate + latency:timetof) + activeneuronsadd;
@@ -305,12 +345,12 @@ for timeiterate=1:maxtime-max(timelatency,[],'all')
 end
 %%
 %smooth response in time for each neuron
-activeneurons_filtered=filtfilt(1/2*ones(2,1),1,activeneurons')';
+activeneurons_filtered=filtfilt(1/3*ones(3,1),1,activeneurons')';
 %add nan values to bottom of activeneurons to make it the same size as the cube
 activeneurons_filtered=[activeneurons_filtered; nan(numel(cubic_array)-size(activeneurons_filtered,1),size(activeneurons_filtered,2))];
 %%
 %create a figure that iterates through time in the cube and shows the activated neurons
-filterSize = 2; % Size of the filter (e.g., 5x5)
+filterSize = 3; % Size of the filter (e.g., 5x5)
 sigma = 1.0;   % Standard deviation of the Gaussian function
 electrodeposition=[centrecube,centrecube,centrecube];
 firing_rate=zeros(maxtime,1);
@@ -320,8 +360,8 @@ for timeit=1:maxtime
     neuronstoplottime=activeneurons_filtered(:,timeit);
     neuronstoplottime=neuronstoplottime(cubic_array);
     % Apply the Gaussian filter to the data using imfilter
-filteredData = imfilter(neuronstoplottime, gaussianFilter, 'symmetric');
-
+%filteredData = imfilter(neuronstoplottime, gaussianFilter, 'symmetric');
+filteredData=neuronstoplottime;
 filteredData(filteredData==0)=nan;
 
     [x, y, z] = ind2sub(size(filteredData), find(~isnan(filteredData)));
@@ -350,7 +390,8 @@ filteredData(filteredData==0)=nan;
     excitedandinhibneurons=(neuronstoplottime<=-1).*-1;
     excitedandinhibneurons=[excitedandinhibneurons+(neuronstoplottime>=1)];
     firing_rate(timeit)=sum(excitedandinhibneurons(electrodeposition(1)-2:electrodeposition(1)+2,electrodeposition(2)-2:electrodeposition(2)+2,electrodeposition(3)-2:electrodeposition(3)+2),"all");
-   %pause(0.7);
+   firing_rate(timeit)=firing_rate(timeit)*1000/(5*5*5);
+    %pause(0.7);
    
 end
     figure(3)
@@ -359,10 +400,24 @@ end
     xlabel('Time (ms)');
     ylabel('Firing rate (Hz)');
     %fit line to data
-    p = polyfit(1:maxtime,firing_rate',2);
-    yfit = polyval(p,1:maxtime);
-    plot(1:maxtime,yfit,'r-');
-    
+    p = polyfit(1:maxtime-3,firing_rate(1:end-3)',2);
+    yfit = polyval(p,1:maxtime-3);
+    plot(1:maxtime-3,yfit,'r-');
+    %%
+    for i=1:27000
+    interArrivalTimes = exprnd(1/lambda, 1, 1000);
+% Calculate the arrival times by taking the cumulative sum
+arrivalTimes = cumsum(interArrivalTimes);
+% Keep only the arrival times within the specified time window
+arrivalTimes = arrivalTimes(arrivalTimes <= T);
+if ~isempty(arrivalTimes)
+figure;
+stem(arrivalTimes, ones(size(arrivalTimes)), 'filled');
+xlabel('Time');
+ylabel('Events');
+title('Poisson Process');
+end
+    end
 %%
 %bursting activity due to extracellular stim https://www.sciencedirect.com/science/article/pii/S1935861X09000424#app1
 burstprob=1./8;%assume cell might fire twice in 8ms window and record for 6ms(2-8)
