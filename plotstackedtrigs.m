@@ -11,7 +11,7 @@ TrialParamstID = find(cell2mat(TrialParams(1:numelect:end,2)) == tID); %identifi
 savespktimes=[];
 trigtID = trig(TrialParamstID);
 trigtID(trigtID==-500)=[];
-
+trigtID=trigtID(trigs);
 filepath = pwd;
 [filepathm,name,ext] = fileparts(filepath);
 name = name(1:end-14);

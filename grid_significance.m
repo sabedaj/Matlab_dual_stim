@@ -17,12 +17,16 @@ for i=1:length(x)
     end
 end
 
-
+%normalise the grid
+grid(grid>0.05)=1;
+grid(grid<=0.05 & grid>=0.01)=2;
+grid(grid<0.01)=3;
 
 %plot the grid
 figure;
 h=imagesc(grid); % Apply logarithmic transformation to grid values
-colormap(parula); % Use a linear colormap
+customColormap = [0 0 0; 1 0 0; 0 0.7 1;];
+colormap(customColormap); % Use a linear colormap
 colorbar;
 set(h, 'AlphaData', ~isnan(grid))
 
@@ -30,30 +34,35 @@ set(h, 'AlphaData', ~isnan(grid))
 
 
 %set the x and y labels
+nm=char(x);
+lblnm=[nm(:,9) repmat(['\muA'],size(nm,1),1)];
+
 set(gca,'XTick',1:length(x));
 set(gca,'YTick',1:length(x));
-set(gca,'XTickLabel',x);
-set(gca,'YTickLabel',x);
+set(gca,'XTickLabel',lblnm);
+set(gca,'YTickLabel',lblnm);
 %set the x and y labels at 45 degrees
-set(gca,'XTickLabelRotation',45);
+set(gca,'XTickLabelRotation',60);
+fontname('TImes New Roman')
+fontsize(22,"points")
 hold on;
-%plot the stars in each square of the grid according to significance 
-for i=1:length(x)
-    for j=1:length(x)
-        if i~=j
-            if grid(i,j)<0.001
-                text(j,i,'***','HorizontalAlignment','center','VerticalAlignment','middle','FontSize',15);
-            elseif grid(i,j)<0.01
-                text(j,i,'**','HorizontalAlignment','center','VerticalAlignment','middle','FontSize',15);
-            elseif grid(i,j)<0.05
-                text(j,i,'*','HorizontalAlignment','center','VerticalAlignment','middle','FontSize',15);
-            end
-        end
-    end
-end
-caxis([0 0.05]); % Adjust the color axis limits
-
-set(gca,'ColorScale','log')
+% %plot the stars in each square of the grid according to significance 
+% for i=1:length(x)
+%     for j=1:length(x)
+%         if i~=j
+%             if grid(i,j)<0.001
+%                 text(j,i,'***','HorizontalAlignment','center','VerticalAlignment','middle','FontSize',15);
+%             elseif grid(i,j)<0.01
+%                 text(j,i,'**','HorizontalAlignment','center','VerticalAlignment','middle','FontSize',15);
+%             elseif grid(i,j)<0.05
+%                 text(j,i,'*','HorizontalAlignment','center','VerticalAlignment','middle','FontSize',15);
+%             end
+%         end
+%     end
+% end
+% caxis([0 0.05]); % Adjust the color axis limits
+% 
+% set(gca,'ColorScale','log')
 %set the axis to be equal
 axis equal;
 %set the axis to be tight

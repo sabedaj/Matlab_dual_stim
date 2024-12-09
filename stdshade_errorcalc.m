@@ -1,4 +1,4 @@
-function [lineOut, fillOut] = stdshade(amatrix,alpha,acolor,F,smth,ax,varargin)
+function [lineOut, fillOut] = stdshade_errorcalc(amatrix,aerrorvals,alpha,acolor,F,smth,ax,varargin)
 % usage: stdshading(amatrix,alpha,acolor,F,smth)
 % plot mean and sem/std coming from a matrix of data, at which each row is an
 % observation. sem/std is shown as shading.
@@ -31,6 +31,7 @@ end
 
 if smth >= 1
     amatrix = boxFilter(amatrix,smth); %use boxfilter to smooth data
+    aerrorvals = boxFilter(aerrorvals,smth); %use boxfilter to smooth data
 %     window = normpdf(-3*smth:3*smth,0,smth);
 %     amean = amean(:,3*smth+1:end-3*smth);
 %     astd = astd(:,3*smth+1:end-3*smth);
@@ -45,9 +46,9 @@ if smth >= 1
     
 
 end
-amean = nanmean(amatrix,1); %get man over first dimension
+amean = amatrix; %get man over first dimension
 %astd = nanstd(amatrix,[],1); % to get std shading
-astd = nanstd(amatrix,[],1)./sqrt(sum(~isnan(amatrix),1)); % to get sem shading
+astd = aerrorvals; % to get sem shading
 
 % amean = nanmean(amatrix,1); %get man over first dimension
 % %astd = nanstd(amatrix,[],1); % to get std shading

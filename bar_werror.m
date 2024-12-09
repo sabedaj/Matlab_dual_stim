@@ -92,7 +92,10 @@ function bar_werror(x,y,error_margin,varargin)
     set(gca,'XTick',1:length(x));
     set(gca,'XTickLabel',xlabelsticks);
     %make sure the x axis labels are at 45 degrees
-    set(gca,'XTickLabelRotation',45);
+    set(gca,'XTickLabelRotation',60);
+         set(gca,'XTickLabelRotation',60);
+fontsize(22,"points")
+xlim([0 26])
     end
     %set ticks outside
     set(gca,'TickDir','out');

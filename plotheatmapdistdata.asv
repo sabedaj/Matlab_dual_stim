@@ -1,0 +1,86 @@
+function plotheatmapdistdata(data, stimchn)
+%% sorting heatmap from sigmoiddata
+stimVA=1; %visual area being stimulated
+VA=1;
+columns=[1,3,4,2];
+chnnrange=1:64;
+order=Depth(1);
+ordershapearray=reshape(order,16,8);
+ordershapearray=ordershapearray(:,columns);
+
+    stimchnarray=[1:16;33:48;49:64;17:32]';
+
+heatmap_array=cell(31,7);
+
+heatmap_array=[];
+rate_array=[];
+
+for recchn=chnnrange(1):chnnrange(end)
+    chnname=['Chn_' num2str(recchn)];
+    [rrecchn,crecchn]=find(ordershapearray==recchn);
+
+        schn=regexp((stimchn),'\d*','Match');
+        schn=str2double(schn{1});
+
+        %if c~=crecchn %stim shank only
+        if VA==stimVA
+            [r,c]=find(schn==stimchnarray);
+            if isempty(r)
+                continue
+            end
+            rplus=16-r;
+            cplus=4-c;
+        end
+            
+            amp=loadAMP;
+            if size(sigmoidAll{folder}.(chnname).(fns{stimchn}),2)==length(amp)
+                for current=1:length(amp)
+                    if VA~=stimVA
+                        [r,c]=find(sorted_array_sigmoiddata{folder}{amp(current)}.(fns{stimchn})==max(sorted_array_sigmoiddata{folder}{amp(current)}.(fns{stimchn}),[],'all'));
+                        rplus=16-r;
+                        cplus=4-c;
+                        if isempty(rplus)
+                            rplus=1;
+                            cplus=1;
+                        end
+                    end
+                    heatmap_array_sigmoiddata{amp(current)}{count}.(fns{stimchn})(rrecchn+rplus(1),crecchn+cplus(1))=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
+                    rate_distarray{amp(current)}{count}.(fns{stimchn}){rrecchn+rplus(1),crecchn+cplus(1)}=rate_ALL{folder}.(chnname).(fns{stimchn})(current,:);
+                end
+            else
+                tempamp=[100;amp];
+                for current=1:length(tempamp)
+                    if VA~=stimVA
+                        [r,c]=find(sorted_array_sigmoiddata{folder}{tempamp(current)}.(fns{stimchn})==max(sorted_array_sigmoiddata{folder}{tempamp(current)}.(fns{stimchn}),[],'all'));
+                        rplus=16-r;
+                        cplus=4-c;
+                        if isempty(rplus)
+                            rplus=1;
+                            cplus=1;
+                        end
+                    end
+                    heatmap_array_sigmoiddata{tempamp(current)}{count}.(fns{stimchn})(rrecchn+rplus(1),crecchn+cplus(1))=sigmoidAll{folder}.(chnname).(fns{stimchn})(current);%iterates forwards
+                    rate_distarray{tempamp(current)}{count}.(fns{stimchn}){rrecchn+rplus(1),crecchn+cplus(1)}=rate_ALL{folder}.(chnname).(fns{stimchn})(current,:);
+                end
+            end
+
+        %end
+        
+        %         if sigmoidAll{folder}.(chnname).(fns{stimchn})(end-4)>100
+        %             stop=0;
+        %         end
+        %         catch
+        %             continue;
+        %         end
+        if recchn==chnnrange(end)
+            count2=count2+1;
+            for current=1:100
+                heatmap_array{current}(:,:,count2)=heatmap_array_sigmoiddata{current}{count}.(fns{stimchn});
+                rate_array{current}(:,:,count2)=rate_distarray{current}{count}.(fns{stimchn});
+            end
+        end
+        
+    end
+end
+end
+end
