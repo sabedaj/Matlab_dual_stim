@@ -393,6 +393,7 @@ figure;
     % use pensplit data to fill in missing data from the stim chn. FIrst ensure there are at least 3 different pulse types e.g. P1 P4 P5 or P2 P3 P4 then fill in the missing data
     % if there are only 2 pulse types then discard chanel from data
     % if there is only 1 pulse type then discard channel from data
+    chnkeepmin_check=0;
    ratespiking_pensplit_stitch=[];
 uniquepen=fields(ratespiking_pensplit);
 for pen=1:length(uniquepen)
@@ -422,7 +423,10 @@ for pen=1:length(uniquepen)
                             chnnum_all(chn)=[];
                             % find nearest neighbour stim chn to chninterest
                             for i=1:size(chnnum_all)
-                                [~,idx] = min(abs(chninterest-chnnum_all));
+                                [chnmin,idx] = min(abs(chninterest-chnnum_all));
+                                if chnkeepmin_check<chnmin
+                                chnkeepmin_check=chnmin;
+                                end
                                 if ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck)) && isfield(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}),(Pulsecheck)) 
                                     ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}).(Pulsecheck);
                                       break;
@@ -737,11 +741,11 @@ for AMP=1:length(AMPall)
             spikcount(AMP,:)=mean(dat,2,'omitnan');
             spikecountsem(AMP,:)=SEM(dat,1);
            % countelect(AMP,:)=sum(~isnan(dat),2);
-            errorbar(1:5,spikcount(AMP,:),spikecountsem(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+            errorbar(1:5,spikcount(AMP,:),spikecountsem(AMP,:),'Color',[1 0.8-((AMP-1)/(length(AMPall)-1))*0.8 ((AMP-1)/(length(AMPall)-1))],'LineWidth', 1.5) 
             p(1,2).select();
             hold on;
             dat2=reshape(permute(spikecountStitchsup.(AMPcheck),[2,1,3]),[5,64*size(spikecountStitch.(AMPcheck),3)]);
-            errorbar(1:5,mean(dat2,2,'omitnan'),SEM(dat2,1),'Color',[0 AMP/length(AMPall) 1/AMP])
+            errorbar(1:5,mean(dat2,2,'omitnan'),SEM(dat2,1),'Color',[1 0.8-((AMP-1)/(length(AMPall)-1))*0.8 ((AMP-1)/(length(AMPall)-1))],'LineWidth', 1.5)
              dataforanovasup=[dataforanovasup, dat2];
              supspikecount(AMP,:)=mean(dat2,2,'omitnan');
               spikecountsemsup(AMP,:)=SEM(dat2,1);
@@ -769,10 +773,10 @@ p(1,2).select();
 for pulse=1:5
      p(2,1).select();
             hold on;
- errorbar(AMPall,spikcount(:,pulse),spikecountsem(:,pulse),'Color',[0 pulse/length(Pulseall) 1/pulse])
+ errorbar(AMPall,spikcount(:,pulse),spikecountsem(:,pulse),'Color',[((pulse-1)/(length(Pulseall)-1))  0 (1-((pulse-1)/(length(Pulseall)-1)))], 'LineWidth', 1.5)
  p(2,2).select();
  hold on;
-  errorbar(AMPall,supspikecount(:,pulse),spikecountsemsup(:,pulse),'Color',[0 pulse/length(Pulseall) 1/pulse])
+  errorbar(AMPall,supspikecount(:,pulse),spikecountsemsup(:,pulse),'Color',[((pulse-1)/(length(Pulseall)-1))  0 (1-((pulse-1)/(length(Pulseall)-1)))],'LineWidth', 1.5)
 end
 
 p(2,1).select();
