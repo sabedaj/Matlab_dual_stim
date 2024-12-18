@@ -211,7 +211,7 @@ end
     p(1,2).select();
     hold on
     for Pulse=1:length(Pulseall)
-        errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+        errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
     end
          lgd=legend('1','2','3','4','5');
         lgd.Title.String = '# pulses';
@@ -334,7 +334,7 @@ end
     p(1,1).select();
     hold on
     for Pulse=1:length(Pulseall)
-        errorbar(AMPall,ratepeak_suppression(:,Pulse),ratepeakstd_suppression(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+        errorbar(AMPall,ratepeak_suppression(:,Pulse),ratepeakstd_suppression(:,Pulse),'Color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
     end
     lgd=legend('1','2','3','4','5');
     lgd.Title.String = '# pulses';
@@ -347,7 +347,7 @@ end
     p(1,2).select();
     hold on
     for Pulse=1:length(Pulseall)
-        errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+        errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
     end
          lgd=legend('1','2','3','4','5');
         lgd.Title.String = '# pulses';
@@ -741,11 +741,11 @@ for AMP=1:length(AMPall)
             spikcount(AMP,:)=mean(dat,2,'omitnan');
             spikecountsem(AMP,:)=SEM(dat,1);
            % countelect(AMP,:)=sum(~isnan(dat),2);
-            errorbar(1:5,spikcount(AMP,:),spikecountsem(AMP,:),'Color',[1 0.8-((AMP-1)/(length(AMPall)-1))*0.8 ((AMP-1)/(length(AMPall)-1))],'LineWidth', 1.5) 
+            errorbar(1:5,spikcount(AMP,:),spikecountsem(AMP,:),'Color',[0.54+(AMP-1)*(1-0.54)/(length(AMPall)-1)  0.1686+(AMP-1)*(0.647-0.1686)/(length(AMPall)-1) (1-((pulse-1)/(length(AMPall)-1)))*0.54],'LineWidth', 1.5) 
             p(1,2).select();
             hold on;
             dat2=reshape(permute(spikecountStitchsup.(AMPcheck),[2,1,3]),[5,64*size(spikecountStitch.(AMPcheck),3)]);
-            errorbar(1:5,mean(dat2,2,'omitnan'),SEM(dat2,1),'Color',[1 0.8-((AMP-1)/(length(AMPall)-1))*0.8 ((AMP-1)/(length(AMPall)-1))],'LineWidth', 1.5)
+            errorbar(1:5,mean(dat2,2,'omitnan'),SEM(dat2,1),'Color',[0.54+(AMP-1)*(1-0.54)/(length(AMPall)-1)  0.1686+(AMP-1)*(0.647-0.1686)/(length(AMPall)-1) (1-((pulse-1)/(length(AMPall)-1)))*0.54],'LineWidth', 1.5) 
              dataforanovasup=[dataforanovasup, dat2];
              supspikecount(AMP,:)=mean(dat2,2,'omitnan');
               spikecountsemsup(AMP,:)=SEM(dat2,1);
@@ -769,14 +769,13 @@ p(1,2).select();
     lgd.Title.String = 'Current \muA';
     axis square
     
-
 for pulse=1:5
      p(2,1).select();
             hold on;
- errorbar(AMPall,spikcount(:,pulse),spikecountsem(:,pulse),'Color',[((pulse-1)/(length(Pulseall)-1))  0 (1-((pulse-1)/(length(Pulseall)-1)))], 'LineWidth', 1.5)
+ errorbar(AMPall,spikcount(:,pulse),spikecountsem(:,pulse),'Color',[0.0784+(pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
  p(2,2).select();
  hold on;
-  errorbar(AMPall,supspikecount(:,pulse),spikecountsemsup(:,pulse),'Color',[((pulse-1)/(length(Pulseall)-1))  0 (1-((pulse-1)/(length(Pulseall)-1)))],'LineWidth', 1.5)
+  errorbar(AMPall,supspikecount(:,pulse),spikecountsemsup(:,pulse),'Color',[0.0784+(pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(pulse-1)*(1-0)/(length(Pulseall)-1)],'LineWidth', 1.5)
 end
 
 p(2,1).select();
@@ -1025,7 +1024,7 @@ for AMP=1:length(AMPall)
     for Pulse=1:5
         Pulsecheck=['P' num2str(Pulse)];
             stdshade(avgstitchdata.(AMPcheck).(Pulsecheck),0.2,[0 Pulse/length(Pulseall) 1/Pulse],[-90:300],5,ax)
-            plot([3.333*(Pulse-1) 3.333*(Pulse-1)],[-3 -2.5],'color',[0 Pulse/length(Pulseall) 1/Pulse])
+            plot([3.333*(Pulse-1) 3.333*(Pulse-1)],[-3 -2.5],'color',[0.0784+(pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
             significantstitch(AMP,Pulse)=sum(~isnan(avgstitchdata.(AMPcheck).(Pulsecheck)(:,1)));
             datascatterplot(AMP,Pulse,:)=mean(avgstitchdata.(AMPcheck).(Pulsecheck)(:,94:180),2);
             dat=movmean(avgstitchdata.(AMPcheck).(Pulsecheck),5,2);
@@ -1290,7 +1289,7 @@ p.pack(1,2)
 p(1,1).select();
 hold on
 for Pulse=1:5
-    errorbar(AMPall,ratepeak(:,Pulse),ratepeakstd(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+    errorbar(AMPall,ratepeak(:,Pulse),ratepeakstd(:,Pulse),[0.0784+(pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
 end
 lgd=legend('2','3','4','5');
 lgd.Title.String = '# pulses';
@@ -1303,7 +1302,7 @@ axis square
 p(1,2).select();
 hold on
 for Pulse=1:5
-    errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+    errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),[0.0784+(pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
 end
 
 lgd=legend('2','3','4','5');
