@@ -5,8 +5,8 @@ function plotRawdata(chsp,tID,DataType,plotspktime)
 %tID= trial ID
 nChn=128;
 FS=30000;
-timebefore=0.09;%in seconds 0.09
-timeafter=0.09;%in seconds0.09
+timebefore=0.02;%in seconds 0.09
+timeafter=0.02;%in seconds0.09
 trig=loadTrig;
 TrialParams=loadTrialParams;
 numelect=find(diff(cell2mat(TrialParams(:,1)))~=0,1,'first');

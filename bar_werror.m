@@ -94,7 +94,7 @@ function bar_werror(x,y,error_margin,varargin)
     %make sure the x axis labels are at 45 degrees
     set(gca,'XTickLabelRotation',60);
          set(gca,'XTickLabelRotation',60);
-fontsize(22,"points")
+fontsize(gcf,22,"points")
 xlim([0 26])
     end
     %set ticks outside

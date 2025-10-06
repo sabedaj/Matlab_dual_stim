@@ -722,7 +722,7 @@ end
 % plot spikecountstitch average for each pulse on a figure for each amplitude
 figure;
 p=panel();
-p.pack(2,2);
+p.pack(3,2);
 spikcount=nan(5,5);
 spikecountsem=nan(5,5);
 supspikecount=nan(5,5);
@@ -759,13 +759,13 @@ for AMP=1:length(AMPall)
 end
 
 p(2,1).select();
-    title('Select data Stitched spike count response 4-30ms after stim')
+    title('Stitched spike count response 4-30ms after stim')
     ylabel('Sp/s')
     xlabel('# Pulses')
     set(gca,'TickDir','out');
     axis square
 p(2,2).select();
-    title('Select data Stitched spike count response 31-85ms after stim')
+    title('Stitched spike count response 31-85ms after stim')
     ylabel('Sp/s')
     xlabel('# Pulses')
     set(gca,'TickDir','out');
@@ -783,13 +783,13 @@ for pulse=1:5
 end
 
 p(1,1).select();
-    title('Select data Stitched spike count response 4-30ms after stim')
+    title('Stitched spike count response 4-30ms after stim')
     ylabel('Sp/s')
     xlabel('Current \muA')
     set(gca,'TickDir','out');
     axis square
 p(1,2).select();
-    title('Select data Stitched spike count response 31-85ms after stim')
+    title('Stitched spike count response 31-85ms after stim')
     ylabel('Sp/s')
     xlabel('Current \muA')
     set(gca,'TickDir','out');
@@ -797,14 +797,38 @@ p(1,2).select();
     lgd.Title.String = '# Pulses';
     axis square
 
+p(3,1).select();
+h=surf(AMPall,Pulseall,spikcount','FaceColor','interp','EdgeColor','none');
+ax = h.Parent; % Get the axes handle
+ax.DataAspectRatio = [2 1 1];
+view(2)
+zlabel('Sp/s')
+xlabel('Current \muA')
+ylabel('# Pulses')
+title('excite')
+hcb=colorbar;
+hcb.Title.String = "Sp/s";
+
+p(3,2).select();
+h=surf(AMPall,Pulseall,supspikecount','FaceColor','interp','EdgeColor','none');
+ ax = h.Parent; % Get the axes handle
+    ax.DataAspectRatio = [2 1 1];
+view(2)
+zlabel('Sp/s')
+xlabel('Current \muA')
+ylabel('# Pulses')
+title('inhib')
+hcb=colorbar;
+hcb.Title.String = "Sp/s";
 
 
+figure
 [p,tbl,stats]=anovan(dataforanova(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"]);
 axis square
 [results,tbl,h,gnames] = multcompare(stats,"Dimension",[1 2]);
 title('4-30ms stitched data spike count')
 set(gca,'TickDir','out');
-fontname('Times New Roman')
+fontname(gcf,'Times New Roman')
 axis square
 x=categorical(gnames);
 x=reordercats(x,gnames);
@@ -813,7 +837,7 @@ lblnm=[nm(:,9) repmat(['\muA'],size(nm,1),1)];
 
      bar_werror(lblnm,spikcount(:),spikecountsem(:))
      axis square
-     fontname('Times New Roman')
+     fontname(gcf,'Times New Roman')
    
 
   grid_significance(x,results)
@@ -1014,6 +1038,7 @@ p.pack(2, 3);
 significantstitch=nan(length(Pulseall),length(AMPall));
 datascatterplot=nan(length(Pulseall),length(AMPall),size(avgstitchdata.A2.P1,1));
 datatimerecove=nan(length(Pulseall),length(AMPall),size(avgstitchdata.A2.P1,1));
+datatimepositive=nan(length(Pulseall),length(AMPall),size(avgstitchdata.A2.P1,1));
 datasupp=nan(length(Pulseall),length(AMPall),size(avgstitchdata.A2.P1,1));
 for AMP=1:length(AMPall)
     AMPcheck=['A' num2str(AMPall(AMP))];
@@ -1050,9 +1075,33 @@ for AMP=1:length(AMPall)
                         datatimerecove(AMP,Pulse,i)=90;
                     end
                     %datatimerecove(AMP,Pulse,i)=find(dat(i,91:180)>=mean(dat(i,1:89),2),1,'first')+29;
-
                     %datatimerecove(AMP,Pulse,i)=find(avgstitchdata.(AMPcheck).(Pulsecheck)(i,120:180)>=mean(avgstitchdata.(AMPcheck).(Pulsecheck)(i,1:90),2),1,'first')+29;
+                    
+                    
+                    %find how long the response remained above baseline
+                    baselinethresh_mean=mean(dat(i,1:90),2);
+                    %                     [~,maxpeak]=max(dat(i,90:180));
+                    %                     datatimepositive(AMP,Pulse,i)=maxpeak;
+                    positivebounds=dat(i,90:180)>=baselinethresh(2);
+                    datatimepositive(AMP,Pulse,i)=sum(positivebounds);
+
+%                     consecpos = conv(double(positivebounds), ones(1, 5), 'valid');
+%                     if any(consecpos==5)
+%                         %abovebaseeline=find(dat(i,90:180)>=baselinethresh(2),1,'first');
+%                         withinboundspos=dat(i,90:180)<=baselinethresh_mean;
+%                         consecutive_sum = conv(double(withinboundspos), ones(1, 10), 'valid');
+%                         if any(consecutive_sum==10)
+%                             datatimepositive(AMP,Pulse,i)=find(consecutive_sum==10,1,'first');
+%                         else
+%                             datatimepositive(AMP,Pulse,i)=90;
+%                         end
+%                     else
+%                         datatimepositive(AMP,Pulse,i)=nan;
+%                     end
+
+
                 else
+                    datatimepositive(AMP,Pulse,i)=nan;
                     datatimerecove(AMP,Pulse,i)=nan;
                 end
             end
@@ -1171,7 +1220,7 @@ end
 
 
 
-%recovery time from 30ms for select data
+%recovery time 
 figure
 xamp=repmat(AMPall',[1,5]);
 ypulse=repmat(Pulseall,[5,1]);
@@ -1183,15 +1232,15 @@ xlabel('Current (\muA)')
 ylabel('# Pulses')
 c=colorbar;
 c.Label.String='Time (ms)';
-title('Time to return to baseline following suppresion')
+title('Time to return to baseline')
 axis square
 
 figure
 p=panel();
-p.pack(1,2);
+p.pack(2,2);
 p(1,1).select();
 colormap(map4)
-title('Time to return to baseline following suppresion')
+title('Time to return to baseline')
 hold on
 [f,~]=fit(xamp(:),zdat(:),'poly1');
 for i=1:5
@@ -1217,7 +1266,48 @@ ylabel('Time (ms)')
 set(gca,'TickDir','out');
 axis square
 xlim([0 5])
-mdl=fitlm([ypulse(:),xamp(:)],zdat(:));%% for significance testing
+mdl_baseline=fitlm([ypulse(:),xamp(:)],zdat(:));%% for significance testing
+
+%Time above 1SD of baseline
+
+xamp=repmat(AMPall',[1,5]);
+ypulse=repmat(Pulseall,[5,1]);
+zdat=mean(datatimepositive,3,'omitnan');
+zsem=std(datatimepositive,0,3,'omitnan')/sqrt(size(datatimepositive,3));
+
+
+p(2,1).select();
+colormap(map4)
+title('Time above 1SD of baseline')
+hold on
+[f,~]=fit(xamp(:),zdat(:),'poly1');
+for i=1:5
+errorbar(xamp(:,i),zdat(:,i),zsem(:,i),'Color',map4(i,:),"LineStyle",'none',"Marker",'*');
+end
+plot(f,'k')
+xlabel('Current (\muA)')
+ylabel('Time (ms)')
+set(gca,'TickDir','out');
+axis square
+xlim([1 10])
+p(2,2).select();
+title('Time above 1SD of baseline')
+hold on
+colormap(map3)
+[f,~]=fit(ypulse(:),zdat(:),'poly1');
+for i=1:5
+errorbar(ypulse(i,:),zdat(i,:),zsem(i,:),'Color',map3(i,:),"LineStyle",'none',"Marker",'*');
+end
+plot(f,'k')
+xlabel('# Pulses')
+ylabel('Time (ms)')
+set(gca,'TickDir','out');
+axis square
+xlim([0 5])
+mdl_pos=fitlm([ypulse(:),xamp(:)],zdat(:));%% for significance testing
+
+
+
 
 %avg suppression
 % figure

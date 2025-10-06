@@ -43,8 +43,8 @@ set(gca,'XTickLabel',lblnm);
 set(gca,'YTickLabel',lblnm);
 %set the x and y labels at 45 degrees
 set(gca,'XTickLabelRotation',60);
-fontname('TImes New Roman')
-fontsize(22,"points")
+fontname(gcf,'Times New Roman')
+fontsize(gcf,22,"points")
 hold on;
 % %plot the stars in each square of the grid according to significance 
 % for i=1:length(x)
