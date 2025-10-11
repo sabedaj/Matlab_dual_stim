@@ -868,7 +868,7 @@ ylabel('# Pulses')
 title('excite')
 hcb=colorbar;
 hcb.Title.String = "Sp/s";
-
+set(gca,'TickDir','out');
 p(3,2).select();
 h=surf(AMPall,Pulseall,supspikecount','FaceColor','interp','EdgeColor','none');
  ax = h.Parent; % Get the axes handle
@@ -880,7 +880,7 @@ ylabel('# Pulses')
 title('inhib')
 hcb=colorbar;
 hcb.Title.String = "Sp/s";
-
+set(gca,'TickDir','out');
 
 figure
 [p,tbl,stats]=anovan(dataforanova(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"],'model', 'interaction');
@@ -1325,7 +1325,7 @@ xlabel('# Pulses')
 ylabel('Time (ms)')
 set(gca,'TickDir','out');
 axis square
-xlim([0 5])
+xlim([0.5 5])
 mdl_baseline=fitlm([ypulse(:),xamp(:)],zdat(:));%% for significance testing
 
 %Time above 1SD of baseline
@@ -1363,7 +1363,7 @@ xlabel('# Pulses')
 ylabel('Time (ms)')
 set(gca,'TickDir','out');
 axis square
-xlim([0 5])
+xlim([0.5 5])
 mdl_pos=fitlm([ypulse(:),xamp(:)],zdat(:));%% for significance testing
 
 
@@ -1630,4 +1630,4 @@ mdl_pos=fitlm([ypulse(:),xamp(:)],zdat(:));%% for significance testing
 % % xlabel('# Pulses')
 % % set(gca,'TickDir','out');
 % % 
-% % end
+end
