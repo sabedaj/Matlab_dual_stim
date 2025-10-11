@@ -17,6 +17,7 @@ Pulseall=1:5;
 numfolderstotal=size(ratestruct,1)-sum(cellfun(@isempty, ratestruct));
 ratespiking=[];
 ratespiking_pensplit=[];
+ratespiking_pensplit_wbasline=[];
 Ratestitchspiking=[];
 windowsize=3.3333;%in ms for stitching the data 3.33333
 if strcmp(area,'v1')
@@ -61,21 +62,21 @@ for numerfolders=1:numfolderstotal
 %         end
         %stitching
         
-        chnstitch=['Chn' num2str(savefilename{numerfolders}{4}(trial,3))];
-
-        for pulsit=5:-1:Pulse+1
-            Pulsecheckstitch=['P' num2str(pulsit)];
-            if pulsit>1
-            Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheckstitch)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse),:).*1000,3);
-            else
-                Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheckstitch)(:,91+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,91+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse),:).*1000,3);
-            end
-        end
-        if Pulse>1
-        Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(:,94+ceil(windowsize*(Pulse-1)):391)=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,94+ceil(windowsize*(Pulse-1)):391,:).*1000,3);
-        else
-            Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(:,91+ceil(windowsize*(Pulse-1)):391)=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,91+ceil(windowsize*(Pulse-1)):391,:).*1000,3);
-        end
+%         chnstitch=['Chn' num2str(savefilename{numerfolders}{4}(trial,3))];
+% 
+%         for pulsit=5:-1:Pulse+1
+%             Pulsecheckstitch=['P' num2str(pulsit)];
+%             if pulsit>1
+%             Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheckstitch)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse),:).*1000,3);
+%             else
+%                 Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheckstitch)(:,91+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,91+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse),:).*1000,3);
+%             end
+%         end
+%         if Pulse>1
+%         Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(:,94+ceil(windowsize*(Pulse-1)):391)=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,94+ceil(windowsize*(Pulse-1)):391,:).*1000,3);
+%         else
+%             Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(:,91+ceil(windowsize*(Pulse-1)):391)=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,91+ceil(windowsize*(Pulse-1)):391,:).*1000,3);
+%         end
         datatoinclude=nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,:,:).*1000,3)-mean(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:90,:).*1000,3),2);
           %datatoinclude=datatoinclude./maxdatchn;
     
@@ -97,524 +98,393 @@ for numerfolders=1:numfolderstotal
                     continue
                 end
                 if isfield(ratespiking_pensplit,(pencheck)) && isfield(ratespiking_pensplit.(pencheck),(AMPcheck)) && isfield(ratespiking_pensplit.(pencheck).(AMPcheck),(stimchncheck))&& isfield(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck),(Pulsecheck))
+                    ratespiking_pensplit_wbasline.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)=cat(1,ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck),datatoinclude+mean(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:90,:).*1000,3),2));%-nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,baselinetime,:).*1000,[2 3]));
                     ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)=cat(1,ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck),datatoinclude);%-nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,baselinetime,:).*1000,[2 3]));
+
                 else
                     ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)=datatoinclude;
+                    ratespiking_pensplit_wbasline.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)=datatoinclude+mean(nanmean(ratestruct{numerfolders}.(trialcheck)(chnrng,1:90,:).*1000,3),2);
                 end
             end
         end
 
         
-         thresh=squeeze(mean(datatoinclude(:,subselectbaseline),2)+(std(datatoinclude(:,subselectbaseline),[],2).*3));
-        notsigsingle=squeeze(mean(datatoinclude(:,92:181),2))<=thresh;
-        Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(notsigsingle,:)=nan;
+%          thresh=squeeze(mean(datatoinclude(:,subselectbaseline),2)+(std(datatoinclude(:,subselectbaseline),[],2).*3));
+%         notsigsingle=squeeze(mean(datatoinclude(:,92:181),2))<=thresh;
+%         Ratestitchspiking.(yrmnth).(AMPcheck).(chnstitch).(Pulsecheck)(notsigsingle,:)=nan;
 
     end
 end
-ratespiking_suppression=ratespiking;%use this later to check suppression
+%ratespiking_suppression=ratespiking;%use this later to check suppression
 
 
-%plot significant values for all recorded channels
-ratespiking_mean=zeros(length(AMPall),length(Pulseall));
-ratespiking_std=zeros(length(AMPall),length(Pulseall));
-ratepeak=zeros(length(AMPall),length(Pulseall));
-ratepeakstd=zeros(length(AMPall),length(Pulseall));
-numsig=zeros(length(AMPall),5);
-numelect=zeros(length(AMPall)+1,5+1);
-numelect(1,2:end)=Pulseall;
-numelect(2:end,1)=AMPall';
-StimElectcount=zeros(length(AMPall),5);
-%loop through amp and number of pulses then plot
-avgtime=91:130;
-figure
-	p = panel();
-	p.pack(2, 3);
-for AMP=1:length(AMPall)
-    AMPcheck=['A' num2str(AMPall(AMP))];
-    if AMP<4
-        p(1,AMP).select();
-    else
-        p(2,AMP-3).select();
-    end
-    ax=p.de.axis;
-    ax=ax(AMP);
-    hold on
-    
-    for Pulse=1:length(Pulseall)
-        Pulsecheck=['P' num2str(Pulseall(Pulse))];
-        %make sure only responding elect included
-       timepeak=round(90+Pulse*3.333):round(120+Pulse*3.333);
-        if isfield(ratespiking.(AMPcheck),(Pulsecheck))
-        thresh=squeeze(mean(ratespiking.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)+(std(ratespiking.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*3));
-        notsigsingle=squeeze(mean(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),2))<=0;
-        ratespiking.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
-        numsig(AMP,Pulse)=sum(~notsigsingle);
-        %ratespiking.(AMPcheck).(Pulsecheck)= ratespiking.(AMPcheck).(Pulsecheck)-squeeze(mean(ratespiking.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2));
-        dat=ratespiking.(AMPcheck).(Pulsecheck);
-        numelect(AMP+1,Pulse+1)= sum(~isnan(dat(:,1)));
-        % Reshape the array into a 2D matrix with 128 elements per column
-        reshapedArray = reshape(dat(:,1), 64, []);
-        % Count the number of non-NaN values in each column
-        StimElectcount(AMP,Pulse) = sum(~isnan(sum(~isnan(reshapedArray))));
-        %dat=dat./max(dat(:,1:181),[],2);
-        maxdat=max(dat(:,round(90+Pulse*3.333):round(95+Pulse*3.333)),[],2);
-        
-        ratespiking_mean(AMP,Pulse)=nanmean(dat(:,timepeak),'all');%mean(sum(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),2),'omitnan');%%nanmean(maxdat(maxdat~=0),'all');%nanmean(ratespiking.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
-        ratespiking_std(AMP,Pulse)=SEM(dat(:,timepeak),0);
-        %peakvals
-        ratepeak(AMP,Pulse)=mean(maxdat,'omitnan');
-        ratepeakstd(AMP,Pulse)=SEM(maxdat,0);
-       
-        stdshade(dat,0.2,[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)],[-90:300],1,ax)
-        end
-    end
-    lgd=legend('1','2','3','4','5');
-    lgd.Title.String = '# pulses';
-    xlim([-90,90])
-    axis square
-    title(['All data' num2str(AMPall(AMP)) '\muA'])
-    ylabel('Sp/s')
-    xlabel('Time (ms)')
-    set(gca,'TickDir','out');
-    ylim([-0.5 1])
-    for j = 2:size(numelect,2)
-        text(j*10-80, 65, num2str(numelect(AMP+1,j)), 'HorizontalAlignment', 'center');
-    end
-end
-
-
-
-% p(2,3).select();
-% hold on;
-% for Pulse=1:length(Pulseall)
-% errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
-% end
-%  lgd=legend('1','2','3','4','5');
-% lgd.Title.String = '# pulses';
-%     title('Average 1-40ms after stim')
-%     ylabel('Sp/s')
-%     xlabel('Current \muA')
-%     set(gca,'TickDir','out');
-    
-    figure;
-    p = panel;
-    p.pack(1,2)
-    p(1,1).select();
-    hold on
-    for Pulse=1:length(Pulseall)
-        errorbar(AMPall,ratepeak(:,Pulse),ratepeakstd(:,Pulse),'color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
-    end
-    lgd=legend('1','2','3','4','5');
-    lgd.Title.String = '# pulses';
-    axis square
-    title('Peak response all data')
-    ylabel('Sp/s')
-    xlabel('Current \muA')
-    set(gca,'TickDir','out');
-    %for p2 plot the average
-    p(1,2).select();
-    hold on
-    for Pulse=1:length(Pulseall)
-        errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
-    end
-         lgd=legend('1','2','3','4','5');
-        lgd.Title.String = '# pulses';
-        axis square
-            title('All data Average 1-30ms after stim')
-            ylabel('Sp/s')
-            xlabel('Current \muA')
-            set(gca,'TickDir','out');
-
-figure;
-    p = panel;
-    p.pack(1,2)
-    p(1,1).select();
-    hold on
-    for AMP=1:length(AMPall)
-        errorbar(Pulseall,ratepeak(AMP,:),ratepeakstd(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
-    end
-    lgd=legend('2','5','6','8','10');
-    lgd.Title.String = 'Current \muA';
-    axis square
-    title('All data Peak response')
-    ylabel('Sp/s')
-    xlabel('# Pulses')
-    set(gca,'TickDir','out');
-    %for p2 plot the average
-    p(1,2).select();
-    hold on
-    for AMP=1:length(AMPall)
-        errorbar(Pulseall,ratespiking_mean(AMP,:),ratespiking_std(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
-    end
-
-    lgd=legend('2','5','6','8','10');
-    lgd.Title.String = 'Current \muA';
-    axis square
-            title('All data Average 1-30ms after stim')
-            ylabel('Sp/s')
-    xlabel('# Pulses')
-            set(gca,'TickDir','out');
-
-%% plot surpression now with all significant channels
-
-ratespiking_suppression_mean=zeros(length(AMPall),length(Pulseall));
-ratespiking_suppression_std=zeros(length(AMPall),length(Pulseall));
-ratepeak_suppression=zeros(length(AMPall),length(Pulseall));
-ratepeakstd_suppression=zeros(length(AMPall),length(Pulseall));
-numsig_suppression=zeros(length(AMPall),5);
-numelect_suppression=zeros(length(AMPall),5);
-StimElectcount_suppression=zeros(length(AMPall),5);
-%loop through amp and number of pulses then plot
-ratespiking_suppression=ratespiking;
-figure
-    p = panel();
-    p.pack(2, 3);
-for AMP=1:length(AMPall)
-    AMPcheck=['A' num2str(AMPall(AMP))];
-    if AMP<4
-        p(1,AMP).select();
-    else
-        p(2,AMP-3).select();
-    end
-    ax=p.de.axis;
-    ax=ax(AMP);
-    hold on
-    
-    for Pulse=1:length(Pulseall)
-        Pulsecheck=['P' num2str(Pulseall(Pulse))];
-        %make sure only responding elect included
-       timesup=round(100+Pulse*3.333):175;
-        if isfield(ratespiking_suppression.(AMPcheck),(Pulsecheck))
-%         thresh=squeeze(mean(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)-(std(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*SD_supression));
-%         notsigsingle=squeeze(mean(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,timesup),2))>=thresh;
-%         ratespiking_suppression.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
-%         numsig_suppression(AMP,Pulse)=sum(~notsigsingle);
-          
-        numelect_suppression(AMP,Pulse)= sum(~isnan(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,1)));
-        % Reshape the array into a 2D matrix with 128 elements per column
-        reshapedArray = reshape(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,1), 64, []);
-        % Count the number of non-NaN values in each column
-        StimElectcount_suppression(AMP,Pulse) = sum(~isnan(sum(~isnan(reshapedArray))));
-        maxdat=max(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,timesup),[],2);
-        ratespiking_suppression_mean(AMP,Pulse)=nanmean(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,timesup),'all');
-            %peakvals
-        ratepeak_suppression(AMP,Pulse)=mean(maxdat,'omitnan');
-        ratepeakstd_suppression(AMP,Pulse)=SEM(maxdat,0);
-        stdshade(ratespiking_suppression.(AMPcheck).(Pulsecheck),0.2,[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)],[-90:300],1,ax)
-
-        end
-    end
-    lgd=legend('1','2','3','4','5');
-    lgd.Title.String = '# pulses';
-    xlim([-90,90])
-    title(['All data suppression' num2str(AMPall(AMP)) '\muA'])
-    axis square
-    ylabel('Sp/s')
-    xlabel('Time (ms)')
-    set(gca,'TickDir','out');
-    ylim([-20 75])
-    for j = 1:size(numelect_suppression,2)
-        text(j*10-80, 65, num2str(numelect_suppression(AMP,j)), 'HorizontalAlignment', 'center');
-    end
-
-end
-
-% p(2,3).select();
-% hold on;
-% 
-% for Pulse=1:length(Pulseall)
-% errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
-% end
-%  lgd=legend('1','2','3','4','5');
-% lgd.Title.String = '# pulses';
-%     title('Average 1-40ms after stim')
-%     ylabel('Sp/s')
-%     xlabel('Current \muA')
-%     set(gca,'TickDir','out');
-    
-    figure;
-    p = panel;
-    p.pack(1,2)
-    p(1,1).select();
-    hold on
-    for Pulse=1:length(Pulseall)
-        errorbar(AMPall,ratepeak_suppression(:,Pulse),ratepeakstd_suppression(:,Pulse),'color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
-    end
-    lgd=legend('1','2','3','4','5');
-    lgd.Title.String = '# pulses';
-    axis square
-    title('All data suppression Peak response')
-    ylabel('Sp/s')
-    xlabel('Current \muA')
-    set(gca,'TickDir','out');
-    %for p2 plot the average
-    p(1,2).select();
-    hold on
-    for Pulse=1:length(Pulseall)
-        errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
-    end
-         lgd=legend('1','2','3','4','5');
-        lgd.Title.String = '# pulses';
-        axis square
-            title('All data suppression Average 1-30ms after stim')
-            ylabel('Sp/s')
-            xlabel('Current \muA')
-            set(gca,'TickDir','out');
-
-figure;
-    p = panel;
-    p.pack(1,2)
-    p(1,1).select();
-    hold on
-    for AMP=1:length(AMPall)
-        errorbar(Pulseall,ratepeak_suppression(AMP,:),ratepeakstd_suppression(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
-    end
-    lgd=legend('2','5','6','8','10');
-    lgd.Title.String = 'Current \muA';
-    axis square
-    title('All data suppression Peak response')
-    ylabel('Sp/s')
-    xlabel('# Pulses')
-    set(gca,'TickDir','out');
-    %for p2 plot the average
-    p(1,2).select();
-    hold on
-    for AMP=1:length(AMPall)
-        errorbar(Pulseall,ratespiking_suppression_mean(AMP,:),ratespiking_suppression_std(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
-    end
-
-    lgd=legend('2','5','6','8','10');
-    lgd.Title.String = 'Current \muA';
-    axis square
-            title('All data suppression Average 1-30ms after stim')
-            ylabel('Sp/s')
-    xlabel('# Pulses')
-            set(gca,'TickDir','out');
-
-
-
-    %find nearest neighbour stim chn and add in the unique pulse data
-    % use pensplit data to fill in missing data from the stim chn. FIrst ensure there are at least 3 different pulse types e.g. P1 P4 P5 or P2 P3 P4 then fill in the missing data
-    % if there are only 2 pulse types then discard chanel from data
-    % if there is only 1 pulse type then discard channel from data
-    chnkeepmin_check=0;
-   ratespiking_pensplit_stitch=[];
-uniquepen=fields(ratespiking_pensplit);
-for pen=1:length(uniquepen)
-    uniqueamp=fields(ratespiking_pensplit.(uniquepen{pen}));
-    for AMP=1:length(uniqueamp)
-        uniquechn=fields(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}));
-        for chn=1:length(uniquechn)
-            uniquepulse=fields(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}));
-            if length(uniquepulse)>2
-                 ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn})=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn});
-                for Pulse=1:5
-                    Pulsecheck=['P' num2str(Pulse)];
-                    
-                    %stitch all data from same stimchn first then deal with missing pulse
-                    for pulsit=5:-1:Pulse+1
-                        Pulsecheckstitch=['P' num2str(pulsit)];
-                        if isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck)) && isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheckstitch))
-                        ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse));
-                        else %find the closest match pulse
-                            %get number from uniquechn instead of 'CHNxxx'.
-                            chnnum_all_text=regexp(uniquechn,'\d+','match');
-                            % Convert all chnnums to numerical value
-                            chnnum_all  = cellfun(@str2double, chnnum_all_text);
-                            chninterest=chnnum_all(chn);
-                            chnnum_all_text=uniquechn;
-                            chnnum_all_text(chn)=[];
-                            chnnum_all(chn)=[];
-                            % find nearest neighbour stim chn to chninterest
-                            for i=1:size(chnnum_all)
-                                [chnmin,idx] = min(abs(chninterest-chnnum_all));
-                                if chnkeepmin_check<chnmin
-                                chnkeepmin_check=chnmin;
-                                end
-                                if ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck)) && isfield(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}),(Pulsecheck)) 
-                                    ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}).(Pulsecheck);
-                                      break;
-                                elseif isfield(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}),(Pulsecheckstitch)) && ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheckstitch)) && isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck))
-                                    ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}).(Pulsecheckstitch);
-                                    ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse));
-                                    break;
-                                elseif isfield(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}),(Pulsecheckstitch)) && ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheckstitch)) && ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck))
-                                    ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}).(Pulsecheckstitch);
-                                else
-                                    chnnum_all_text(idx)=[];
-                                    chnnum_all(idx)=[];
-                                end
-                            end
-                            
-                        end
-                    end
-
-                end 
-            end
-        end
-    end
-end
-    %now combine and plot ratespiking_pensplit_stitch for each pulse and for each current
-datallpenspit_stitch=[];
-spatiallyorganisedarray=[];
-    for pen=1:length(uniquepen)
-        uniqueamp=fields(ratespiking_pensplit_stitch.(uniquepen{pen}));
-        for AMP=1:length(uniqueamp)
-            uniquechn=fields(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}));
-            for chn=1:length(uniquechn)
-                for Pulse=1:length(Pulseall)
-                    Pulsecheck=['P' num2str(Pulseall(Pulse))];
-                    if isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck)) && isfield(datallpenspit_stitch,(AMPcheck)) && isfield(datallpenspit_stitch.(AMPcheck),(Pulsecheck))
-                        datallpenspit_stitch.(uniqueamp{AMP}).(Pulsecheck)=cat(1,datallpenspit_stitch.(uniqueamp{AMP}).(Pulsecheck),ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck));
-                        spatiallyorganisedarray.(uniqueamp{AMP}).(Pulsecheck)=cat(3,spatiallyorganisedarray.(uniqueamp{AMP}).(Pulsecheck),plotheatmapdistdata(mean(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94:94+30),2), uniquechn{chn}));
-                    elseif isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck))
-                        datallpenspit_stitch.(uniqueamp{AMP}).(Pulsecheck)=ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck);
-                        spatiallyorganisedarray.(uniqueamp{AMP}).(Pulsecheck)=plotheatmapdistdata(mean(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94:94+30),2), uniquechn{chn});
-                    end
-                    
-                end
-            end
-        end
-    end
-    
-    % now plot the stitched data
-    figure
-    p = panel();
-    p.pack(2, 3);
-    for AMP=1:length(AMPall)
-        AMPcheck=['A' num2str(AMPall(AMP))];
-        if AMP<4
-            p(1,AMP).select();
-        else
-            p(2,AMP-3).select();
-        end
-        ax=p.de.axis;
-        ax=ax(AMP);
-        hold on
-        for Pulse=1:length(Pulseall)
-            Pulsecheck=['P' num2str(Pulseall(Pulse))];
-            if isfield(datallpenspit_stitch,(AMPcheck)) && isfield(datallpenspit_stitch.(AMPcheck),(Pulsecheck))
-                stdshade(datallpenspit_stitch.(AMPcheck).(Pulsecheck),0.2,[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)],[-90:300],1,ax)
-            end
-        end
-        lgd=legend('1','2','3','4','5');
-        lgd.Title.String = '# pulses';
-        axis square
-        xlim([-90,90])
-        title(['All data stitch' num2str(AMPall(AMP)) '\muA'])
-        ylabel('Sp/s')
-        xlabel('Time (ms)')
-        set(gca,'TickDir','out');
-        ylim([0 20])
-    end
-
-%plot mean in third dimension of spatiallyorganisedarray
-figure
-    p = panel();
-    p.pack(length(AMPall), length(Pulseall));
-    for AMP=1:length(AMPall)
-        AMPcheck=['A' num2str(AMPall(AMP))];
- 
-        for Pulse=1:length(Pulseall)
-            p(AMP,Pulse).select();
-            Pulsecheck=['P' num2str(Pulseall(Pulse))];
-            if isfield(spatiallyorganisedarray,(AMPcheck)) && isfield(spatiallyorganisedarray.(AMPcheck),(Pulsecheck))
-                imagesc(mean(spatiallyorganisedarray.(AMPcheck).(Pulsecheck),3,'omitnan'))
-            end
-            title([ num2str(AMPall(AMP)) '\muA' num2str(Pulseall(Pulse)) ' pulses'])
-            axis square
-            set(gca,'TickDir','out');
-            
-            clim([-5 5])
-        end
-        colorbar
-
-
-    end
-
-
-%     uniqueym=fields(Ratestitchspiking);
-%     for itYM=1:length(uniqueym)
-%         %iterate through Ratestitchspiking and average the data
-%         uniqueamp=fields(Ratestitchspiking.(uniqueym{itYM}));
-%         for itAMP=1:length(uniqueamp)
-%             uniquechn=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}));
-%             for itCHN=1:length(uniquechn)
-%                 
-%                 uniquepulse=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}));
-%                 for itPulse=1:5
-%                     Pulsecheck=['P' num2str(itPulse)];
-%                     if ~isfield(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}),Pulsecheck) || size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheck),2)~=391
-%                         %get number from uniquechn instead of 'CHNxxx'.
-%                         chnnum_all_text=regexp(uniquechn,'\d+','match');
-%                         % Convert all chnnums to numerical value
-%                         chnnum_all  = cellfun(@str2double, chnnum_all_text);
-%                         chninterest=chnnum_all(itCHN);
-%                         chnnum_all_text=uniquechn;
-%                         chnnum_all_text(itCHN)=[];
-%                         chnnum_all(itCHN)=[];
-%                         % find nearest neighbour stim chn to chninterest
-%                         for i=1:size(chnnum_all)
-%                             [~,idx] = min(abs(chninterest-chnnum_all));
-%                             if isfield(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}),Pulsecheck) && size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck),2)==391
-%                                 Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheck)=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck);
-%                                 %add in pulse data from early pulses into late pulse
-%                                 for pulsit=5:-1:itPulse
-%                                     Pulsecheckstitch=['P' num2str(pulsit)];
-%                                     if itPulse==pulsit && size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheck),2)~=391
-%                                         Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheckstitch)(:,94+ceil(windowsize*(itPulse-1)):391)=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck)(:,94+ceil(windowsize*(itPulse-1)):391);                                      
-%                                     else
-%                                         Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheckstitch)(:,94+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse))=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck)(:,94+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse));                                      
-% %                                     else
-% %                                         Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheckstitch)(:,91+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse))=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck)(chnrng,91+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse));
-%                                     end
-%                                 end
-%                                 break;
-%                             else
-%                                 chnnum_all_text{idx}=[];
-%                                 chnnum_all(idx)=nan;
-%                                 
-%                             end
-%                         end
-%                     end
-%                 end
-%             end
+% %plot significant values for all recorded channels
+% ratespiking_mean=zeros(length(AMPall),length(Pulseall));
+% ratespiking_std=zeros(length(AMPall),length(Pulseall));
+% ratepeak=zeros(length(AMPall),length(Pulseall));
+% ratepeakstd=zeros(length(AMPall),length(Pulseall));
+% numsig=zeros(length(AMPall),5);
+% numelect=zeros(length(AMPall)+1,5+1);
+% numelect(1,2:end)=Pulseall;
+% numelect(2:end,1)=AMPall';
+% StimElectcount=zeros(length(AMPall),5);
+% %loop through amp and number of pulses then plot
+% avgtime=91:130;
+% figure
+% 	p = panel();
+% 	p.pack(2, 3);
+% for AMP=1:length(AMPall)
+%     AMPcheck=['A' num2str(AMPall(AMP))];
+%     if AMP<4
+%         p(1,AMP).select();
+%     else
+%         p(2,AMP-3).select();
+%     end
+%     ax=p.de.axis;
+%     ax=ax(AMP);
+%     hold on
+%     
+%     for Pulse=1:length(Pulseall)
+%         Pulsecheck=['P' num2str(Pulseall(Pulse))];
+%         %make sure only responding elect included
+%        timepeak=round(90+Pulse*3.333):round(120+Pulse*3.333);
+%         if isfield(ratespiking.(AMPcheck),(Pulsecheck))
+%         thresh=squeeze(mean(ratespiking.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)+(std(ratespiking.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*3));
+%         notsigsingle=squeeze(mean(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),2))<=0;
+%         ratespiking.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
+%         numsig(AMP,Pulse)=sum(~notsigsingle);
+%         %ratespiking.(AMPcheck).(Pulsecheck)= ratespiking.(AMPcheck).(Pulsecheck)-squeeze(mean(ratespiking.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2));
+%         dat=ratespiking.(AMPcheck).(Pulsecheck);
+%         numelect(AMP+1,Pulse+1)= sum(~isnan(dat(:,1)));
+%         % Reshape the array into a 2D matrix with 128 elements per column
+%         reshapedArray = reshape(dat(:,1), 64, []);
+%         % Count the number of non-NaN values in each column
+%         StimElectcount(AMP,Pulse) = sum(~isnan(sum(~isnan(reshapedArray))));
+%         %dat=dat./max(dat(:,1:181),[],2);
+%         maxdat=max(dat(:,round(90+Pulse*3.333):round(95+Pulse*3.333)),[],2);
+%         
+%         ratespiking_mean(AMP,Pulse)=nanmean(dat(:,timepeak),'all');%mean(sum(ratespiking.(AMPcheck).(Pulsecheck)(:,timepeak),2),'omitnan');%%nanmean(maxdat(maxdat~=0),'all');%nanmean(ratespiking.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
+%         ratespiking_std(AMP,Pulse)=SEM(dat(:,timepeak),0);
+%         %peakvals
+%         ratepeak(AMP,Pulse)=mean(maxdat,'omitnan');
+%         ratepeakstd(AMP,Pulse)=SEM(maxdat,0);
+%        
+%         stdshade(dat,0.2,[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)],[-90:300],1,ax)
 %         end
 %     end
-
-    
-    
-    
-%     
-%     Ratestitchspikingmean=[];
-%     for itYM=1:length(uniqueym)
-%         %iterate through Ratestitchspiking and average the data
-%         uniqueamp=fields(Ratestitchspiking.(uniqueym{itYM}));
-%         for itAMP=1:length(uniqueamp)
-%             uniquechn=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}));
-%             for itCHN=1:length(uniquechn)
-%                 uniquepulse=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}));
-%                 for itPulse=1:length(uniquepulse)
-%                     %put each unique combination of amp and pulse into a new array so that we can average them later ignoring uniqueym and chn
-%                     if length(uniquepulse)>3 && size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).P5,2)==391
-%                         if ~isfield(Ratestitchspikingmean,(uniqueamp{itAMP})) || ~isfield(Ratestitchspikingmean.(uniqueamp{itAMP}),(uniquepulse{itPulse}))
-%                             Ratestitchspikingmean.(uniqueamp{itAMP}).(uniquepulse{itPulse})=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(uniquepulse{itPulse});
-%                         else
-%                             Ratestitchspikingmean.(uniqueamp{itAMP}).(uniquepulse{itPulse})=cat(1,Ratestitchspikingmean.(uniqueamp{itAMP}).(uniquepulse{itPulse}),Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(uniquepulse{itPulse}));
-%                         end
-%                     end
-% 
-%                 end
-%             end
-%         end
-%     
+%     lgd=legend('1','2','3','4','5');
+%     lgd.Title.String = '# pulses';
+%     xlim([-90,90])
+%     axis square
+%     title(['All data' num2str(AMPall(AMP)) '\muA'])
+%     ylabel('Sp/s')
+%     xlabel('Time (ms)')
+%     set(gca,'TickDir','out');
+%     ylim([-0.5 1])
+%     for j = 2:size(numelect,2)
+%         text(j*10-80, 65, num2str(numelect(AMP+1,j)), 'HorizontalAlignment', 'center');
 %     end
-    %plot Ratestitchspikingmean for each current with the lines on the plot being the pulse data
+% end
+% 
+% 
+% 
+% % p(2,3).select();
+% % hold on;
+% % for Pulse=1:length(Pulseall)
+% % errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+% % end
+% %  lgd=legend('1','2','3','4','5');
+% % lgd.Title.String = '# pulses';
+% %     title('Average 1-40ms after stim')
+% %     ylabel('Sp/s')
+% %     xlabel('Current \muA')
+% %     set(gca,'TickDir','out');
+%     
 %     figure;
+%     p = panel;
+%     p.pack(1,2)
+%     p(1,1).select();
+%     hold on
+%     for Pulse=1:length(Pulseall)
+%         errorbar(AMPall,ratepeak(:,Pulse),ratepeakstd(:,Pulse),'color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
+%     end
+%     lgd=legend('1','2','3','4','5');
+%     lgd.Title.String = '# pulses';
+%     axis square
+%     title('Peak response all data')
+%     ylabel('Sp/s')
+%     xlabel('Current \muA')
+%     set(gca,'TickDir','out');
+%     %for p2 plot the average
+%     p(1,2).select();
+%     hold on
+%     for Pulse=1:length(Pulseall)
+%         errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
+%     end
+%          lgd=legend('1','2','3','4','5');
+%         lgd.Title.String = '# pulses';
+%         axis square
+%             title('All data Average 1-30ms after stim')
+%             ylabel('Sp/s')
+%             xlabel('Current \muA')
+%             set(gca,'TickDir','out');
+% 
+% figure;
+%     p = panel;
+%     p.pack(1,2)
+%     p(1,1).select();
+%     hold on
+%     for AMP=1:length(AMPall)
+%         errorbar(Pulseall,ratepeak(AMP,:),ratepeakstd(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+%     end
+%     lgd=legend('2','5','6','8','10');
+%     lgd.Title.String = 'Current \muA';
+%     axis square
+%     title('All data Peak response')
+%     ylabel('Sp/s')
+%     xlabel('# Pulses')
+%     set(gca,'TickDir','out');
+%     %for p2 plot the average
+%     p(1,2).select();
+%     hold on
+%     for AMP=1:length(AMPall)
+%         errorbar(Pulseall,ratespiking_mean(AMP,:),ratespiking_std(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+%     end
+% 
+%     lgd=legend('2','5','6','8','10');
+%     lgd.Title.String = 'Current \muA';
+%     axis square
+%             title('All data Average 1-30ms after stim')
+%             ylabel('Sp/s')
+%     xlabel('# Pulses')
+%             set(gca,'TickDir','out');
+% 
+% %% plot surpression now with all significant channels
+% 
+% ratespiking_suppression_mean=zeros(length(AMPall),length(Pulseall));
+% ratespiking_suppression_std=zeros(length(AMPall),length(Pulseall));
+% ratepeak_suppression=zeros(length(AMPall),length(Pulseall));
+% ratepeakstd_suppression=zeros(length(AMPall),length(Pulseall));
+% numsig_suppression=zeros(length(AMPall),5);
+% numelect_suppression=zeros(length(AMPall),5);
+% StimElectcount_suppression=zeros(length(AMPall),5);
+% %loop through amp and number of pulses then plot
+% ratespiking_suppression=ratespiking;
+% figure
 %     p = panel();
 %     p.pack(2, 3);
-%     ratestitchmean=zeros(length(AMPall),length(Pulseall));
-%     ratestitchstd=zeros(length(AMPall),length(Pulseall));
+% for AMP=1:length(AMPall)
+%     AMPcheck=['A' num2str(AMPall(AMP))];
+%     if AMP<4
+%         p(1,AMP).select();
+%     else
+%         p(2,AMP-3).select();
+%     end
+%     ax=p.de.axis;
+%     ax=ax(AMP);
+%     hold on
+%     
+%     for Pulse=1:length(Pulseall)
+%         Pulsecheck=['P' num2str(Pulseall(Pulse))];
+%         %make sure only responding elect included
+%        timesup=round(100+Pulse*3.333):175;
+%         if isfield(ratespiking_suppression.(AMPcheck),(Pulsecheck))
+% %         thresh=squeeze(mean(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)-(std(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*SD_supression));
+% %         notsigsingle=squeeze(mean(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,timesup),2))>=thresh;
+% %         ratespiking_suppression.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
+% %         numsig_suppression(AMP,Pulse)=sum(~notsigsingle);
+%           
+%         numelect_suppression(AMP,Pulse)= sum(~isnan(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,1)));
+%         % Reshape the array into a 2D matrix with 128 elements per column
+%         reshapedArray = reshape(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,1), 64, []);
+%         % Count the number of non-NaN values in each column
+%         StimElectcount_suppression(AMP,Pulse) = sum(~isnan(sum(~isnan(reshapedArray))));
+%         maxdat=max(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,timesup),[],2);
+%         ratespiking_suppression_mean(AMP,Pulse)=nanmean(ratespiking_suppression.(AMPcheck).(Pulsecheck)(:,timesup),'all');
+%             %peakvals
+%         ratepeak_suppression(AMP,Pulse)=mean(maxdat,'omitnan');
+%         ratepeakstd_suppression(AMP,Pulse)=SEM(maxdat,0);
+%         stdshade(ratespiking_suppression.(AMPcheck).(Pulsecheck),0.2,[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)],[-90:300],1,ax)
+% 
+%         end
+%     end
+%     lgd=legend('1','2','3','4','5');
+%     lgd.Title.String = '# pulses';
+%     xlim([-90,90])
+%     title(['All data suppression' num2str(AMPall(AMP)) '\muA'])
+%     axis square
+%     ylabel('Sp/s')
+%     xlabel('Time (ms)')
+%     set(gca,'TickDir','out');
+%     ylim([-20 75])
+%     for j = 1:size(numelect_suppression,2)
+%         text(j*10-80, 65, num2str(numelect_suppression(AMP,j)), 'HorizontalAlignment', 'center');
+%     end
+% 
+% end
+% 
+% % p(2,3).select();
+% % hold on;
+% % 
+% % for Pulse=1:length(Pulseall)
+% % errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+% % end
+% %  lgd=legend('1','2','3','4','5');
+% % lgd.Title.String = '# pulses';
+% %     title('Average 1-40ms after stim')
+% %     ylabel('Sp/s')
+% %     xlabel('Current \muA')
+% %     set(gca,'TickDir','out');
+%     
+%     figure;
+%     p = panel;
+%     p.pack(1,2)
+%     p(1,1).select();
+%     hold on
+%     for Pulse=1:length(Pulseall)
+%         errorbar(AMPall,ratepeak_suppression(:,Pulse),ratepeakstd_suppression(:,Pulse),'color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
+%     end
+%     lgd=legend('1','2','3','4','5');
+%     lgd.Title.String = '# pulses';
+%     axis square
+%     title('All data suppression Peak response')
+%     ylabel('Sp/s')
+%     xlabel('Current \muA')
+%     set(gca,'TickDir','out');
+%     %for p2 plot the average
+%     p(1,2).select();
+%     hold on
+%     for Pulse=1:length(Pulseall)
+%         errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)], 'LineWidth', 1.5)
+%     end
+%          lgd=legend('1','2','3','4','5');
+%         lgd.Title.String = '# pulses';
+%         axis square
+%             title('All data suppression Average 1-30ms after stim')
+%             ylabel('Sp/s')
+%             xlabel('Current \muA')
+%             set(gca,'TickDir','out');
+% 
+% figure;
+%     p = panel;
+%     p.pack(1,2)
+%     p(1,1).select();
+%     hold on
+%     for AMP=1:length(AMPall)
+%         errorbar(Pulseall,ratepeak_suppression(AMP,:),ratepeakstd_suppression(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+%     end
+%     lgd=legend('2','5','6','8','10');
+%     lgd.Title.String = 'Current \muA';
+%     axis square
+%     title('All data suppression Peak response')
+%     ylabel('Sp/s')
+%     xlabel('# Pulses')
+%     set(gca,'TickDir','out');
+%     %for p2 plot the average
+%     p(1,2).select();
+%     hold on
+%     for AMP=1:length(AMPall)
+%         errorbar(Pulseall,ratespiking_suppression_mean(AMP,:),ratespiking_suppression_std(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+%     end
+% 
+%     lgd=legend('2','5','6','8','10');
+%     lgd.Title.String = 'Current \muA';
+%     axis square
+%             title('All data suppression Average 1-30ms after stim')
+%             ylabel('Sp/s')
+%     xlabel('# Pulses')
+%             set(gca,'TickDir','out');
+% 
+% 
+% 
+%     %find nearest neighbour stim chn and add in the unique pulse data
+%     % use pensplit data to fill in missing data from the stim chn. FIrst ensure there are at least 3 different pulse types e.g. P1 P4 P5 or P2 P3 P4 then fill in the missing data
+%     % if there are only 2 pulse types then discard chanel from data
+%     % if there is only 1 pulse type then discard channel from data
+%     chnkeepmin_check=0;
+%    ratespiking_pensplit_stitch=[];
+% uniquepen=fields(ratespiking_pensplit);
+% for pen=1:length(uniquepen)
+%     uniqueamp=fields(ratespiking_pensplit.(uniquepen{pen}));
+%     for AMP=1:length(uniqueamp)
+%         uniquechn=fields(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}));
+%         for chn=1:length(uniquechn)
+%             uniquepulse=fields(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}));
+%             if length(uniquepulse)>2
+%                  ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn})=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn});
+%                 for Pulse=1:5
+%                     Pulsecheck=['P' num2str(Pulse)];
+%                     
+%                     %stitch all data from same stimchn first then deal with missing pulse
+%                     for pulsit=5:-1:Pulse+1
+%                         Pulsecheckstitch=['P' num2str(pulsit)];
+%                         if isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck)) && isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheckstitch))
+%                         ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse));
+%                         else %find the closest match pulse
+%                             %get number from uniquechn instead of 'CHNxxx'.
+%                             chnnum_all_text=regexp(uniquechn,'\d+','match');
+%                             % Convert all chnnums to numerical value
+%                             chnnum_all  = cellfun(@str2double, chnnum_all_text);
+%                             chninterest=chnnum_all(chn);
+%                             chnnum_all_text=uniquechn;
+%                             chnnum_all_text(chn)=[];
+%                             chnnum_all(chn)=[];
+%                             % find nearest neighbour stim chn to chninterest
+%                             for i=1:size(chnnum_all)
+%                                 [chnmin,idx] = min(abs(chninterest-chnnum_all));
+%                                 if chnkeepmin_check<chnmin
+%                                 chnkeepmin_check=chnmin;
+%                                 end
+%                                 if ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck)) && isfield(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}),(Pulsecheck)) 
+%                                     ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}).(Pulsecheck);
+%                                       break;
+%                                 elseif isfield(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}),(Pulsecheckstitch)) && ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheckstitch)) && isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck))
+%                                     ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}).(Pulsecheckstitch);
+%                                     ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse))=ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94+ceil(windowsize*(Pulse-1)):93+ceil(windowsize*Pulse));
+%                                     break;
+%                                 elseif isfield(ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}),(Pulsecheckstitch)) && ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheckstitch)) && ~isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck))
+%                                     ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheckstitch)=ratespiking_pensplit.(uniquepen{pen}).(uniqueamp{AMP}).(chnnum_all_text{idx}).(Pulsecheckstitch);
+%                                 else
+%                                     chnnum_all_text(idx)=[];
+%                                     chnnum_all(idx)=[];
+%                                 end
+%                             end
+%                             
+%                         end
+%                     end
+% 
+%                 end 
+%             end
+%         end
+%     end
+% end
+%     %now combine and plot ratespiking_pensplit_stitch for each pulse and for each current
+% datallpenspit_stitch=[];
+% spatiallyorganisedarray=[];
+%     for pen=1:length(uniquepen)
+%         uniqueamp=fields(ratespiking_pensplit_stitch.(uniquepen{pen}));
+%         for AMP=1:length(uniqueamp)
+%             uniquechn=fields(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}));
+%             for chn=1:length(uniquechn)
+%                 for Pulse=1:length(Pulseall)
+%                     Pulsecheck=['P' num2str(Pulseall(Pulse))];
+%                     if isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck)) && isfield(datallpenspit_stitch,(AMPcheck)) && isfield(datallpenspit_stitch.(AMPcheck),(Pulsecheck))
+%                         datallpenspit_stitch.(uniqueamp{AMP}).(Pulsecheck)=cat(1,datallpenspit_stitch.(uniqueamp{AMP}).(Pulsecheck),ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck));
+%                         spatiallyorganisedarray.(uniqueamp{AMP}).(Pulsecheck)=cat(3,spatiallyorganisedarray.(uniqueamp{AMP}).(Pulsecheck),plotheatmapdistdata(mean(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94:94+30),2), uniquechn{chn}));
+%                     elseif isfield(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}),(Pulsecheck))
+%                         datallpenspit_stitch.(uniqueamp{AMP}).(Pulsecheck)=ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck);
+%                         spatiallyorganisedarray.(uniqueamp{AMP}).(Pulsecheck)=plotheatmapdistdata(mean(ratespiking_pensplit_stitch.(uniquepen{pen}).(uniqueamp{AMP}).(uniquechn{chn}).(Pulsecheck)(:,94:94+30),2), uniquechn{chn});
+%                     end
+%                     
+%                 end
+%             end
+%         end
+%     end
+%     
+%     % now plot the stitched data
+%     figure
+%     p = panel();
+%     p.pack(2, 3);
 %     for AMP=1:length(AMPall)
 %         AMPcheck=['A' num2str(AMPall(AMP))];
 %         if AMP<4
@@ -627,33 +497,167 @@ figure
 %         hold on
 %         for Pulse=1:length(Pulseall)
 %             Pulsecheck=['P' num2str(Pulseall(Pulse))];
-%             if isfield(Ratestitchspikingmean,(AMPcheck)) && isfield(Ratestitchspikingmean.(AMPcheck),(Pulsecheck))
-%                 stdshade(Ratestitchspikingmean.(AMPcheck).(Pulsecheck),0.2,[0 Pulse/length(Pulseall) 1/Pulse],[-90:300],1,ax)
-%                 ratestitchmean(AMP,Pulse)=nanmean(Ratestitchspikingmean.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
-%                 ratestitchstd(AMP,Pulse)=SEM(Ratestitchspikingmean.(AMPcheck).(Pulsecheck)(:,avgtime),0);
+%             if isfield(datallpenspit_stitch,(AMPcheck)) && isfield(datallpenspit_stitch.(AMPcheck),(Pulsecheck))
+%                 stdshade(datallpenspit_stitch.(AMPcheck).(Pulsecheck),0.2,[0.0784+(Pulse-1)*(1-0.0784)/(length(Pulseall)-1) 0.5647+(Pulse-1)*(0.8431-0.5647)/(length(Pulseall)-1) 1-(Pulse-1)*(1-0)/(length(Pulseall)-1)],[-90:300],1,ax)
 %             end
 %         end
+%         lgd=legend('1','2','3','4','5');
+%         lgd.Title.String = '# pulses';
+%         axis square
 %         xlim([-90,90])
-%         title([num2str(AMPall(AMP)) '\muA'])
+%         title(['All data stitch' num2str(AMPall(AMP)) '\muA'])
 %         ylabel('Sp/s')
 %         xlabel('Time (ms)')
 %         set(gca,'TickDir','out');
+%         ylim([0 20])
 %     end
-%     lgd=legend('1','2','3','4','5');
-%     lgd.Title.String = '# pulses';
-% p(2,3).select();
-% hold on
-% for Pulse=1:length(Pulseall)
-%     errorbar(AMPall,ratestitchmean(:,Pulse),ratestitchstd(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
 % 
-% end
-%  lgd=legend('1','2','3','4','5');
-% lgd.Title.String = '# pulses';
-%     title('Average 1-20ms after stim,Pulses added')
-%     ylabel('Sp/s')
-%     xlabel('Current \muA')
-%     set(gca,'TickDir','out');
-
+% %plot mean in third dimension of spatiallyorganisedarray
+% figure
+%     p = panel();
+%     p.pack(length(AMPall), length(Pulseall));
+%     for AMP=1:length(AMPall)
+%         AMPcheck=['A' num2str(AMPall(AMP))];
+%  
+%         for Pulse=1:length(Pulseall)
+%             p(AMP,Pulse).select();
+%             Pulsecheck=['P' num2str(Pulseall(Pulse))];
+%             if isfield(spatiallyorganisedarray,(AMPcheck)) && isfield(spatiallyorganisedarray.(AMPcheck),(Pulsecheck))
+%                 imagesc(mean(spatiallyorganisedarray.(AMPcheck).(Pulsecheck),3,'omitnan'))
+%             end
+%             title([ num2str(AMPall(AMP)) '\muA' num2str(Pulseall(Pulse)) ' pulses'])
+%             axis square
+%             set(gca,'TickDir','out');
+%             
+%             clim([-5 5])
+%         end
+%         colorbar
+% 
+% 
+%     end
+% 
+% 
+% %     uniqueym=fields(Ratestitchspiking);
+% %     for itYM=1:length(uniqueym)
+% %         %iterate through Ratestitchspiking and average the data
+% %         uniqueamp=fields(Ratestitchspiking.(uniqueym{itYM}));
+% %         for itAMP=1:length(uniqueamp)
+% %             uniquechn=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}));
+% %             for itCHN=1:length(uniquechn)
+% %                 
+% %                 uniquepulse=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}));
+% %                 for itPulse=1:5
+% %                     Pulsecheck=['P' num2str(itPulse)];
+% %                     if ~isfield(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}),Pulsecheck) || size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheck),2)~=391
+% %                         %get number from uniquechn instead of 'CHNxxx'.
+% %                         chnnum_all_text=regexp(uniquechn,'\d+','match');
+% %                         % Convert all chnnums to numerical value
+% %                         chnnum_all  = cellfun(@str2double, chnnum_all_text);
+% %                         chninterest=chnnum_all(itCHN);
+% %                         chnnum_all_text=uniquechn;
+% %                         chnnum_all_text(itCHN)=[];
+% %                         chnnum_all(itCHN)=[];
+% %                         % find nearest neighbour stim chn to chninterest
+% %                         for i=1:size(chnnum_all)
+% %                             [~,idx] = min(abs(chninterest-chnnum_all));
+% %                             if isfield(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}),Pulsecheck) && size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck),2)==391
+% %                                 Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheck)=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck);
+% %                                 %add in pulse data from early pulses into late pulse
+% %                                 for pulsit=5:-1:itPulse
+% %                                     Pulsecheckstitch=['P' num2str(pulsit)];
+% %                                     if itPulse==pulsit && size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheck),2)~=391
+% %                                         Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheckstitch)(:,94+ceil(windowsize*(itPulse-1)):391)=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck)(:,94+ceil(windowsize*(itPulse-1)):391);                                      
+% %                                     else
+% %                                         Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheckstitch)(:,94+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse))=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck)(:,94+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse));                                      
+% % %                                     else
+% % %                                         Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(Pulsecheckstitch)(:,91+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse))=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(chnnum_all_text{idx}).(Pulsecheck)(chnrng,91+ceil(windowsize*(itPulse-1)):93+ceil(windowsize*itPulse));
+% %                                     end
+% %                                 end
+% %                                 break;
+% %                             else
+% %                                 chnnum_all_text{idx}=[];
+% %                                 chnnum_all(idx)=nan;
+% %                                 
+% %                             end
+% %                         end
+% %                     end
+% %                 end
+% %             end
+% %         end
+% %     end
+% 
+%     
+%     
+%     
+% %     
+% %     Ratestitchspikingmean=[];
+% %     for itYM=1:length(uniqueym)
+% %         %iterate through Ratestitchspiking and average the data
+% %         uniqueamp=fields(Ratestitchspiking.(uniqueym{itYM}));
+% %         for itAMP=1:length(uniqueamp)
+% %             uniquechn=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}));
+% %             for itCHN=1:length(uniquechn)
+% %                 uniquepulse=fields(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}));
+% %                 for itPulse=1:length(uniquepulse)
+% %                     %put each unique combination of amp and pulse into a new array so that we can average them later ignoring uniqueym and chn
+% %                     if length(uniquepulse)>3 && size(Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).P5,2)==391
+% %                         if ~isfield(Ratestitchspikingmean,(uniqueamp{itAMP})) || ~isfield(Ratestitchspikingmean.(uniqueamp{itAMP}),(uniquepulse{itPulse}))
+% %                             Ratestitchspikingmean.(uniqueamp{itAMP}).(uniquepulse{itPulse})=Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(uniquepulse{itPulse});
+% %                         else
+% %                             Ratestitchspikingmean.(uniqueamp{itAMP}).(uniquepulse{itPulse})=cat(1,Ratestitchspikingmean.(uniqueamp{itAMP}).(uniquepulse{itPulse}),Ratestitchspiking.(uniqueym{itYM}).(uniqueamp{itAMP}).(uniquechn{itCHN}).(uniquepulse{itPulse}));
+% %                         end
+% %                     end
+% % 
+% %                 end
+% %             end
+% %         end
+% %     
+% %     end
+%     %plot Ratestitchspikingmean for each current with the lines on the plot being the pulse data
+% %     figure;
+% %     p = panel();
+% %     p.pack(2, 3);
+% %     ratestitchmean=zeros(length(AMPall),length(Pulseall));
+% %     ratestitchstd=zeros(length(AMPall),length(Pulseall));
+% %     for AMP=1:length(AMPall)
+% %         AMPcheck=['A' num2str(AMPall(AMP))];
+% %         if AMP<4
+% %             p(1,AMP).select();
+% %         else
+% %             p(2,AMP-3).select();
+% %         end
+% %         ax=p.de.axis;
+% %         ax=ax(AMP);
+% %         hold on
+% %         for Pulse=1:length(Pulseall)
+% %             Pulsecheck=['P' num2str(Pulseall(Pulse))];
+% %             if isfield(Ratestitchspikingmean,(AMPcheck)) && isfield(Ratestitchspikingmean.(AMPcheck),(Pulsecheck))
+% %                 stdshade(Ratestitchspikingmean.(AMPcheck).(Pulsecheck),0.2,[0 Pulse/length(Pulseall) 1/Pulse],[-90:300],1,ax)
+% %                 ratestitchmean(AMP,Pulse)=nanmean(Ratestitchspikingmean.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
+% %                 ratestitchstd(AMP,Pulse)=SEM(Ratestitchspikingmean.(AMPcheck).(Pulsecheck)(:,avgtime),0);
+% %             end
+% %         end
+% %         xlim([-90,90])
+% %         title([num2str(AMPall(AMP)) '\muA'])
+% %         ylabel('Sp/s')
+% %         xlabel('Time (ms)')
+% %         set(gca,'TickDir','out');
+% %     end
+% %     lgd=legend('1','2','3','4','5');
+% %     lgd.Title.String = '# pulses';
+% % p(2,3).select();
+% % hold on
+% % for Pulse=1:length(Pulseall)
+% %     errorbar(AMPall,ratestitchmean(:,Pulse),ratestitchstd(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+% % 
+% % end
+% %  lgd=legend('1','2','3','4','5');
+% % lgd.Title.String = '# pulses';
+% %     title('Average 1-20ms after stim,Pulses added')
+% %     ylabel('Sp/s')
+% %     xlabel('Current \muA')
+% %     set(gca,'TickDir','out');
+% close all;
 %% This is to plot the limited data of 2 monkeys and 2 penetrations with ALL pulse combinations
 % plot the data for each pen if there are pulses 1-5 under the stim chn
 % for each pen at each amp and each stimchn go in and check if pulse 1-5 are there
@@ -661,6 +665,7 @@ figure
 % then plot the data
 datincludestack=[];
 stitchdata=[];
+%checkallzeros=zeros(5,64);
 countit=0;
 %initialise spikecountStitch for amplitudes
 for AMP=1:length(AMPall)
@@ -681,9 +686,11 @@ for pen=1:length(startpen)
                     if isfield(ratespiking_pensplit.(pencheck).(AMPcheck),(stimchncheck))
                         %check if there are fields P2,P3,P4 and P5
                         if isfield(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck),'P1') && isfield(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck),'P2') && isfield(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck),'P3') && isfield(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck),'P4') && isfield(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck),'P5')
+                          % checksiganypulse=zeros(64,5); %for checking significance
                             for Pulse=1:5
                                 Pulsecheck=['P' num2str(Pulse)];
                                 avgstitchdata.(AMPcheck).(Pulsecheck)=[];
+                                %checksiganypulse(:,Pulse)=mean(ratespiking_pensplit_wbasline.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:,91:120),2,'omitnan')>mean(ratespiking_pensplit_wbasline.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:,1:90),2,'omitnan')+std(ratespiking_pensplit_wbasline.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:,1:90),0,2,'omitnan');
                                 %check significant channels in ratespiking_pensplit
                                 % thresh=squeeze(mean(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:,subselectbaseline),2)+(std(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:,subselectbaseline),[],2).*SD_supression));
                                 % notsigsingle=squeeze(mean(ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:,timepeak),2))<=thresh;    
@@ -701,15 +708,30 @@ for pen=1:length(startpen)
                                      elseif pulseit>Pulse
                                          stitchdata.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck2)(:, 94+ceil(windowsize*(Pulse-1)):94+ceil(windowsize*(Pulse)))=ratespiking_pensplit.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:, 94+ceil(windowsize*(Pulse-1)):94+ceil(windowsize*(Pulse)));
                                      end
+                                     
                                 end
+                               % checkallzeros(Pulse,1:64)=(sum(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(Pulsecheck)(:,1:181),2)==0);
                             end
+                            %checkremoveallzeros=sum(checkallzeros);
+
+                            %checksigallpulse=sum(checksiganypulse,2);
                             for pulse=1:5
                                 pcheck=(['P' num2str(pulse)]);
-                                stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(sum(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(:,94:181),2)==0,:)=nan;
+                                %check data hasn't been stitched into a
+                                %channel without data
+                                for chn2=1:64
+                                    if  sum(isnan(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(chn2,1:181)))~=0 && sum(isnan(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(chn2,1:181)))~=181
+                                            stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(chn2,1:181)=nan(1,181);
+                                    end
+                                end
+                                %stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(checksigallpulse==0,:)=nan;
+                                stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(sum(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(:,1:181),2)==0,:)=nan;
+                              % stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(checkremoveallzeros>2,:)=nan;
+                               
                             %add the numbers between columns 94 and 120 of the stitchdata then average the counts for each row, stim channel and pulse
                             
-                            spikecountStitch.(AMPcheck)(1:64,pulse,countit)=sum(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(:,94:120),2);%94:120
-                            spikecountStitchsup.(AMPcheck)(1:64,pulse,countit)=sum(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(:,121:185),2);
+                            spikecountStitch.(AMPcheck)(1:64,pulse,countit)=nanmean(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(:,94:120),2);%94:120
+                            spikecountStitchsup.(AMPcheck)(1:64,pulse,countit)=nanmean(stitchdata.(pencheck).(AMPcheck).(stimchncheck).(pcheck)(:,121:185),2);
 
                             end
                         end
@@ -732,6 +754,8 @@ dataforanovasup=[];
 F1=[];
 F2=[];
 numelect=nan(5,5);
+numelect2=nan(5,5);
+smallestsamplesize=592;
 for AMP=1:length(AMPall)
     AMPcheck=['A' num2str(AMPall(AMP))];
 
@@ -739,21 +763,57 @@ for AMP=1:length(AMPall)
             p(2,1).select();
             hold on;
             dat=reshape(permute(spikecountStitch.(AMPcheck),[2,1,3]),[5,64*size(spikecountStitch.(AMPcheck),3)]);
-            dataforanova=[dataforanova, dat];
-            F1=[F1,ones(size(dat)).*AMPall(AMP)];
-            F2=[F2,repmat([1; 2; 3; 4; 5],[1,size(dat,2)])];
+            dat2=reshape(permute(spikecountStitchsup.(AMPcheck),[2,1,3]),[5,64*size(spikecountStitch.(AMPcheck),3)]);
             spikcount(AMP,:)=mean(dat,2,'omitnan');
             spikecountsem(AMP,:)=SEM(dat,1);
+            %remove nan values and downsample for anova
+             F1_i=ones(size(dat)).*AMPall(AMP);
+             F2_i=repmat([1; 2; 3; 4; 5],[1,size(dat,2)]);
+            dat_downsample=zeros(5,smallestsamplesize);
+            datsup_downsample=zeros(5,smallestsamplesize);
+             F1_downsample=zeros(5,smallestsamplesize);
+              F2_downsample=zeros(5,smallestsamplesize);
+            for i=1:5
+                rowinterest=dat(i,:);
+                datsuprow=dat2(i,:);
+                F2_downsample_row=F2_i(i,:);
+                F2_downsample_row(isnan(rowinterest))=[];
+                F1_downsample_row=F1_i(i,:);
+                F1_downsample_row(isnan(rowinterest))=[];
+                datsuprow(isnan(rowinterest))=[];
+                rowinterest(isnan(rowinterest))=[];
+                randsampledown = randperm(s,length(rowinterest),(length(rowinterest)-smallestsamplesize)); %590 is the smallest
+                rowinterest(randsampledown)=[];
+                 F2_downsample_row(randsampledown)=[];
+                 F1_downsample_row(randsampledown)=[];
+                 datsuprow(randsampledown)=[];
+                 F1_downsample(i,:)=F1_downsample_row;
+                  F2_downsample(i,:)=F2_downsample_row;
+                dat_downsample(i,:)=rowinterest;
+                datsup_downsample(i,:)=datsuprow;
+            end
+
+%             F1(isnan(dat))=[];
+%             F2(isnan(dat))=[];
+            
+%             F1(randsampledown)=[];
+%             F2(randsampledown)=[];
+%             dat(randsampledown)=[];
+            dataforanova=[dataforanova, dat_downsample];
+            dataforanovasup=[dataforanovasup, datsup_downsample];
+             F1=[F1,F1_downsample];
+             F2=[F2,F2_downsample];
            % countelect(AMP,:)=sum(~isnan(dat),2);
             errorbar(1:5,spikcount(AMP,:),spikecountsem(AMP,:),'Color',map3(AMP,:),'LineWidth', 1.5) 
             p(2,2).select();
             hold on;
-            dat2=reshape(permute(spikecountStitchsup.(AMPcheck),[2,1,3]),[5,64*size(spikecountStitch.(AMPcheck),3)]);
+            
             errorbar(1:5,mean(dat2,2,'omitnan'),SEM(dat2,1),'Color',map3(AMP,:),'LineWidth', 1.5) 
-             dataforanovasup=[dataforanovasup, dat2];
+             
              supspikecount(AMP,:)=mean(dat2,2,'omitnan');
               spikecountsemsup(AMP,:)=SEM(dat2,1);
-              numelect(AMP,:)=sum(~isnan(dat),2);
+              numelect(AMP,:)=sum(~isnan(dat_downsample),2);
+               numelect2(AMP,:)=sum(~isnan(datsup_downsample),2);
         end
 
 end
@@ -800,7 +860,7 @@ p(1,2).select();
 p(3,1).select();
 h=surf(AMPall,Pulseall,spikcount','FaceColor','interp','EdgeColor','none');
 ax = h.Parent; % Get the axes handle
-ax.DataAspectRatio = [2 1 1];
+ax.DataAspectRatio = [2 1 10];
 view(2)
 zlabel('Sp/s')
 xlabel('Current \muA')
@@ -812,7 +872,7 @@ hcb.Title.String = "Sp/s";
 p(3,2).select();
 h=surf(AMPall,Pulseall,supspikecount','FaceColor','interp','EdgeColor','none');
  ax = h.Parent; % Get the axes handle
-    ax.DataAspectRatio = [2 1 1];
+    ax.DataAspectRatio = [2 1 10];
 view(2)
 zlabel('Sp/s')
 xlabel('Current \muA')
@@ -823,7 +883,7 @@ hcb.Title.String = "Sp/s";
 
 
 figure
-[p,tbl,stats]=anovan(dataforanova(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"]);
+[p,tbl,stats]=anovan(dataforanova(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"],'model', 'interaction');
 axis square
 [results,tbl,h,gnames] = multcompare(stats,"Dimension",[1 2]);
 title('4-30ms stitched data spike count')
@@ -883,7 +943,7 @@ for i=1:length(results)
 end
 
 figure;
-[p,tbl,stats]=anovan(dataforanovasup(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"]);
+[p,tbl,stats]=anovan(dataforanovasup(:),{F1(:),F2(:)},"Varnames",["Current","Pulse"],'model', 'interaction');
 [results,~,~,gnames] = multcompare(stats,"Dimension",[1 2]);
 title('30-75ms stitched data spike count')
 x=categorical(gnames);
@@ -1242,7 +1302,7 @@ p(1,1).select();
 colormap(map4)
 title('Time to return to baseline')
 hold on
-[f,~]=fit(xamp(:),zdat(:),'poly1');
+[f,gof1]=fit(xamp(:),zdat(:),'poly1');
 for i=1:5
 errorbar(xamp(:,i),zdat(:,i),zsem(:,i),'Color',map4(i,:),"LineStyle",'none',"Marker",'*');
 end
@@ -1256,7 +1316,7 @@ p(1,2).select();
 title('Time to return to baseline following suppresion')
 hold on
 colormap(map3)
-[f,~]=fit(ypulse(:),zdat(:),'poly1');
+[f,gof2]=fit(ypulse(:),zdat(:),'poly1');
 for i=1:5
 errorbar(ypulse(i,:),zdat(i,:),zsem(i,:),'Color',map3(i,:),"LineStyle",'none',"Marker",'*');
 end
@@ -1280,7 +1340,7 @@ p(2,1).select();
 colormap(map4)
 title('Time above 1SD of baseline')
 hold on
-[f,~]=fit(xamp(:),zdat(:),'poly1');
+[f,gof3]=fit(xamp(:),zdat(:),'poly1');
 for i=1:5
 errorbar(xamp(:,i),zdat(:,i),zsem(:,i),'Color',map4(i,:),"LineStyle",'none',"Marker",'*');
 end
@@ -1294,7 +1354,7 @@ p(2,2).select();
 title('Time above 1SD of baseline')
 hold on
 colormap(map3)
-[f,~]=fit(ypulse(:),zdat(:),'poly1');
+[f,gof4]=fit(ypulse(:),zdat(:),'poly1');
 for i=1:5
 errorbar(ypulse(i,:),zdat(i,:),zsem(i,:),'Color',map3(i,:),"LineStyle",'none',"Marker",'*');
 end
@@ -1323,144 +1383,17 @@ mdl_pos=fitlm([ypulse(:),xamp(:)],zdat(:));%% for significance testing
 % % caxis([min(zdat) max(zdat)])
 % title('Mean supp sp/s')
 
-
-
-%now plot datincludestack also make sure the data is significant
-datincludestack_supression=datincludestack;
-ratespiking_mean=zeros(length(AMPall),length(Pulseall));    
-ratespiking_std=zeros(length(AMPall),length(Pulseall));
-ratepeak=zeros(length(AMPall),length(Pulseall));
-ratepeakstd=zeros(length(AMPall),length(Pulseall));
-numelect=zeros(length(AMPall)+1,5+1);
-numelect(1,2:end)=Pulseall;
-numelect(2:end,1)=AMPall';
-figure;
-p = panel();
-p.pack(2, 3);
-for AMP=1:length(AMPall)
-    AMPcheck=['A' num2str(AMPall(AMP))];
-    if AMP<4
-        p(1,AMP).select();
-    else
-        p(2,AMP-3).select();
-    end
-    ax=p.de.axis;
-    ax=ax(AMP);
-    hold on
-    for Pulse=1:5
-        Pulsecheck=['P' num2str(Pulse)];
-        timepeak=round(90+Pulse*3.333):round(120+Pulse*3.333);
-        if isfield(datincludestack,(AMPcheck)) && isfield(datincludestack.(AMPcheck),(Pulsecheck))
-%             thresh = squeeze(mean(datincludestack.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)+(std(datincludestack.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*3));
-%             notsigsingle = squeeze(mean(datincludestack.(AMPcheck).(Pulsecheck)(:,timepeak),2))<=thresh;
-%             datincludestack.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
-            numelect(AMP+1,Pulse+1)= sum(~isnan(datincludestack.(AMPcheck).(Pulsecheck)(:,1)));
-            length(notsigsingle)-sum(notsigsingle)
-            ratespiking_mean(AMP,Pulse)=nanmean(datincludestack.(AMPcheck).(Pulsecheck)(:,timepeak),'all');%nanmean(maxdat(maxdat~=0),'all');%nanmean(ratespiking.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
-            ratespiking_std(AMP,Pulse)=SEM(datincludestack.(AMPcheck).(Pulsecheck)(:,timepeak),0);
-            %peakvals
-            maxdat=max(datincludestack.(AMPcheck).(Pulsecheck)(:,round(90+Pulse*3.333):round(95+Pulse*3.333)),[],2);
-            ratepeak(AMP,Pulse)=mean(maxdat,'omitnan');
-            ratepeakstd(AMP,Pulse)=SEM(maxdat,0);
-            stdshade(datincludestack.(AMPcheck).(Pulsecheck),0.2,map4(Pulse,:),[-90:300], 1,ax);
-        end
-    end
-    xlim([-90,90])
-    title(['Select data NOT stitch ' num2str(AMPall(AMP)) '\muA'])
-    axis square
-    ylabel('Sp/s')
-    xlabel('Time (ms)')
-    set(gca,'TickDir','out');
-    ylim([0 95])
-    for j = 2:size(numelect,2)
-        text(j*10-80, 65, num2str(numelect(AMP+1,j)), 'HorizontalAlignment', 'center');
-    end
-
-end
-% p(2,3).select();
-% hold on
-% for Pulse=1:5
-%     errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
-% end
-% lgd=legend('2','3','4','5');
-% lgd.Title.String = '# pulses';
-% title('Average 1-40ms after stim')
-% ylabel('Sp/s')
-% xlabel('Current \muA')
-% set(gca,'TickDir','out');
-
-%plot the peak data and average
-figure;
-p = panel;
-p.pack(1,2)
-p(1,1).select();
-hold on
-for Pulse=1:5
-    errorbar(AMPall,ratepeak(:,Pulse),ratepeakstd(:,Pulse),'color',map4(Pulse,:), 'LineWidth', 1.5)
-end
-lgd=legend('2','3','4','5');
-lgd.Title.String = '# pulses';
-title('Select data NOT stitch Peak response')
-ylabel('Sp/s')
-xlabel('Current \muA')
-set(gca,'TickDir','out');
-axis square
-%for p2 plot the average
-p(1,2).select();
-hold on
-for Pulse=1:5
-    errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'color',map4(Pulse,:), 'LineWidth', 1.5)
-end
-
-lgd=legend('2','3','4','5');
-lgd.Title.String = '# pulses';
-title('Select data NOT stitch Average 1-30ms after stim')
-ylabel('Sp/s')
-xlabel('Current \muA')
-set(gca,'TickDir','out');
-axis square
-
-%% plot against Pulse on x axis and current as different lines
-
-figure;
-p = panel;
-p.pack(1,2)
-p(1,1).select();
-hold on
-for AMP=1:length(AMPall)
-    errorbar(Pulseall,ratepeak(AMP,:),ratepeakstd(AMP,:),'Color',map3(AMP,:))
-end
-lgd=legend('2','5','6','8','10');
-lgd.Title.String = 'Current \muA';
-title('Select data NOT stitch Peak response')
-axis square
-ylabel('Sp/s')
-xlabel('# Pulses')
-set(gca,'TickDir','out');
-%for p2 plot the average
-p(1,2).select();
-hold on
-for AMP=1:length(AMPall)
-    errorbar(Pulseall,ratespiking_mean(AMP,:),ratespiking_std(AMP,:),'Color',map3(AMP,:))
-end
-lgd=legend('2','5','6','8','10');
-lgd.Title.String = 'Current \muA';
-axis square
-title('Select data NOT stitch Average 1-30ms after stim')
-ylabel('Sp/s')
-xlabel('# Pulses')
-set(gca,'TickDir','out');
-end
-%%
-% %suppression data
-% ratespiking_suppression_mean=zeros(length(AMPall),length(Pulseall));
-% ratespiking_suppression_std=zeros(length(AMPall),length(Pulseall));
-% ratepeak_suppression=zeros(length(AMPall),length(Pulseall));
-% ratepeakstd_suppression=zeros(length(AMPall),length(Pulseall));
+% 
+% 
+% %now plot datincludestack also make sure the data is significant
+% datincludestack_supression=datincludestack;
+% ratespiking_mean=zeros(length(AMPall),length(Pulseall));    
+% ratespiking_std=zeros(length(AMPall),length(Pulseall));
+% ratepeak=zeros(length(AMPall),length(Pulseall));
+% ratepeakstd=zeros(length(AMPall),length(Pulseall));
 % numelect=zeros(length(AMPall)+1,5+1);
 % numelect(1,2:end)=Pulseall;
 % numelect(2:end,1)=AMPall';
-% 
 % figure;
 % p = panel();
 % p.pack(2, 3);
@@ -1476,36 +1409,38 @@ end
 %     hold on
 %     for Pulse=1:5
 %         Pulsecheck=['P' num2str(Pulse)];
-%         timesup=round(100+Pulse*3.333):175;
-%         if isfield(datincludestack_supression,(AMPcheck)) && isfield(datincludestack_supression.(AMPcheck),(Pulsecheck))
-%             thresh = squeeze(mean(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)-(std(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*SD_supression));
-%             notsigsingle = squeeze(mean(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),2))>=thresh;
-%             datincludestack_supression.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
-%             numelect(AMP+1,Pulse+1)= sum(~isnan(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,1)));
+%         timepeak=round(90+Pulse*3.333):round(120+Pulse*3.333);
+%         if isfield(datincludestack,(AMPcheck)) && isfield(datincludestack.(AMPcheck),(Pulsecheck))
+% %             thresh = squeeze(mean(datincludestack.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)+(std(datincludestack.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*3));
+% %             notsigsingle = squeeze(mean(datincludestack.(AMPcheck).(Pulsecheck)(:,timepeak),2))<=thresh;
+% %             datincludestack.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
+%             numelect(AMP+1,Pulse+1)= sum(~isnan(datincludestack.(AMPcheck).(Pulsecheck)(:,1)));
 %             length(notsigsingle)-sum(notsigsingle)
-%             ratespiking_suppression_mean(AMP,Pulse)=nanmean(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),'all');
-%             ratespiking_suppression_std(AMP,Pulse)=SEM(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),0);
+%             ratespiking_mean(AMP,Pulse)=nanmean(datincludestack.(AMPcheck).(Pulsecheck)(:,timepeak),'all');%nanmean(maxdat(maxdat~=0),'all');%nanmean(ratespiking.(AMPcheck).(Pulsecheck)(:,avgtime),'all');
+%             ratespiking_std(AMP,Pulse)=SEM(datincludestack.(AMPcheck).(Pulsecheck)(:,timepeak),0);
 %             %peakvals
-%             maxdat=max(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),[],2);
-%             ratepeak_suppression(AMP,Pulse)=mean(maxdat,'omitnan');
-%             ratepeakstd_suppression(AMP,Pulse)=SEM(maxdat,0);
-%             stdshade(datincludestack_supression.(AMPcheck).(Pulsecheck),0.2,[0 Pulse/length(Pulseall) 1/Pulse],[-90:300],1,ax);
+%             maxdat=max(datincludestack.(AMPcheck).(Pulsecheck)(:,round(90+Pulse*3.333):round(95+Pulse*3.333)),[],2);
+%             ratepeak(AMP,Pulse)=mean(maxdat,'omitnan');
+%             ratepeakstd(AMP,Pulse)=SEM(maxdat,0);
+%             stdshade(datincludestack.(AMPcheck).(Pulsecheck),0.2,map4(Pulse,:),[-90:300], 1,ax);
 %         end
 %     end
 %     xlim([-90,90])
-%     title(['Select data NOT stitch suppression' num2str(AMPall(AMP)) '\muA'])
+%     title(['Select data NOT stitch ' num2str(AMPall(AMP)) '\muA'])
+%     axis square
 %     ylabel('Sp/s')
 %     xlabel('Time (ms)')
 %     set(gca,'TickDir','out');
-%     ylim([-20 75])
+%     ylim([0 95])
 %     for j = 2:size(numelect,2)
 %         text(j*10-80, 65, num2str(numelect(AMP+1,j)), 'HorizontalAlignment', 'center');
 %     end
+% 
 % end
 % % p(2,3).select();
 % % hold on
 % % for Pulse=1:5
-% %     errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+% %     errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
 % % end
 % % lgd=legend('2','3','4','5');
 % % lgd.Title.String = '# pulses';
@@ -1521,39 +1456,44 @@ end
 % p(1,1).select();
 % hold on
 % for Pulse=1:5
-%     errorbar(AMPall,ratepeak_suppression(:,Pulse),ratepeakstd_suppression(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+%     errorbar(AMPall,ratepeak(:,Pulse),ratepeakstd(:,Pulse),'color',map4(Pulse,:), 'LineWidth', 1.5)
 % end
 % lgd=legend('2','3','4','5');
 % lgd.Title.String = '# pulses';
-% title('Select data NOT stitch suppression Peak response')
+% title('Select data NOT stitch Peak response')
 % ylabel('Sp/s')
 % xlabel('Current \muA')
 % set(gca,'TickDir','out');
+% axis square
 % %for p2 plot the average
 % p(1,2).select();
 % hold on
 % for Pulse=1:5
-%     errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+%     errorbar(AMPall,ratespiking_mean(:,Pulse),ratespiking_std(:,Pulse),'color',map4(Pulse,:), 'LineWidth', 1.5)
 % end
+% 
 % lgd=legend('2','3','4','5');
 % lgd.Title.String = '# pulses';
-% title('Select data NOT stitch suppression Average 1-30ms after stim')
+% title('Select data NOT stitch Average 1-30ms after stim')
 % ylabel('Sp/s')
 % xlabel('Current \muA')
 % set(gca,'TickDir','out');
+% axis square
 % 
-% %plot based on pulses
+% %% plot against Pulse on x axis and current as different lines
+% 
 % figure;
 % p = panel;
 % p.pack(1,2)
 % p(1,1).select();
 % hold on
 % for AMP=1:length(AMPall)
-%     errorbar(Pulseall,ratepeak_suppression(AMP,:),ratepeakstd_suppression(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+%     errorbar(Pulseall,ratepeak(AMP,:),ratepeakstd(AMP,:),'Color',map3(AMP,:))
 % end
 % lgd=legend('2','5','6','8','10');
 % lgd.Title.String = 'Current \muA';
-% title('Select data NOT stitch suppression Peak response')
+% title('Select data NOT stitch Peak response')
+% axis square
 % ylabel('Sp/s')
 % xlabel('# Pulses')
 % set(gca,'TickDir','out');
@@ -1561,13 +1501,133 @@ end
 % p(1,2).select();
 % hold on
 % for AMP=1:length(AMPall)
-%     errorbar(Pulseall,ratespiking_suppression_mean(AMP,:),ratespiking_suppression_std(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+%     errorbar(Pulseall,ratespiking_mean(AMP,:),ratespiking_std(AMP,:),'Color',map3(AMP,:))
 % end
 % lgd=legend('2','5','6','8','10');
 % lgd.Title.String = 'Current \muA';
-% title('Select data NOT stitch suppression Average 1-30ms after stim')
+% axis square
+% title('Select data NOT stitch Average 1-30ms after stim')
 % ylabel('Sp/s')
 % xlabel('# Pulses')
 % set(gca,'TickDir','out');
-% 
 % end
+% %%
+% % %suppression data
+% % ratespiking_suppression_mean=zeros(length(AMPall),length(Pulseall));
+% % ratespiking_suppression_std=zeros(length(AMPall),length(Pulseall));
+% % ratepeak_suppression=zeros(length(AMPall),length(Pulseall));
+% % ratepeakstd_suppression=zeros(length(AMPall),length(Pulseall));
+% % numelect=zeros(length(AMPall)+1,5+1);
+% % numelect(1,2:end)=Pulseall;
+% % numelect(2:end,1)=AMPall';
+% % 
+% % figure;
+% % p = panel();
+% % p.pack(2, 3);
+% % for AMP=1:length(AMPall)
+% %     AMPcheck=['A' num2str(AMPall(AMP))];
+% %     if AMP<4
+% %         p(1,AMP).select();
+% %     else
+% %         p(2,AMP-3).select();
+% %     end
+% %     ax=p.de.axis;
+% %     ax=ax(AMP);
+% %     hold on
+% %     for Pulse=1:5
+% %         Pulsecheck=['P' num2str(Pulse)];
+% %         timesup=round(100+Pulse*3.333):175;
+% %         if isfield(datincludestack_supression,(AMPcheck)) && isfield(datincludestack_supression.(AMPcheck),(Pulsecheck))
+% %             thresh = squeeze(mean(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),2)-(std(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,subselectbaseline),[],2).*SD_supression));
+% %             notsigsingle = squeeze(mean(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),2))>=thresh;
+% %             datincludestack_supression.(AMPcheck).(Pulsecheck)(notsigsingle,:)=nan;
+% %             numelect(AMP+1,Pulse+1)= sum(~isnan(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,1)));
+% %             length(notsigsingle)-sum(notsigsingle)
+% %             ratespiking_suppression_mean(AMP,Pulse)=nanmean(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),'all');
+% %             ratespiking_suppression_std(AMP,Pulse)=SEM(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),0);
+% %             %peakvals
+% %             maxdat=max(datincludestack_supression.(AMPcheck).(Pulsecheck)(:,timesup),[],2);
+% %             ratepeak_suppression(AMP,Pulse)=mean(maxdat,'omitnan');
+% %             ratepeakstd_suppression(AMP,Pulse)=SEM(maxdat,0);
+% %             stdshade(datincludestack_supression.(AMPcheck).(Pulsecheck),0.2,[0 Pulse/length(Pulseall) 1/Pulse],[-90:300],1,ax);
+% %         end
+% %     end
+% %     xlim([-90,90])
+% %     title(['Select data NOT stitch suppression' num2str(AMPall(AMP)) '\muA'])
+% %     ylabel('Sp/s')
+% %     xlabel('Time (ms)')
+% %     set(gca,'TickDir','out');
+% %     ylim([-20 75])
+% %     for j = 2:size(numelect,2)
+% %         text(j*10-80, 65, num2str(numelect(AMP+1,j)), 'HorizontalAlignment', 'center');
+% %     end
+% % end
+% % % p(2,3).select();
+% % % hold on
+% % % for Pulse=1:5
+% % %     errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+% % % end
+% % % lgd=legend('2','3','4','5');
+% % % lgd.Title.String = '# pulses';
+% % % title('Average 1-40ms after stim')
+% % % ylabel('Sp/s')
+% % % xlabel('Current \muA')
+% % % set(gca,'TickDir','out');
+% % 
+% % %plot the peak data and average
+% % figure;
+% % p = panel;
+% % p.pack(1,2)
+% % p(1,1).select();
+% % hold on
+% % for Pulse=1:5
+% %     errorbar(AMPall,ratepeak_suppression(:,Pulse),ratepeakstd_suppression(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+% % end
+% % lgd=legend('2','3','4','5');
+% % lgd.Title.String = '# pulses';
+% % title('Select data NOT stitch suppression Peak response')
+% % ylabel('Sp/s')
+% % xlabel('Current \muA')
+% % set(gca,'TickDir','out');
+% % %for p2 plot the average
+% % p(1,2).select();
+% % hold on
+% % for Pulse=1:5
+% %     errorbar(AMPall,ratespiking_suppression_mean(:,Pulse),ratespiking_suppression_std(:,Pulse),'Color',[0 Pulse/length(Pulseall) 1/Pulse])
+% % end
+% % lgd=legend('2','3','4','5');
+% % lgd.Title.String = '# pulses';
+% % title('Select data NOT stitch suppression Average 1-30ms after stim')
+% % ylabel('Sp/s')
+% % xlabel('Current \muA')
+% % set(gca,'TickDir','out');
+% % 
+% % %plot based on pulses
+% % figure;
+% % p = panel;
+% % p.pack(1,2)
+% % p(1,1).select();
+% % hold on
+% % for AMP=1:length(AMPall)
+% %     errorbar(Pulseall,ratepeak_suppression(AMP,:),ratepeakstd_suppression(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+% % end
+% % lgd=legend('2','5','6','8','10');
+% % lgd.Title.String = 'Current \muA';
+% % title('Select data NOT stitch suppression Peak response')
+% % ylabel('Sp/s')
+% % xlabel('# Pulses')
+% % set(gca,'TickDir','out');
+% % %for p2 plot the average
+% % p(1,2).select();
+% % hold on
+% % for AMP=1:length(AMPall)
+% %     errorbar(Pulseall,ratespiking_suppression_mean(AMP,:),ratespiking_suppression_std(AMP,:),'Color',[0 AMP/length(AMPall) 1/AMP])
+% % end
+% % lgd=legend('2','5','6','8','10');
+% % lgd.Title.String = 'Current \muA';
+% % title('Select data NOT stitch suppression Average 1-30ms after stim')
+% % ylabel('Sp/s')
+% % xlabel('# Pulses')
+% % set(gca,'TickDir','out');
+% % 
+% % end
