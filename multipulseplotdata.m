@@ -744,7 +744,7 @@ end
 % plot spikecountstitch average for each pulse on a figure for each amplitude
 figure;
 p=panel();
-p.pack(3,2);
+p.pack(2,2);
 spikcount=nan(5,5);
 spikecountsem=nan(5,5);
 supspikecount=nan(5,5);
@@ -812,7 +812,7 @@ for AMP=1:length(AMPall)
              
              supspikecount(AMP,:)=mean(dat2,2,'omitnan');
               spikecountsemsup(AMP,:)=SEM(dat2,1);
-              numelect(AMP,:)=sum(~isnan(dat_downsample),2);
+              numelect(AMP,:)=sum(~isnan(dat),2);
                numelect2(AMP,:)=sum(~isnan(datsup_downsample),2);
         end
 
@@ -856,8 +856,10 @@ p(1,2).select();
     lgd=legend('1','2','3','4','5');
     lgd.Title.String = '# Pulses';
     axis square
-
-p(3,1).select();
+figure
+p=panel();
+p.pack(2,2)
+p(2,1).select();
 h=surf(AMPall,Pulseall,spikcount','FaceColor','interp','EdgeColor','none');
 ax = h.Parent; % Get the axes handle
 ax.DataAspectRatio = [2 1 10];
@@ -869,7 +871,7 @@ title('excite')
 hcb=colorbar;
 hcb.Title.String = "Sp/s";
 set(gca,'TickDir','out');
-p(3,2).select();
+p(2,2).select();
 h=surf(AMPall,Pulseall,supspikecount','FaceColor','interp','EdgeColor','none');
  ax = h.Parent; % Get the axes handle
     ax.DataAspectRatio = [2 1 10];
